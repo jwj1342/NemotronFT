@@ -152,12 +152,27 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | 内存 | 80G | 120G |
 | max_steps | 10 | 500 |
 | batch_size | 1 | 1 |
-| grad_acc | 1 | 8（等效 batch 8） |
-| max_length | 512 | 2048 |
+| grad_acc | **1**（等效 batch 1） | **8**（等效 batch 8） |
+| max_length | **512**（长样本被截断） | **2048** |
 | 学习率 | 2e-4 | 2e-4，cosine decay |
 | warmup_steps | 50 | 50 |
 | 优化器 | AdamW Fused | AdamW Fused |
 | 精度 | BF16 | BF16 |
+
+**调试 vs 正式的核心差异**（除 step 数以外）：
+
+- `grad_acc`：调试为 1，正式为 8——正式训练的等效 batch size 是调试的 8 倍，梯度估计更稳定
+- `max_length`：调试为 512，超长样本会被截断导致 answer 残缺；正式为 2048，能完整覆盖绝大多数样本
+- GPU 数量：调试单卡，正式双卡（`device_map="balanced"` 自动均分）
+
+**数据覆盖情况**（训练集约 69k 条，batch_size=1）：
+
+| 配置 | 实际消费样本数 | 占全集比例 |
+|------|-------------|-----------|
+| 调试 10 步 | 10 条 | ~0.01% |
+| 正式 500 步 | 500 条 | ~0.7% |
+
+完整跑一个 epoch 需约 8625 步（grad_acc=8）。当前 500 步仅为快速验证，**并非完整训练**。
 
 ### LoRA 配置
 
@@ -170,9 +185,9 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | 可训练参数 | ~880M / 32.5B（2.71%） |
 | 模型加载方式 | `device_map="balanced"`（多卡模型并行，非 DDP） |
 
-### 数据格式
+### 数据格式与监督 Loss
 
-每条样本格式化为 ChatML 对话，仅对 assistant 回复计算 loss（user 部分 label 设为 -100）：
+每条样本格式化为 ChatML 对话，**仅对 assistant 回复部分计算 loss**（user prefix 的 label 全部设为 -100，PyTorch 自动跳过）：
 
 ```
 <|im_start|>user
@@ -180,7 +195,10 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 Please put your final answer inside `\boxed{}`. For example: `\boxed{your answer}`<|im_end|>
 <|im_start|>assistant
 <think></think>\boxed{answer}<|im_end|>
+← 只有这部分 token 参与 loss 计算 →
 ```
+
+Loss 类型为标准 **Cross-Entropy next-token prediction**，目标是让模型在给定 prompt 后直接输出正确的 `\boxed{answer}`。其中 `<think></think>` 是 `enable_thinking=False` 时 chat template 自动插入的空思考块。
 
 ---
 
