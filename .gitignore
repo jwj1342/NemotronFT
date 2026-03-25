@@ -1,0 +1,29 @@
+# ── Model weights (too large for git) ────────────────────────────────────────
+model/
+output/
+
+# ── Data files ────────────────────────────────────────────────────────────────
+data/train.csv
+data/test.csv
+
+# ── Python virtual environment ────────────────────────────────────────────────
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# ── Log files ─────────────────────────────────────────────────────────────────
+logs/*.out
+logs/*.err
+
+# ── OS / editor artifacts ─────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+*.egg-info/
+
+# ── Jupyter / IPython ─────────────────────────────────────────────────────────
+.ipynb_checkpoints/
