@@ -28,6 +28,7 @@ NemotronFT/
 │   └── submit.sh                 # 上传 submission.zip 到 Kaggle
 ├── logs/                         # 所有 SBATCH 作业的 .out / .err 日志
 ├── official-doc/                 # 比赛官方 notebook（metric、submission demo）
+├── resource/                     # 社区参考 notebook（其他选手的训练方案，仅供参考）
 └── venv/                         # Python 虚拟环境（python/3.11.5）
 ```
 
@@ -58,7 +59,7 @@ bash scripts/download_model.sh
 sbatch baseline/run_baseline.sbatch
 ```
 
-当前 sbatch 脚本为调试配置（1× H100，10 步，max_length=512），跑完约 2 分钟。
+当前 sbatch 脚本为正式训练配置（1× H100，1 epoch，max_length=1024），跑完约 30 分钟。
 查看日志：
 
 ```bash
@@ -76,27 +77,7 @@ Done. Submission saved to: .../output/submission.zip
 
 ### Step 3：正式训练
 
-调试通过后，修改 `baseline/run_baseline.sbatch` 为正式配置：
-
-```bash
-# 修改以下 SBATCH 参数：
-#SBATCH --time=4:00:00
-#SBATCH --gpus-per-node=h100:2
-#SBATCH --cpus-per-task=28
-#SBATCH --mem=120G
-
-# 修改训练参数：
-python baseline/train.py \
-    --output_dir   output/baseline-lora \
-    --max_steps    500 \
-    --batch_size   1 \
-    --grad_acc     8 \
-    --max_length   2048 \
-    --lora_rank    32 \
-    --lora_alpha   64
-```
-
-然后重新提交：
+直接提交 sbatch 脚本（已为正式训练配置）：
 
 ```bash
 sbatch baseline/run_baseline.sbatch
@@ -145,41 +126,29 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 
 ## Baseline 训练配置
 
-| 参数 | 调试值 | 正式值 |
-|------|--------|--------|
-| GPU | 1× H100 | 2× H100 |
-| 时间限制 | 1h | 4h |
-| 内存 | 80G | 120G |
-| max_steps | 10 | 500 |
-| batch_size | 1 | 1 |
-| grad_acc | **1**（等效 batch 1） | **8**（等效 batch 8） |
-| max_length | **512**（长样本被截断） | **2048** |
-| 学习率 | 2e-4 | 2e-4，cosine decay |
-| warmup_steps | 50 | 50 |
-| 优化器 | AdamW Fused | AdamW Fused |
-| 精度 | BF16 | BF16 |
+| 参数 | 值 |
+|------|-----|
+| GPU | 1× H100 |
+| 时间限制 | 2h |
+| 内存 | 80G |
+| 数据采样 | 分层采样：6 类别各 200 条，共 1200 条 |
+| max_steps | -1（完整 1 epoch，约 150 步） |
+| batch_size | 1，grad_acc=8（等效 batch 8） |
+| max_length | 1024 |
+| 学习率 | 2e-4，cosine decay |
+| warmup | `warmup_ratio=0.05`（总步数的 5%，约 8 步） |
+| 优化器 | AdamW Fused |
+| 精度 | BF16 |
+| NEFTune | noise_alpha=5.0 |
 
-**调试 vs 正式的核心差异**（除 step 数以外）：
-
-- `grad_acc`：调试为 1，正式为 8——正式训练的等效 batch size 是调试的 8 倍，梯度估计更稳定
-- `max_length`：调试为 512，超长样本会被截断导致 answer 残缺；正式为 2048，能完整覆盖绝大多数样本
-- GPU 数量：调试单卡，正式双卡（`device_map="balanced"` 自动均分）
-
-**数据覆盖情况**（训练集约 69k 条，batch_size=1）：
-
-| 配置 | 实际消费样本数 | 占全集比例 |
-|------|-------------|-----------|
-| 调试 10 步 | 10 条 | ~0.01% |
-| 正式 500 步 | 500 条 | ~0.7% |
-
-完整跑一个 epoch 需约 8625 步（grad_acc=8）。当前 500 步仅为快速验证，**并非完整训练**。
+**数据采样策略**：按任务类别（`bit_ops` / `cipher` / `numeral` / `gravity` / `symbol` / `unit_conv`）分层抽取，每类各 200 条，消除类别不均衡问题。
 
 ### LoRA 配置
 
 | 参数 | 值 |
 |------|----|
 | rank | 32 |
-| alpha | 64 |
+| alpha | 16（scaling ratio = 0.5） |
 | dropout | 0.05 |
 | target_modules | `in_proj`, `out_proj`, `up_proj`, `down_proj` |
 | 可训练参数 | ~880M / 32.5B（2.71%） |
@@ -194,11 +163,11 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 {prompt}
 Please put your final answer inside `\boxed{}`. For example: `\boxed{your answer}`<|im_end|>
 <|im_start|>assistant
-<think></think>\boxed{answer}<|im_end|>
+\boxed{answer}<|im_end|>
 ← 只有这部分 token 参与 loss 计算 →
 ```
 
-Loss 类型为标准 **Cross-Entropy next-token prediction**，目标是让模型在给定 prompt 后直接输出正确的 `\boxed{answer}`。其中 `<think></think>` 是 `enable_thinking=False` 时 chat template 自动插入的空思考块。
+Loss 类型为标准 **Cross-Entropy next-token prediction**，目标是让模型在给定 prompt 后直接输出正确的 `\boxed{answer}`。chat template 的 `<think></think>` 前缀已被主动 strip，训练目标中不含任何 think token。
 
 ---
 
@@ -242,4 +211,4 @@ zip 必须包含的文件：
 | `mamba-ssm` CUDA 扩展与 torch 2.9+ ABI 不兼容 | 先安装 mamba-ssm，让 pip 自动选择兼容的 torch 版本 |
 | `mamba-ssm` 导入 `GreedySearchDecoderOnlyOutput`（transformers 5.x 已删除） | `train.py` 顶部注入 dummy 占位类 |
 | `TrainingArguments` 不再支持 `no_cuda` 参数 | 已删除该参数 |
-| `warmup_ratio` 在 transformers 5.3 中废弃 | 改用 `warmup_steps` |
+| `warmup_steps` 固定值难以适配不同步数 | 改用 `warmup_ratio=0.05`（自适应） |

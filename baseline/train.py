@@ -3,10 +3,12 @@ baseline/train.py — LoRA fine-tuning baseline for NVIDIA Nemotron-3-Nano-30B.
 
 The script:
   1. Loads the base model in BF16, split across available GPUs via device_map="balanced".
-  2. Wraps it with a PEFT LoRA adapter (rank=32, matching the competition target modules).
-  3. Trains on train.csv with a supervised next-token objective, masking the user turn
-     so only the assistant response (the \\boxed{answer}) contributes to the loss.
-  4. Saves the adapter to OUTPUT_DIR.
+  2. Wraps it with a PEFT LoRA adapter (rank=32, alpha=16).
+  3. Stratified-samples train.csv (default: 200 samples per task category).
+  4. Trains on a supervised next-token objective, masking the user turn so only the
+     assistant response (the \\boxed{answer}) contributes to the loss.
+  5. Uses NEFTune (noise_alpha=5) to regularise embedding space.
+  6. Saves the adapter to OUTPUT_DIR.
 
 Usage (usually invoked by run_baseline.sbatch):
   python baseline/train.py [--max_steps N] [--output_dir PATH]
@@ -15,7 +17,9 @@ Usage (usually invoked by run_baseline.sbatch):
 import argparse
 import csv
 import os
+import random
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,7 +27,6 @@ from pathlib import Path
 # mamba-ssm <= 2.2.4 imports GreedySearchDecoderOnlyOutput / SampleDecoderOnlyOutput
 # from transformers.generation, but these were removed in transformers >= 4.40.
 # We inject dummy classes so the import chain doesn't fail at model load time.
-# Training doesn't use mamba-ssm's generation utilities at all.
 import transformers.generation as _tg
 if not hasattr(_tg, "GreedySearchDecoderOnlyOutput"):
     @dataclass
@@ -50,28 +53,33 @@ DATA_PATH    = str(PROJECT_ROOT / "data" / "train.csv")
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
-parser.add_argument("--output_dir",          default=str(PROJECT_ROOT / "output" / "baseline-lora"))
-parser.add_argument("--max_steps",     type=int, default=500,
-                    help="Training steps. Use -1 to train for a full epoch.")
-parser.add_argument("--num_train_samples", type=int, default=-1,
-                    help="Subsample training set. -1 = use all.")
-parser.add_argument("--batch_size",    type=int, default=1)
-parser.add_argument("--grad_acc",      type=int, default=8)
-parser.add_argument("--lr",            type=float, default=2e-4)
-parser.add_argument("--max_length",    type=int, default=2048)
-parser.add_argument("--lora_rank",     type=int, default=32)
-parser.add_argument("--lora_alpha",    type=int, default=64)
+parser.add_argument("--output_dir",        default=str(PROJECT_ROOT / "output" / "baseline-lora"))
+parser.add_argument("--max_steps",   type=int,   default=-1,
+                    help="Training steps. -1 = train for a full epoch.")
+parser.add_argument("--samples_per_class", type=int, default=200,
+                    help="Samples to draw per task category (stratified sampling).")
+parser.add_argument("--batch_size",  type=int,   default=1)
+parser.add_argument("--grad_acc",    type=int,   default=8)
+parser.add_argument("--lr",          type=float, default=2e-4)
+parser.add_argument("--max_length",  type=int,   default=1024)
+parser.add_argument("--lora_rank",   type=int,   default=32)
+parser.add_argument("--lora_alpha",  type=int,   default=16)
+parser.add_argument("--neftune_alpha", type=float, default=5.0,
+                    help="NEFTune noise alpha. Set 0 to disable.")
 args = parser.parse_args()
 
-print(f"[config] output_dir       = {args.output_dir}")
-print(f"[config] max_steps        = {args.max_steps}")
-print(f"[config] batch_size       = {args.batch_size}")
-print(f"[config] grad_acc         = {args.grad_acc}")
-print(f"[config] lr               = {args.lr}")
-print(f"[config] max_length       = {args.max_length}")
-print(f"[config] lora_rank        = {args.lora_rank}")
-print(f"[config] torch version    = {torch.__version__}")
-print(f"[config] GPUs available   = {torch.cuda.device_count()}")
+print(f"[config] output_dir        = {args.output_dir}")
+print(f"[config] max_steps         = {args.max_steps}")
+print(f"[config] samples_per_class = {args.samples_per_class}")
+print(f"[config] batch_size        = {args.batch_size}")
+print(f"[config] grad_acc          = {args.grad_acc}")
+print(f"[config] lr                = {args.lr}")
+print(f"[config] max_length        = {args.max_length}")
+print(f"[config] lora_rank         = {args.lora_rank}")
+print(f"[config] lora_alpha        = {args.lora_alpha}")
+print(f"[config] neftune_alpha     = {args.neftune_alpha}")
+print(f"[config] torch version     = {torch.__version__}")
+print(f"[config] GPUs available    = {torch.cuda.device_count()}")
 
 # ── Tokenizer ─────────────────────────────────────────────────────────────────
 print("\n[1/4] Loading tokenizer ...")
@@ -86,36 +94,82 @@ BOXED_INSTRUCTION = (
     "For example: `\\boxed{your answer}`"
 )
 
+# Think-token fragments that Nemotron's chat template may append to the
+# generation prefix when enable_thinking is False. We strip them so the model
+# learns to output \boxed{answer} directly without any think-token context.
+_THINK_PREFIXES = (
+    "<think>\n</think>\n",
+    "<think></think>\n",
+    "<think>\n\n</think>\n\n",
+)
+
+
+def classify_task(prompt: str) -> str:
+    """Heuristic task-type classifier based on prompt keywords."""
+    p = prompt.lower()
+    if "bit manipulation" in p or "bit shift" in p or "binary" in p:
+        return "bit_ops"
+    if "encryption" in p or "cipher" in p:
+        return "cipher"
+    if "numeral system" in p or "number system" in p:
+        return "numeral"
+    if "gravitational" in p:
+        return "gravity"
+    if "transformation rules" in p:
+        return "symbol"
+    if "unit conversion" in p:
+        return "unit_conv"
+    return "other"
+
+
+def stratified_sample(rows: list, samples_per_class: int, seed: int = 42) -> list:
+    """Return a stratified subsample: up to `samples_per_class` rows per category."""
+    rng = random.Random(seed)
+    buckets: dict[str, list] = defaultdict(list)
+    for row in rows:
+        buckets[classify_task(row[0])].append(row)
+
+    sampled = []
+    for task in sorted(buckets):
+        task_rows = buckets[task]
+        rng.shuffle(task_rows)
+        chosen = task_rows[:samples_per_class]
+        sampled.extend(chosen)
+        print(f"[dataset]   {task:12s}: {len(chosen):4d} / {len(task_rows):5d} sampled")
+
+    rng.shuffle(sampled)
+    return sampled
+
+
 def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
     """
     Returns (full_text, prefix_len) where prefix_len is the number of tokens
-    that should be masked out (user turn + assistant-start tokens).
+    that should be masked out (user turn + assistant-start tokens, including
+    any think-token preamble added by the chat template).
+
+    The training target is exactly: \\boxed{answer}<|im_end|>
+    No <think></think> tokens appear in the supervised signal.
     """
     user_content = prompt + BOXED_INSTRUCTION
 
-    # Build the prefix (user message + start of assistant turn).
-    # apply_chat_template with add_generation_prompt=True gives us the prompt
-    # up to (but not including) the model's actual reply.
+    # Get everything up to (and including) the start of the assistant turn.
     prefix_text = tokenizer.apply_chat_template(
         [{"role": "user", "content": user_content}],
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=False,   # baseline: skip chain-of-thought
-    )
-
-    # Build the full conversation including the answer.
-    # The chat template prepends <think></think> to assistant content automatically.
-    full_text = tokenizer.apply_chat_template(
-        [
-            {"role": "user",      "content": user_content},
-            {"role": "assistant", "content": f"\\boxed{{{answer}}}"},
-        ],
-        tokenize=False,
-        add_generation_prompt=False,
         enable_thinking=False,
     )
 
-    # Tokenize both to get the boundary index.
+    # Strip any think-token preamble that the template appended to the
+    # generation prefix so it doesn't bleed into the training target.
+    for think_frag in _THINK_PREFIXES:
+        if prefix_text.endswith(think_frag):
+            prefix_text = prefix_text[:-len(think_frag)]
+            break
+
+    # Append the answer directly — no think tokens in the training target.
+    full_text = prefix_text + f"\\boxed{{{answer}}}<|im_end|>\n"
+
     prefix_ids = tokenizer(
         prefix_text,
         add_special_tokens=False,
@@ -125,18 +179,18 @@ def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
 
 
 class NemotronSFTDataset(Dataset):
-    def __init__(self, csv_path: str, max_samples: int = -1, max_length: int = 2048):
+    def __init__(self, csv_path: str, samples_per_class: int = 200, max_length: int = 1024):
         print(f"[dataset] Loading {csv_path} ...")
         rows = []
         with open(csv_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 rows.append((row["prompt"], row["answer"]))
-        if max_samples > 0:
-            rows = rows[:max_samples]
-        self.rows = rows
+        print(f"[dataset] Total rows in CSV: {len(rows)}")
+        print(f"[dataset] Stratified sampling ({samples_per_class} per class) ...")
+        self.rows = stratified_sample(rows, samples_per_class)
         self.max_length = max_length
-        print(f"[dataset] {len(self.rows)} samples loaded.")
+        print(f"[dataset] {len(self.rows)} samples after stratified sampling.")
 
     def __len__(self):
         return len(self.rows)
@@ -163,7 +217,6 @@ class NemotronSFTDataset(Dataset):
 
         # If the entire sequence was masked (very long prompt), skip gracefully.
         if all(l == -100 for l in labels):
-            # Fall back: unmask last token so loss doesn't become NaN.
             labels[-1] = input_ids[-1]
 
         return {
@@ -186,11 +239,10 @@ model.is_parallelizable = True
 model.model_parallel = True
 
 # ── LoRA ──────────────────────────────────────────────────────────────────────
-print(f"\n[3/4] Applying LoRA (rank={args.lora_rank}) ...")
+print(f"\n[3/4] Applying LoRA (rank={args.lora_rank}, alpha={args.lora_alpha}) ...")
 lora_config = LoraConfig(
     r=args.lora_rank,
     lora_alpha=args.lora_alpha,
-    # Mirrors the competition's submission demo target modules.
     target_modules=r".*\.(in_proj|out_proj|up_proj|down_proj)$",
     lora_dropout=0.05,
     bias="none",
@@ -203,10 +255,28 @@ model.print_trainable_parameters()
 model.enable_input_require_grads()
 model.gradient_checkpointing_enable()
 
+# ── NEFTune ───────────────────────────────────────────────────────────────────
+# Inject uniform noise into the embedding output during training.
+# This improves generalisation on small fine-tuning datasets (NEFTune, 2023).
+if args.neftune_alpha > 0:
+    _neftune_alpha = args.neftune_alpha
+
+    def _neftune_hook(module, input, output):
+        if module.training:
+            seq_len = output.shape[1]
+            hidden  = output.shape[2]
+            mag = _neftune_alpha / (seq_len * hidden) ** 0.5
+            noise = torch.zeros_like(output).uniform_(-mag, mag)
+            return output + noise
+        return output
+
+    model.get_input_embeddings().register_forward_hook(_neftune_hook)
+    print(f"[neftune] Registered embedding noise hook (alpha={_neftune_alpha})")
+
 # ── Data ──────────────────────────────────────────────────────────────────────
 dataset = NemotronSFTDataset(
     DATA_PATH,
-    max_samples=args.num_train_samples,
+    samples_per_class=args.samples_per_class,
     max_length=args.max_length,
 )
 
@@ -222,6 +292,7 @@ collator = DataCollatorForSeq2Seq(
 print(f"\n[4/4] Starting training ...")
 os.makedirs(args.output_dir, exist_ok=True)
 
+# Warmup ratio: 5% of total steps (防止训练初期大梯度破坏预训练权重).
 training_args = TrainingArguments(
     output_dir=args.output_dir,
     # Steps / epochs
@@ -230,10 +301,10 @@ training_args = TrainingArguments(
     # Batch
     per_device_train_batch_size=args.batch_size,
     gradient_accumulation_steps=args.grad_acc,
-    # Optimizer
+    # Optimizer — cosine decay + warmup
     learning_rate=args.lr,
     lr_scheduler_type="cosine",
-    warmup_steps=50,
+    warmup_ratio=0.05,
     optim="adamw_torch_fused",
     weight_decay=0.01,
     # Precision
