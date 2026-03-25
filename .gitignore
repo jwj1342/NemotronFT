@@ -17,6 +17,9 @@ __pycache__/
 logs/*.out
 logs/*.err
 
+# ── Claude Code session data ──────────────────────────────────────────────────
+.claude/
+
 # ── OS / editor artifacts ─────────────────────────────────────────────────────
 .DS_Store
 *.swp
