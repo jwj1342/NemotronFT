@@ -63,7 +63,7 @@ python3 distillation.py --help
 python3 distillation.py \
   --input data/sample1200-train.csv \
   --output data/sample1200-train-distilled.csv \
-  --concurrency 10 \
+  --concurrency 50 \
   --max-tokens 8192 \
   --resume
 ```
