@@ -45,6 +45,26 @@ class DistillStats:
     error: int
 
 
+@dataclass
+class AccuracyStats:
+    total_rows: int
+    success_rows: int
+    error_rows: int
+    matched_rows: int
+    mismatched_rows: int
+    unparsed_rows: int
+
+    @property
+    def comparable_rows(self) -> int:
+        return self.matched_rows + self.mismatched_rows
+
+    @property
+    def accuracy(self) -> float | None:
+        if self.comparable_rows == 0:
+            return None
+        return self.matched_rows / self.comparable_rows
+
+
 def read_input_rows(input_path: Path) -> list[dict[str, str]]:
     if not input_path.exists():
         raise FileNotFoundError(f"Input CSV not found: {input_path}")
@@ -76,6 +96,45 @@ def load_completed_ids(output_path: Path) -> set[str]:
             if row.get("status") in {SUCCESS_STATUS, ERROR_STATUS} and row.get("id"):
                 completed_ids.add(row["id"])
         return completed_ids
+
+
+def summarize_output_accuracy(output_path: Path) -> AccuracyStats:
+    if not output_path.exists():
+        raise FileNotFoundError(f"Output CSV not found: {output_path}")
+
+    with output_path.open("r", encoding="utf-8", newline="") as src:
+        reader = csv.DictReader(src)
+        total_rows = 0
+        success_rows = 0
+        error_rows = 0
+        matched_rows = 0
+        mismatched_rows = 0
+        unparsed_rows = 0
+
+        for row in reader:
+            total_rows += 1
+            status = (row.get("status") or "").strip().lower()
+            answer_match = (row.get("answer_match") or "").strip().lower()
+
+            if status == SUCCESS_STATUS:
+                success_rows += 1
+                if answer_match == "true":
+                    matched_rows += 1
+                elif answer_match == "false":
+                    mismatched_rows += 1
+                else:
+                    unparsed_rows += 1
+            elif status == ERROR_STATUS:
+                error_rows += 1
+
+    return AccuracyStats(
+        total_rows=total_rows,
+        success_rows=success_rows,
+        error_rows=error_rows,
+        matched_rows=matched_rows,
+        mismatched_rows=mismatched_rows,
+        unparsed_rows=unparsed_rows,
+    )
 
 
 def extract_braced_content(text: str, open_brace_index: int) -> tuple[str, int] | None:
@@ -486,6 +545,25 @@ async def async_main(args: argparse.Namespace) -> None:
         f"skipped={stats.skipped}, "
         f"total_input={stats.total_input}"
     )
+
+    accuracy_stats = summarize_output_accuracy(output_path)
+    print(
+        "Output summary: "
+        f"total_rows={accuracy_stats.total_rows}, "
+        f"success_rows={accuracy_stats.success_rows}, "
+        f"error_rows={accuracy_stats.error_rows}, "
+        f"matched_rows={accuracy_stats.matched_rows}, "
+        f"mismatched_rows={accuracy_stats.mismatched_rows}, "
+        f"unparsed_rows={accuracy_stats.unparsed_rows}"
+    )
+    if accuracy_stats.accuracy is None:
+        print("Teacher accuracy: N/A (no comparable rows with parsed boxed answers)")
+    else:
+        print(
+            "Teacher accuracy: "
+            f"{accuracy_stats.matched_rows}/{accuracy_stats.comparable_rows} "
+            f"= {accuracy_stats.accuracy:.2%}"
+        )
 
 
 def main() -> None:
