@@ -30,3 +30,11 @@ logs/*.err
 
 # ── Jupyter / IPython ─────────────────────────────────────────────────────────
 .ipynb_checkpoints/
+
+.env
+
+# MACOS
+.DS_Store
+
+# distillation
+distillation/data/
