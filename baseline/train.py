@@ -58,10 +58,10 @@ parser.add_argument("--max_steps",   type=int,   default=-1,
                     help="Training steps. -1 = train for a full epoch.")
 parser.add_argument("--samples_per_class", type=int, default=200,
                     help="Samples to draw per task category (stratified sampling).")
-parser.add_argument("--batch_size",  type=int,   default=1)
-parser.add_argument("--grad_acc",    type=int,   default=8)
+parser.add_argument("--batch_size",  type=int,   default=4)
+parser.add_argument("--grad_acc",    type=int,   default=4)
 parser.add_argument("--lr",          type=float, default=2e-4)
-parser.add_argument("--max_length",  type=int,   default=1024)
+parser.add_argument("--max_length",  type=int,   default=512)
 parser.add_argument("--lora_rank",   type=int,   default=32)
 parser.add_argument("--lora_alpha",  type=int,   default=16)
 parser.add_argument("--neftune_alpha", type=float, default=5.0,
@@ -188,42 +188,50 @@ class NemotronSFTDataset(Dataset):
                 rows.append((row["prompt"], row["answer"]))
         print(f"[dataset] Total rows in CSV: {len(rows)}")
         print(f"[dataset] Stratified sampling ({samples_per_class} per class) ...")
-        self.rows = stratified_sample(rows, samples_per_class)
-        self.max_length = max_length
-        print(f"[dataset] {len(self.rows)} samples after stratified sampling.")
+        sampled = stratified_sample(rows, samples_per_class)
+        print(f"[dataset] {len(sampled)} samples after stratified sampling.")
+
+        # Pre-tokenize all samples once at init time so __getitem__ is a
+        # simple list lookup. This moves CPU-heavy work (Jinja2 templating,
+        # tokenisation) out of the training loop and eliminates GPU starvation.
+        print(f"[dataset] Pre-tokenizing {len(sampled)} samples (max_length={max_length}) ...")
+        self.samples = []
+        skipped = 0
+        for prompt, answer in sampled:
+            full_text, prefix_len = build_conversation(prompt, answer)
+            encoding = tokenizer(
+                full_text,
+                add_special_tokens=False,
+                truncation=True,
+                max_length=max_length,
+                return_tensors=None,
+            )
+            input_ids = encoding["input_ids"]
+            attention_mask = encoding["attention_mask"]
+
+            labels = list(input_ids)
+            mask_len = min(prefix_len, len(labels))
+            for i in range(mask_len):
+                labels[i] = -100
+
+            if all(l == -100 for l in labels):
+                labels[-1] = input_ids[-1]
+                skipped += 1
+
+            self.samples.append({
+                "input_ids":      input_ids,
+                "attention_mask": attention_mask,
+                "labels":         labels,
+            })
+
+        print(f"[dataset] Pre-tokenization done. "
+              f"({skipped} samples had fully-masked labels and were patched.)")
 
     def __len__(self):
-        return len(self.rows)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        prompt, answer = self.rows[idx]
-        full_text, prefix_len = build_conversation(prompt, answer)
-
-        encoding = tokenizer(
-            full_text,
-            add_special_tokens=False,
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors=None,
-        )
-        input_ids = encoding["input_ids"]
-        attention_mask = encoding["attention_mask"]
-
-        # Labels: mask the user prefix with -100; train only on the assistant response.
-        labels = list(input_ids)
-        mask_len = min(prefix_len, len(labels))
-        for i in range(mask_len):
-            labels[i] = -100
-
-        # If the entire sequence was masked (very long prompt), skip gracefully.
-        if all(l == -100 for l in labels):
-            labels[-1] = input_ids[-1]
-
-        return {
-            "input_ids":      input_ids,
-            "attention_mask": attention_mask,
-            "labels":         labels,
-        }
+        return self.samples[idx]
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────
@@ -312,8 +320,8 @@ training_args = TrainingArguments(
     fp16=False,
     # Memory
     gradient_checkpointing=False,   # already enabled manually above
-    dataloader_pin_memory=False,    # required with device_map
-    dataloader_num_workers=4,
+    dataloader_pin_memory=True,
+    dataloader_num_workers=0,
     # Logging / saving
     logging_steps=10,
     save_steps=100,

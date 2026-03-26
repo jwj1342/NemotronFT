@@ -49,10 +49,10 @@ python $PROJECT_DIR/baseline/train.py \
     --output_dir       $PROJECT_DIR/output/baseline-lora \
     --max_steps        -1 \
     --samples_per_class 200 \
-    --batch_size       1 \
-    --grad_acc         8 \
+    --batch_size       4 \
+    --grad_acc         4 \
     --lr               2e-4 \
-    --max_length       1024 \
+    --max_length       512 \
     --lora_rank        32 \
     --lora_alpha       16 \
     --neftune_alpha    5.0

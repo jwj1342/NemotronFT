@@ -59,7 +59,7 @@ bash scripts/download_model.sh
 sbatch baseline/run_baseline.sbatch
 ```
 
-当前 sbatch 脚本为正式训练配置（1× H100，1 epoch，max_length=1024），跑完约 30 分钟。
+当前 sbatch 脚本为正式训练配置（1× H100，1 epoch，max_length=512），跑完约 26 分钟。
 查看日志：
 
 ```bash
@@ -132,16 +132,16 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | 时间限制 | 2h |
 | 内存 | 80G |
 | 数据采样 | 分层采样：6 类别各 200 条，共 1200 条 |
-| max_steps | -1（完整 1 epoch，约 150 步） |
-| batch_size | 1，grad_acc=8（等效 batch 8） |
-| max_length | 1024 |
+| max_steps | -1（完整 1 epoch，约 75 步） |
+| batch_size | 4，grad_acc=4（等效 batch 16） |
+| max_length | 512 |
 | 学习率 | 2e-4，cosine decay |
 | warmup | `warmup_ratio=0.05`（总步数的 5%，约 8 步） |
 | 优化器 | AdamW Fused |
 | 精度 | BF16 |
 | NEFTune | noise_alpha=5.0 |
 
-**数据采样策略**：按任务类别（`bit_ops` / `cipher` / `numeral` / `gravity` / `symbol` / `unit_conv`）分层抽取，每类各 200 条，消除类别不均衡问题。
+**数据采样策略**：按任务类别（`bit_ops` / `cipher` / `numeral` / `gravity` / `symbol` / `unit_conv`）分层抽取，每类各 200 条，消除类别不均衡问题。max_length=512 适配实际序列长度（均值约 168 token，p99=312），消除 padding 浪费。
 
 ### LoRA 配置
 
@@ -204,6 +204,29 @@ zip 必须包含的文件：
 
 安装顺序：**先装 `mamba-ssm`，再装其余包**（保证 torch 版本由 mamba-ssm 依赖决定，避免 ABI 不兼容）。
 
+---
+
+## 训练结果记录
+
+| Job ID | 配置摘要 | 训练时长 | 吞吐量 | 最终 loss | Kaggle 分数 |
+|--------|----------|----------|--------|-----------|-------------|
+| 10934369 | max_len=1024, batch=1, grad_acc=8 | ~49 min | 0.405 samples/s | 4.507 | 0.61 |
+| 10961113 | max_len=512, batch=4, grad_acc=4, NEFTune α=5 | ~26 min | 0.772 samples/s | 2.233（末步 1.915） | 待评测 |
+
+**Job 10961113 loss 曲线（每 10 步记录）：**
+
+```
+epoch 0.13 → loss 3.068
+epoch 0.27 → loss 2.629
+epoch 0.40 → loss 2.310
+epoch 0.53 → loss 2.095
+epoch 0.67 → loss 1.982
+epoch 0.80 → loss 1.928
+epoch 0.93 → loss 1.915
+```
+
+---
+
 ### 已知兼容性问题与修复
 
 | 问题 | 修复方式 |
@@ -212,3 +235,5 @@ zip 必须包含的文件：
 | `mamba-ssm` 导入 `GreedySearchDecoderOnlyOutput`（transformers 5.x 已删除） | `train.py` 顶部注入 dummy 占位类 |
 | `TrainingArguments` 不再支持 `no_cuda` 参数 | 已删除该参数 |
 | `warmup_steps` 固定值难以适配不同步数 | 改用 `warmup_ratio=0.05`（自适应） |
+| max_length=1024 导致 GPU 利用率仅 45% | 序列均值 168 token（p99=312），改为 max_length=512 后利用率显著提升，吞吐翻倍 |
+| batch_size=8 触发 OOM（H100 80G） | 模型权重 + 优化器状态已占 ~78G，改为 batch_size=4 + grad_acc=4 维持等效 batch=16 |
