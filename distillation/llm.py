@@ -1,7 +1,10 @@
 from openai import AsyncOpenAI, APIError, APITimeoutError, RateLimitError
 import os
 import asyncio
-from prompt import SYSTEM_PROMPT
+import json
+from typing import Any
+from prompt import SYSTEM_PROMPT, DISTILLATION_COT_SYSTEM_PROMPT, DISTILLATION_COT_USER_PROMPT
+from utils import prompt_format
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())
@@ -16,39 +19,62 @@ async def retry_on_error(func, max_retries=3, delay=1.0):
                 raise
             await asyncio.sleep(delay * (attempt + 1))
 
+
+def build_response_payload(response: Any) -> dict[str, Any]:
+    choice = response.choices[0] if response.choices else None
+    message = getattr(choice, "message", None)
+    usage = getattr(response, "usage", None)
+
+    if hasattr(response, "model_dump_json"):
+        raw_response = response.model_dump_json(exclude_none=True)
+    elif hasattr(response, "model_dump"):
+        raw_response = json.dumps(response.model_dump(exclude_none=True), ensure_ascii=False)
+    else:
+        raw_response = str(response)
+
+    return {
+        "content": getattr(message, "content", "") or "",
+        "finish_reason": getattr(choice, "finish_reason", "") or "",
+        "prompt_tokens": getattr(usage, "prompt_tokens", "") or "",
+        "completion_tokens": getattr(usage, "completion_tokens", "") or "",
+        "total_tokens": getattr(usage, "total_tokens", "") or "",
+        "raw_response": raw_response,
+    }
+
 class BaseLLM:
     def __init__(self, model: str, api_key: str = None, base_url: str = None):
         self.api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
         self.model = model
         self.client = AsyncOpenAI(api_key=self.api_key, base_url=base_url)
 
-    async def get_response(self, prompt: str, **kwargs) -> str:
-        async def _call():
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                temperature=1.0,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
-                ],
-            **kwargs)
-            return response.choices[0].message.content
-        return await retry_on_error(_call)
-
-    async def get_response_stream(self, prompt: str, **kwargs):
-        response = await self.client.chat.completions.create(
+    async def _create_completion(self, prompt: str, system_prompt: str, **kwargs):
+        return await self.client.chat.completions.create(
             model=self.model,
             temperature=1.0,
-            stream=True,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-        **kwargs
+            **kwargs
         )
-        async for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
+
+    async def get_response_payload(self, prompt: str, system_prompt: str = DISTILLATION_COT_SYSTEM_PROMPT, **kwargs) -> dict[str, Any]:
+        async def _call():
+            response = await self._create_completion(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                **kwargs,
+            )
+            return build_response_payload(response)
+        return await retry_on_error(_call)
+
+    async def get_response(self, prompt: str, system_prompt: str = DISTILLATION_COT_SYSTEM_PROMPT, **kwargs) -> str:
+        response_payload = await self.get_response_payload(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            **kwargs,
+        )
+        return str(response_payload["content"])
 
     async def get_response_batch(self, queries: list[str], concurrency: int = 10, **kwargs) -> list[str]:
         if concurrency <= 0:
@@ -78,24 +104,16 @@ class StepLLM(BaseLLM):
         self.base_url = base_url if base_url else "https://api.stepfun.com/v1"
         self.model = model
         self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
-    
-    async def get_response(self, prompt: str, **kwargs) -> str:
-        async def _call():
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                temperature=1.0,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt}
-                ],
-            **kwargs)
-            message = response.choices[0].message
-            output_format = "<think>\n{resaoning}\n</think>\n{content}"
-            return output_format.format(
-                resaoning=getattr(message, "reasoning", "") or "",
-                content=message.content or "",
-            )
-        return await retry_on_error(_call)
+
+    async def _create_completion(self, prompt: str, system_prompt: str, **kwargs):
+        return await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            **kwargs
+        )
 
 class ArkPlanLLM(BaseLLM):
     def __init__(self, api_key: str = None, base_url: str = None, model: str = "ark-code-latest"):
@@ -105,14 +123,15 @@ class ArkPlanLLM(BaseLLM):
         self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
 
 if __name__ == "__main__":
-    test_prompt = """
-In Alice's Wonderland, numbers are secretly converted into a different numeral system. Some examples are given below:
-96 -> XCVI
-45 -> XLV
-74 -> LXXIV
-39 -> XXXIX
-Now, write the number 14 in the Wonderland numeral system.
+    test_query = """
+In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+34/44 = 1
+41/32 = 9
+34|25 = 69
+87\64 = 8853
+Now, determine the result for: 69/52
 """
+    test_answer = "17/"
 
 
     import asyncio
@@ -125,9 +144,7 @@ Now, write the number 14 in the Wonderland numeral system.
             return
 
         queries = [
-            "1+1 等于几？只回答数字。",
-            "把 hello 翻译成中文，只回答翻译结果。",
-            test_prompt
+            prompt_format(replacements={"question": test_query, "gold_answer": test_answer})
         ]
 
         try:
@@ -136,12 +153,13 @@ Now, write the number 14 in the Wonderland numeral system.
                 queries,
                 concurrency=2,
                 max_tokens=8196,
+                temperature=0.1,
             )
 
             print("Batch 测试结果:")
             for idx, (query, response) in enumerate(zip(queries, responses), start=1):
                 print(f"{idx}. query: {query}")
-                print(f"   response: {response}")
+                print(f"\n\n#####response: {response}")
         except Exception as e:
             print(f"batch 测试失败: {type(e).__name__}: {e}")
             import traceback

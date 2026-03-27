@@ -3,13 +3,15 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
-import re
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from llm import StepLLM
+from prompt import DISTILLATION_COT_SYSTEM_PROMPT, DISTILLATION_COT_USER_PROMPT
+from utils import prompt_format
 
 try:
     from tqdm import tqdm
@@ -25,10 +27,11 @@ OUTPUT_FIELDS = [
     "answer",
     "label",
     "teacher_response",
-    "teacher_reasoning",
-    "teacher_content",
-    "teacher_boxed_answer",
-    "answer_match",
+    "teacher_finish_reason",
+    "teacher_prompt_tokens",
+    "teacher_completion_tokens",
+    "teacher_total_tokens",
+    "teacher_cot",
     "status",
     "error",
 ]
@@ -45,26 +48,6 @@ class DistillStats:
     error: int
 
 
-@dataclass
-class AccuracyStats:
-    total_rows: int
-    success_rows: int
-    error_rows: int
-    matched_rows: int
-    mismatched_rows: int
-    unparsed_rows: int
-
-    @property
-    def comparable_rows(self) -> int:
-        return self.matched_rows + self.mismatched_rows
-
-    @property
-    def accuracy(self) -> float | None:
-        if self.comparable_rows == 0:
-            return None
-        return self.matched_rows / self.comparable_rows
-
-
 def read_input_rows(input_path: Path) -> list[dict[str, str]]:
     if not input_path.exists():
         raise FileNotFoundError(f"Input CSV not found: {input_path}")
@@ -79,17 +62,25 @@ def read_input_rows(input_path: Path) -> list[dict[str, str]]:
         return list(reader)
 
 
+def validate_output_schema(fieldnames: list[str] | None) -> None:
+    if fieldnames != OUTPUT_FIELDS:
+        expected = ", ".join(OUTPUT_FIELDS)
+        got = ", ".join(fieldnames or [])
+        raise ValueError(
+            "Output CSV schema is incompatible with the current COT distillation format. "
+            f"Expected columns: {expected}. "
+            f"Got: {got or '<empty>'}. "
+            "Use a new --output path or remove the old output file before resuming."
+        )
+
+
 def load_completed_ids(output_path: Path) -> set[str]:
     if not output_path.exists() or output_path.stat().st_size == 0:
         return set()
 
     with output_path.open("r", encoding="utf-8", newline="") as src:
         reader = csv.DictReader(src)
-        fieldnames = reader.fieldnames or []
-        required_fields = {"id", "status"}
-        if fieldnames and not required_fields.issubset(fieldnames):
-            missing = ", ".join(sorted(required_fields - set(fieldnames)))
-            raise ValueError(f"Output CSV is missing required columns for resume: {missing}")
+        validate_output_schema(reader.fieldnames)
 
         completed_ids = set()
         for row in reader:
@@ -98,188 +89,27 @@ def load_completed_ids(output_path: Path) -> set[str]:
         return completed_ids
 
 
-def summarize_output_accuracy(output_path: Path) -> AccuracyStats:
-    if not output_path.exists():
-        raise FileNotFoundError(f"Output CSV not found: {output_path}")
+def parse_distillation_response(response_text: str) -> str:
+    if not response_text.strip():
+        raise ValueError("model response is empty")
 
-    with output_path.open("r", encoding="utf-8", newline="") as src:
-        reader = csv.DictReader(src)
-        total_rows = 0
-        success_rows = 0
-        error_rows = 0
-        matched_rows = 0
-        mismatched_rows = 0
-        unparsed_rows = 0
+    payload = json.loads(response_text)
+    if not isinstance(payload, dict):
+        raise ValueError("model response must be a JSON object")
 
-        for row in reader:
-            total_rows += 1
-            status = (row.get("status") or "").strip().lower()
-            answer_match = (row.get("answer_match") or "").strip().lower()
+    cot = payload.get("cot")
+    if not isinstance(cot, str):
+        raise ValueError("model response JSON must contain a string field 'cot'")
+    if not cot.strip():
+        raise ValueError("model response field 'cot' must be a non-empty string")
 
-            if status == SUCCESS_STATUS:
-                success_rows += 1
-                if answer_match == "true":
-                    matched_rows += 1
-                elif answer_match == "false":
-                    mismatched_rows += 1
-                else:
-                    unparsed_rows += 1
-            elif status == ERROR_STATUS:
-                error_rows += 1
-
-    return AccuracyStats(
-        total_rows=total_rows,
-        success_rows=success_rows,
-        error_rows=error_rows,
-        matched_rows=matched_rows,
-        mismatched_rows=mismatched_rows,
-        unparsed_rows=unparsed_rows,
-    )
-
-
-def extract_braced_content(text: str, open_brace_index: int) -> tuple[str, int] | None:
-    if open_brace_index >= len(text) or text[open_brace_index] != "{":
-        return None
-
-    depth = 0
-    for index in range(open_brace_index, len(text)):
-        char = text[index]
-        if char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth == 0:
-                return text[open_brace_index + 1:index], index
-    return None
-
-
-def extract_last_boxed_answer(text: str) -> str | None:
-    token = r"\boxed"
-    search_from = 0
-    last_boxed_answer = None
-
-    while True:
-        token_index = text.find(token, search_from)
-        if token_index == -1:
-            break
-
-        brace_index = token_index + len(token)
-        while brace_index < len(text) and text[brace_index].isspace():
-            brace_index += 1
-
-        if brace_index < len(text) and text[brace_index] == "{":
-            extracted = extract_braced_content(text, brace_index)
-            if extracted is not None:
-                last_boxed_answer = extracted[0].strip()
-                search_from = extracted[1] + 1
-                continue
-
-        search_from = token_index + len(token)
-
-    return last_boxed_answer
-
-
-def unwrap_command(text: str, command: str) -> tuple[str, bool]:
-    prefix = f"\\{command}"
-    if not text.startswith(prefix):
-        return text, False
-
-    index = len(prefix)
-    while index < len(text) and text[index].isspace():
-        index += 1
-
-    if index >= len(text) or text[index] != "{":
-        return text, False
-
-    extracted = extract_braced_content(text, index)
-    if extracted is None or extracted[1] != len(text) - 1:
-        return text, False
-
-    return extracted[0].strip(), True
-
-
-def unwrap_outer_braces(text: str) -> tuple[str, bool]:
-    if not text.startswith("{") or not text.endswith("}"):
-        return text, False
-
-    extracted = extract_braced_content(text, 0)
-    if extracted is None or extracted[1] != len(text) - 1:
-        return text, False
-
-    return extracted[0].strip(), True
-
-
-def normalize_answer(text: str | None) -> str:
-    if text is None:
-        return ""
-
-    normalized = re.sub(r"\s+", " ", text).strip()
-    if not normalized:
-        return ""
-
-    changed = True
-    while changed and normalized:
-        changed = False
-
-        wrappers = [
-            ("$$", "$$"),
-            ("$", "$"),
-            (r"\(", r"\)"),
-            (r"\[", r"\]"),
-        ]
-        for prefix, suffix in wrappers:
-            if normalized.startswith(prefix) and normalized.endswith(suffix):
-                inner = normalized[len(prefix):len(normalized) - len(suffix)].strip()
-                if inner != normalized:
-                    normalized = inner
-                    changed = True
-
-        for command in ("boxed", "text", "mathrm", "textrm", "mathbf", "operatorname"):
-            unwrapped, did_unwrap = unwrap_command(normalized, command)
-            if did_unwrap:
-                normalized = unwrapped
-                changed = True
-
-        unwrapped_braces, did_unwrap_braces = unwrap_outer_braces(normalized)
-        if did_unwrap_braces:
-            normalized = unwrapped_braces
-            changed = True
-
-        normalized = re.sub(r"\s+", " ", normalized).strip()
-
-    return normalized
-
-
-def compute_answer_match(teacher_boxed_answer: str | None, gold_answer: str) -> str:
-    if not teacher_boxed_answer:
-        return ""
-
-    return str(normalize_answer(teacher_boxed_answer) == normalize_answer(gold_answer)).lower()
-
-
-def parse_teacher_response(text: str) -> dict[str, str]:
-    response_text = text or ""
-    match = re.search(r"<think>\s*(.*?)\s*</think>\s*(.*)\Z", response_text, re.DOTALL)
-
-    if match:
-        reasoning = match.group(1).strip()
-        content = match.group(2).strip()
-    else:
-        reasoning = ""
-        content = response_text.strip()
-
-    return {
-        "teacher_response": response_text,
-        "teacher_reasoning": reasoning,
-        "teacher_content": content,
-        "teacher_boxed_answer": extract_last_boxed_answer(content or response_text) or "",
-    }
+    return cot
 
 
 def build_output_row(
     source_index: int,
     input_row: dict[str, str],
-    response_text: str | None = None,
+    response_payload: dict[str, Any] | None = None,
     error: Exception | None = None,
 ) -> dict[str, Any]:
     row = {
@@ -289,25 +119,29 @@ def build_output_row(
         "answer": input_row["answer"],
         "label": input_row["label"],
         "teacher_response": "",
-        "teacher_reasoning": "",
-        "teacher_content": "",
-        "teacher_boxed_answer": "",
-        "answer_match": "",
+        "teacher_finish_reason": "",
+        "teacher_prompt_tokens": "",
+        "teacher_completion_tokens": "",
+        "teacher_total_tokens": "",
+        "teacher_cot": "",
         "status": SUCCESS_STATUS,
         "error": "",
     }
+
+    if response_payload is not None:
+        row["teacher_response"] = str(response_payload.get("raw_response", "") or "")
+        row["teacher_finish_reason"] = str(response_payload.get("finish_reason", "") or "")
+        row["teacher_prompt_tokens"] = response_payload.get("prompt_tokens", "") or ""
+        row["teacher_completion_tokens"] = response_payload.get("completion_tokens", "") or ""
+        row["teacher_total_tokens"] = response_payload.get("total_tokens", "") or ""
 
     if error is not None:
         row["status"] = ERROR_STATUS
         row["error"] = f"{type(error).__name__}: {error}"
         return row
 
-    parsed = parse_teacher_response(response_text or "")
-    row.update(parsed)
-    row["answer_match"] = compute_answer_match(
-        row["teacher_boxed_answer"],
-        input_row["answer"],
-    )
+    content = str((response_payload or {}).get("content", "") or "")
+    row["teacher_cot"] = parse_distillation_response(content)
     return row
 
 
@@ -318,6 +152,7 @@ def print_run_summary(
     pending_rows: int,
     skipped_rows: int,
     concurrency: int,
+    temperature: float,
     resume: bool,
 ) -> None:
     print(f"Input: {input_path}")
@@ -326,6 +161,7 @@ def print_run_summary(
     print(f"Pending rows: {pending_rows}")
     print(f"Skipped rows: {skipped_rows}")
     print(f"Concurrency: {concurrency}")
+    print(f"Temperature: {temperature}")
     print(f"Resume: {resume}")
 
 
@@ -336,22 +172,31 @@ async def worker(
     queue: asyncio.Queue[dict[str, Any] | None],
     semaphore: asyncio.Semaphore,
     max_tokens: int,
+    temperature: float,
 ) -> None:
     async with semaphore:
+        response_payload: dict[str, Any] | None = None
         try:
-            response_text = await llm.get_response(
-                input_row["prompt"],
+            formatted_prompt = prompt_format(
+                [input_row["prompt"], input_row["answer"]], 
+                DISTILLATION_COT_USER_PROMPT
+            )
+            response_payload = await llm.get_response_payload(
+                formatted_prompt,
+                system_prompt=DISTILLATION_COT_SYSTEM_PROMPT,
                 max_tokens=max_tokens,
+                temperature=temperature,
             )
             output_row = build_output_row(
                 source_index=source_index,
                 input_row=input_row,
-                response_text=response_text,
+                response_payload=response_payload,
             )
         except Exception as exc:  # noqa: BLE001
             output_row = build_output_row(
                 source_index=source_index,
                 input_row=input_row,
+                response_payload=response_payload,
                 error=exc,
             )
 
@@ -424,6 +269,7 @@ async def distill_dataset(
     llm: Any,
     concurrency: int,
     max_tokens: int,
+    temperature: float,
     resume: bool,
     show_progress: bool,
 ) -> DistillStats:
@@ -443,6 +289,7 @@ async def distill_dataset(
         pending_rows=len(pending_rows),
         skipped_rows=len(input_rows) - len(pending_rows),
         concurrency=concurrency,
+        temperature=temperature,
         resume=resume,
     )
 
@@ -467,6 +314,7 @@ async def distill_dataset(
                 queue=queue,
                 semaphore=semaphore,
                 max_tokens=max_tokens,
+                temperature=temperature,
             )
         )
         for source_index, row in pending_rows
@@ -498,6 +346,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--concurrency", type=int, default=5, help="Maximum concurrent requests")
     parser.add_argument("--max-tokens", type=int, default=8192, help="Maximum tokens per request")
+    parser.add_argument("--temperature", type=float, default=1.0, help="Sampling temperature")
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -521,6 +370,8 @@ async def async_main(args: argparse.Namespace) -> None:
         raise ValueError("concurrency must be greater than 0")
     if args.max_tokens <= 0:
         raise ValueError("max_tokens must be greater than 0")
+    if not 0.0 <= args.temperature <= 2.0:
+        raise ValueError("temperature must be between 0.0 and 2.0")
     if input_path.resolve() == output_path.resolve():
         raise ValueError("input and output CSV paths must be different")
 
@@ -534,6 +385,7 @@ async def async_main(args: argparse.Namespace) -> None:
         llm=llm,
         concurrency=args.concurrency,
         max_tokens=args.max_tokens,
+        temperature=args.temperature,
         resume=args.resume,
         show_progress=args.progress,
     )
@@ -545,25 +397,6 @@ async def async_main(args: argparse.Namespace) -> None:
         f"skipped={stats.skipped}, "
         f"total_input={stats.total_input}"
     )
-
-    accuracy_stats = summarize_output_accuracy(output_path)
-    print(
-        "Output summary: "
-        f"total_rows={accuracy_stats.total_rows}, "
-        f"success_rows={accuracy_stats.success_rows}, "
-        f"error_rows={accuracy_stats.error_rows}, "
-        f"matched_rows={accuracy_stats.matched_rows}, "
-        f"mismatched_rows={accuracy_stats.mismatched_rows}, "
-        f"unparsed_rows={accuracy_stats.unparsed_rows}"
-    )
-    if accuracy_stats.accuracy is None:
-        print("Teacher accuracy: N/A (no comparable rows with parsed boxed answers)")
-    else:
-        print(
-            "Teacher accuracy: "
-            f"{accuracy_stats.matched_rows}/{accuracy_stats.comparable_rows} "
-            f"= {accuracy_stats.accuracy:.2%}"
-        )
 
 
 def main() -> None:

@@ -47,7 +47,8 @@ python3 distillation.py \
 - 输出到 `data/sample1200-train-distilled.csv`
 - 默认显示进度条
 - 默认开启断点续跑
-- 自动增加 `teacher_response`、`teacher_reasoning`、`teacher_content`、`teacher_boxed_answer`、`answer_match` 等列
+- 自动增加 `teacher_response`、`teacher_finish_reason`、`teacher_prompt_tokens`、`teacher_completion_tokens`、`teacher_total_tokens`、`teacher_cot`、`status`、`error` 等列
+- 模型返回 JSON 时只提取 `cot` 字段作为蒸馏结果，返回中的 `answer` 不参与写出和校验
 
 ## 5. 常用参数
 
@@ -64,6 +65,7 @@ python3 distillation.py \
   --input data/sample1200-train.csv \
   --output data/sample1200-train-distilled.csv \
   --concurrency 50 \
-  --max-tokens 8192 \
-  --resume
+  --max-tokens 32000 \
+  --resume \
+  --temperature 0.1
 ```
