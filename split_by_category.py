@@ -10,19 +10,19 @@ df = pd.read_csv('data/train_cleaned.csv')
 
 # Extract category from cleaned prompt
 def categorize(prompt):
-    if 'Category: Bit Manipulation' in prompt:
+    if 'Bit Manipulation:' in prompt:
         return 'bit_ops'
-    elif 'Category: Text Cipher' in prompt:
+    elif 'Text Cipher:' in prompt:
         return 'cipher'
-    elif 'Category: Numeral System' in prompt:
+    elif 'Numeral System:' in prompt:
         return 'numeral'
-    elif 'Category: Unit Conversion' in prompt:
+    elif 'Unit Conversion:' in prompt:
         return 'unit_conv'
-    elif 'Category: Gravity Constant' in prompt:
+    elif 'Gravity Constant:' in prompt:
         return 'gravity'
-    elif 'Category: Equation Numeric' in prompt:
+    elif 'Equation Numeric:' in prompt:
         return 'equation_numeric'
-    elif 'Category: Equation Symbolic' in prompt:
+    elif 'Equation Symbolic:' in prompt:
         return 'equation_symbolic'
     else:
         return 'other'

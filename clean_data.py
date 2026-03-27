@@ -43,11 +43,11 @@ def extract_core_question(prompt):
         question = prompt[prompt.find("Now,"):].strip()
 
         if key_info:
-            return f"Category: {category} ({key_info})\n\nExamples:{examples}\n\n{question}"
+            return f"{category}: {key_info}\n\nExamples:{examples}\n\n{question}"
         else:
-            return f"Category: {category}\n\nExamples:{examples}\n\n{question}"
+            return f"{category}:\n\nExamples:{examples}\n\n{question}"
 
-    return f"Category: {category}\n\n{prompt}"
+    return f"{category}:\n\n{prompt}"
 
 df['prompt_cleaned'] = df['prompt'].apply(extract_core_question)
 
