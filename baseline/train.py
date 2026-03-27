@@ -105,7 +105,12 @@ _THINK_PREFIXES = (
 
 
 def classify_task(prompt: str) -> str:
-    """Heuristic task-type classifier based on prompt keywords."""
+    """Heuristic task-type classifier based on prompt keywords.
+
+    7 categories matching the competition's problem taxonomy:
+      bit_ops, cipher, numeral, gravity, unit_conv,
+      equation_numeric, equation_symbolic
+    """
     p = prompt.lower()
     if "bit manipulation" in p or "bit shift" in p or "binary" in p:
         return "bit_ops"
@@ -115,10 +120,19 @@ def classify_task(prompt: str) -> str:
         return "numeral"
     if "gravitational" in p:
         return "gravity"
-    if "transformation rules" in p:
-        return "symbol"
     if "unit conversion" in p:
         return "unit_conv"
+    if "transformation rules" in p:
+        # Split equation type: if the first example's LHS contains digits,
+        # it's a numeric equation; otherwise it's a symbolic equation.
+        import re
+        m = re.search(r'examples:\s*\n(.*?)\nNow,', prompt, re.DOTALL)
+        if m:
+            first_line = m.group(1).strip().split('\n')[0].strip().strip('`')
+            lhs = first_line.split('=')[0].strip() if '=' in first_line else first_line
+            if re.search(r'\d', lhs):
+                return "equation_numeric"
+        return "equation_symbolic"
     return "other"
 
 
