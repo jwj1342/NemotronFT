@@ -329,21 +329,35 @@ if args.eval_steps > 0:
     print(f"[eval] {len(eval_data)} eval samples across "
           f"{len(dataset.eval_pool)} categories (eval every {args.eval_steps} steps)")
 
-    from torch.utils.tensorboard import SummaryWriter
-    tb_writer = SummaryWriter(log_dir=args.tensorboard_dir)
-
     class EvalCallback(TrainerCallback):
+        def __init__(self, eval_steps, eval_batch_size):
+            self.eval_steps = eval_steps
+            self.eval_batch_size = eval_batch_size
+            self._tb_writer = None
+
+        def _get_tb_writer(self, trainer):
+            """Lazily retrieve the TensorBoard writer from Trainer."""
+            if self._tb_writer is None:
+                for cb in trainer.callback_handler.callbacks:
+                    if hasattr(cb, "tb_writer") and cb.tb_writer is not None:
+                        self._tb_writer = cb.tb_writer
+                        break
+            return self._tb_writer
+
         def on_step_end(self, args, state, control, **kwargs):
             if state.global_step > 0 and state.global_step % self.eval_steps == 0:
                 import time
                 t0 = time.time()
-                results = evaluate_samples(model, tokenizer, eval_data, batch_size=args.eval_batch_size)
+                results = evaluate_samples(model, tokenizer, eval_data,
+                                           batch_size=self.eval_batch_size)
                 elapsed = time.time() - t0
 
-                tb_writer.add_scalar("eval/accuracy", results["accuracy"], state.global_step)
-                for cat, cr in results["per_category"].items():
-                    tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], state.global_step)
-                tb_writer.flush()
+                tb_writer = self._get_tb_writer(kwargs.get("trainer") or trainer)
+                if tb_writer is not None:
+                    tb_writer.add_scalar("eval/accuracy", results["accuracy"], state.global_step)
+                    for cat, cr in results["per_category"].items():
+                        tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], state.global_step)
+                    tb_writer.flush()
 
                 cat_str = " | ".join(
                     f"{c}: {r['correct']}/{r['total']}"
@@ -355,8 +369,7 @@ if args.eval_steps > 0:
                       f"[{elapsed:.1f}s]")
                 print(f"[eval]   {cat_str}")
 
-    eval_cb = EvalCallback()
-    eval_cb.eval_steps = args.eval_steps
+    eval_cb = EvalCallback(args.eval_steps, args.eval_batch_size)
     callbacks.append(eval_cb)
 
 trainer = Trainer(
@@ -373,10 +386,14 @@ trainer.train()
 if args.eval_steps > 0:
     print("\n[final eval] Running final evaluation ...")
     final_results = evaluate_samples(model, tokenizer, eval_data, batch_size=args.eval_batch_size)
-    tb_writer.add_scalar("eval/accuracy", final_results["accuracy"], trainer.state.global_step)
-    for cat, cr in final_results["per_category"].items():
-        tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], trainer.state.global_step)
-    tb_writer.close()
+
+    tb_writer = eval_cb._get_tb_writer(trainer)
+    if tb_writer is not None:
+        tb_writer.add_scalar("eval/accuracy", final_results["accuracy"], trainer.state.global_step)
+        for cat, cr in final_results["per_category"].items():
+            tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], trainer.state.global_step)
+        tb_writer.flush()
+
     print(f"[final eval] accuracy={final_results['accuracy']:.3f} "
           f"({final_results['num_correct']}/{final_results['num_total']})")
     for cat, cr in sorted(final_results["per_category"].items()):

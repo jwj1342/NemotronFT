@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=nemotron-baseline
 #SBATCH --account=def-zhouyang
-#SBATCH --time=2:00:00
+#SBATCH --time=4:00:00
 #SBATCH --gpus-per-node=h100:1
 #SBATCH --cpus-per-task=14
 #SBATCH --mem=80G
@@ -58,7 +58,7 @@ python $PROJECT_DIR/baseline/train.py \
     --neftune_alpha    5.0 \
     --eval_steps       25 \
     --eval_samples_per_class 5 \
-    --eval_batch_size  4 \
+    --eval_batch_size  8 \
     --tensorboard_dir  /home/jwj/tensorboard_logs
 
 TRAIN_EXIT=$?

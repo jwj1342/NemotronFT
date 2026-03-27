@@ -14,18 +14,25 @@ NemotronFT/
 ├── data/
 │   ├── train.csv                 # 原始训练集（~69k 条，含 id/prompt/answer）
 │   ├── test.csv                  # 测试集（34 条）
-│   └── by_category/              # 按 7 类别拆分的 CSV
-│       ├── bit_ops.csv           # 1602 条
-│       ├── cipher.csv            # 1576 条
-│       ├── equation_numeric.csv  # 732 条
-│       ├── equation_symbolic.csv # 823 条
-│       ├── gravity.csv           # 1597 条
-│       ├── numeral.csv           # 1576 条
-│       └── unit_conv.csv         # 1594 条
+│   ├── by_category/              # 按 7 类别拆分的 CSV
+│   │   ├── bit_ops.csv           # 1602 条
+│   │   ├── cipher.csv            # 1576 条
+│   │   ├── equation_numeric.csv  # 732 条
+│   │   ├── equation_symbolic.csv # 823 条
+│   │   ├── gravity.csv           # 1597 条
+│   │   ├── numeral.csv           # 1576 条
+│   │   └── unit_conv.csv         # 1594 条
+│   └── cot/                      # 合成 CoT 训练数据（由 cot_synthesis/ 生成）
+│       ├── bit_ops/              # 500 条 bit_ops CoT 样本
+│       └── equation_symbolic/    # 500 条 equation_symbolic CoT 样本
 ├── baseline/
 │   ├── train.py                  # LoRA 训练脚本（含 eval callback）
 │   ├── eval.py                   # 评测模块（官方 metric，batch generate）
 │   └── run_baseline.sbatch       # SBATCH 作业脚本（训练 + 自动打包）
+├── cot_synthesis/                # CoT 合成数据生成脚本（详见 cot_synthesis/README.md）
+│   ├── bit_ops.py                # 位操作任务 CoT 生成器
+│   ├── equation_symbolic.py      # 符号方程任务 CoT 生成器
+│   └── README.md                 # 生成脚本使用说明
 ├── output/                       # 训练产物输出目录
 │   ├── baseline-lora/            # 正式训练 adapter 权重
 │   ├── debug-lora/               # 调试训练 adapter 权重
@@ -138,7 +145,7 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | 参数 | 值 |
 |------|-----|
 | GPU | 1× H100 |
-| 时间限制 | 2h |
+| 时间限制 | 4h |
 | 内存 | 80G |
 | 数据采样 | 分层采样：7 类别各 400 条，共 2800 条 |
 | max_steps | -1（完整 1 epoch，约 175 步） |
@@ -150,7 +157,25 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | 精度 | BF16 |
 | NEFTune | noise_alpha=5.0 |
 
-**数据采样策略**：按 7 个任务类别（`bit_ops` / `cipher` / `equation_numeric` / `equation_symbolic` / `gravity` / `numeral` / `unit_conv`）从各自 CSV 中分层抽取，每类 400 条。未抽中的样本自动成为 eval pool，供训练中评测使用。
+### 数据集划分
+
+数据按 7 个任务类别（`bit_ops` / `cipher` / `equation_numeric` / `equation_symbolic` / `gravity` / `numeral` / `unit_conv`）从各自 CSV 中进行分层采样（seed=42 固定）：
+
+- **训练集**：每类前 400 条，共 2800 条
+- **Eval pool**：每类剩余样本，共 6700 条（与训练集完全无交集）
+
+具体划分如下：
+
+| 类别 | 总量 | 训练 | Eval pool |
+|------|------|------|-----------|
+| bit_ops | 1602 | 400 | 1202 |
+| cipher | 1576 | 400 | 1176 |
+| equation_numeric | 732 | 400 | 332 |
+| equation_symbolic | 823 | 400 | 423 |
+| gravity | 1597 | 400 | 1197 |
+| numeral | 1576 | 400 | 1176 |
+| unit_conv | 1594 | 400 | 1194 |
+| **合计** | **9500** | **2800** | **6700** |
 
 ### 训练中评测（Eval Callback）
 
@@ -158,12 +183,14 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 |------|----|
 | eval_steps | 25（每 25 步触发一次） |
 | eval_samples_per_class | 5（共 35 条） |
-| eval_batch_size | 4（batch generate 加速） |
+| eval_batch_size | 8（batch generate 加速） |
 | max_new_tokens | 256 |
 | 评测指标 | 官方 metric：`\boxed{}` 提取 + 数值 1% 容差 / 字符串精确匹配 |
 | 日志 | TensorBoard（`eval/accuracy` + 各类别准确率） |
 
-评测数据来自各类别未参与训练的剩余样本（eval pool），无数据泄漏。使用 batched `model.generate()` + left-padding 并行推理，相比逐条生成显著加速。
+评测数据从 eval pool 中每类取前 5 条（共 35 条），与训练集完全独立，无数据泄漏。使用 batched `model.generate()` + left-padding 并行推理。
+
+**注意**：当前训练结束后保存的是**最后一步的权重**（step 175），而非 eval 最佳的 checkpoint。如需最佳权重，需手动从 `checkpoint-100` 重新打包。后续可考虑加入 `load_best_model_at_end` 逻辑。
 
 ### LoRA 配置
 
@@ -231,24 +258,62 @@ zip 必须包含的文件：
 
 ## 训练结果记录
 
-| Job ID | 配置摘要 | 训练时长 | 吞吐量 | 最终 loss | Kaggle 分数 |
-|--------|----------|----------|--------|-----------|-------------|
-| 10934369 | 6类×200, max_len=1024, batch=1, grad_acc=8 | ~49 min | 0.405 samples/s | 4.507 | 0.61 |
-| 10961113 | 6类×200, max_len=512, batch=4, grad_acc=4, NEFTune | ~26 min | 0.772 samples/s | 2.233（末步 1.915） | 0.62 |
-| 11061119 | 7类×400, eval callback, 逐条 generate | 超时(2h) | — | loss 2.981@step 20 | — |
-| 11072751 | 7类×400, batch eval(bs=4) | 进行中 | — | — | — |
+| Job ID | 配置摘要 | 训练时长 | 最终 loss | 最佳 Eval | Kaggle 分数 |
+|--------|----------|----------|-----------|-----------|-------------|
+| 10934369 | 6类×200, max_len=1024, batch=1, grad_acc=8 | ~49 min | 4.507 | — | 0.61 |
+| 10961113 | 6类×200, max_len=512, batch=4, grad_acc=4, NEFTune | ~26 min | 2.233 | — | 0.62 |
+| 11061119 | 7类×400, eval callback, 逐条 generate | 超时(2h) | — | — | — |
+| 11072751 | 7类×400, batch eval(bs=4), 2h | 超时(2h) | — | — | — |
+| **11088934** | **7类×400, batch eval(bs=8), 4h** | **3h20m ✓** | **2.118** | **7/35 (20%) @ step 100** | **提交中** |
 
-**Job 10961113 loss 曲线（每 10 步记录）：**
+### Job 11088934 详细记录（首次完整 1 epoch）
 
-```
-epoch 0.13 → loss 3.068
-epoch 0.27 → loss 2.629
-epoch 0.40 → loss 2.310
-epoch 0.53 → loss 2.095
-epoch 0.67 → loss 1.982
-epoch 0.80 → loss 1.928
-epoch 0.93 → loss 1.915
-```
+**Loss 曲线：**
+
+| Step | Epoch | Loss | LR |
+|------|-------|------|----|
+| 10 | 0.06 | 3.653 | 2.00e-4 |
+| 20 | 0.11 | 2.984 | 1.98e-4 |
+| 30 | 0.17 | 2.115 | 1.93e-4 |
+| 40 | 0.23 | 2.245 | 1.84e-4 |
+| 50 | 0.29 | 2.132 | 1.73e-4 |
+| 60 | 0.34 | 2.094 | 1.59e-4 |
+| 70 | 0.40 | 1.832 | 1.42e-4 |
+| 80 | 0.46 | 2.027 | 1.24e-4 |
+| 90 | 0.51 | 1.811 | 1.06e-4 |
+| 100 | 0.57 | 1.812 | 8.68e-5 |
+| 110 | 0.63 | 1.874 | 6.84e-5 |
+| 120 | 0.69 | 1.900 | 5.11e-5 |
+| 130 | 0.74 | 1.906 | 3.56e-5 |
+| 140 | 0.80 | 2.022 | 2.23e-5 |
+| 150 | 0.86 | 1.903 | 1.19e-5 |
+| 160 | 0.91 | 1.804 | 4.55e-6 |
+| 170 | 0.97 | 2.081 | 6.44e-7 |
+
+**Eval 准确率（每 25 步，每类 5 条，共 35 条）：**
+
+| Step | 总计 | bit_ops | cipher | eq_num | eq_sym | gravity | numeral | unit_conv |
+|------|------|---------|--------|--------|--------|---------|---------|-----------|
+| 25 | 6/35 (17%) | 0/5 | 0/5 | 1/5 | 0/5 | 0/5 | **5/5** | 0/5 |
+| 50 | 5/35 (14%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 0/5 |
+| 75 | 5/35 (14%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 0/5 |
+| **100** | **7/35 (20%)** | **1/5** | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | **1/5** |
+| 125 | 6/35 (17%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 1/5 |
+| 150 | 6/35 (17%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 1/5 |
+| 175 | 5/35 (14%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 0/5 |
+| final | 5/35 (14%) | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | **5/5** | 0/5 |
+
+**关键观察：**
+- **numeral** 类稳定满分（5/5），该类任务已被充分学习
+- **其他 6 类准确率接近 0**，偶有零星正确（step 100 时 bit_ops、unit_conv 各答对 1 题）
+- Loss 从 3.65 降至 ~1.8-2.0，模型在学习，但 answer-only 训练（无 CoT 推理过程）对推理型任务效果有限
+- 最佳 eval 出现在 **step 100（epoch 0.57）**，之后略有下降，可能存在轻微过拟合
+- Eval 样本量较小（每类仅 5 条），结果存在一定波动
+
+**保存的 checkpoint：**
+- `checkpoint-100` — 最佳 eval（7/35 = 20%），已用于 Kaggle 提交
+- `checkpoint-175` — 最后一步
+- `adapter_model.safetensors` — 最后一步权重（Trainer 默认保存）
 
 ---
 
@@ -263,4 +328,15 @@ epoch 0.93 → loss 1.915
 | max_length=1024 导致 GPU 利用率仅 45% | 序列均值 168 token（p99=312），改为 max_length=512 后利用率显著提升，吞吐翻倍 |
 | batch_size=8 触发 OOM（H100 80G） | 模型权重 + 优化器状态已占 ~78G，改为 batch_size=4 + grad_acc=4 维持等效 batch=16 |
 | 逐条 eval generate 导致 2h 超时 | 35 条 × ~190s/条 ≈ 110 分钟。改为 batch generate（bs=4）并行推理加速 |
+| batch eval(bs=4) 仍然较慢（~30min/轮） | 提升 eval_batch_size 至 8，每轮 eval 降至 ~17min（提速 47%） |
+| TensorBoard 日志目录为空 | `logging_dir` 被 Trainer 忽略，实际写入 `output_dir/runs/`。已创建符号链接 |
 | GPU 利用率稳定 ~50% | 30B MoE 模型仅 3B 参数活跃，单卡顺序执行各层，属正常现象 |
+
+---
+
+## 下一步计划
+
+1. **CoT 数据训练**：将 `data/cot/` 中的 1000 条合成 CoT 样本加入训练，让模型学习推理过程而非仅记忆答案
+2. **增加训练轮次**：当前只训练了 1 epoch，可尝试 2-3 epoch 观察是否继续改善
+3. **Best model 自动保存**：在 TrainingArguments 中加入 `load_best_model_at_end` 逻辑
+4. **增大 eval 样本量**：当前每类仅 5 条，波动较大，可增至 10-20 条获得更稳定评估
