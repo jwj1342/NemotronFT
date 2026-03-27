@@ -19,7 +19,6 @@ import csv
 import os
 import random
 import sys
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -41,22 +40,25 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
     DataCollatorForSeq2Seq,
 )
 from peft import LoraConfig, get_peft_model, TaskType
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from eval import evaluate_samples
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH   = str(PROJECT_ROOT / "model")
-DATA_PATH    = str(PROJECT_ROOT / "data" / "train.csv")
+DATA_DIR     = PROJECT_ROOT / "data" / "by_category"
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir",        default=str(PROJECT_ROOT / "output" / "baseline-lora"))
 parser.add_argument("--max_steps",   type=int,   default=-1,
                     help="Training steps. -1 = train for a full epoch.")
-parser.add_argument("--samples_per_class", type=int, default=200,
+parser.add_argument("--samples_per_class", type=int, default=400,
                     help="Samples to draw per task category (stratified sampling).")
 parser.add_argument("--batch_size",  type=int,   default=4)
 parser.add_argument("--grad_acc",    type=int,   default=4)
@@ -66,6 +68,15 @@ parser.add_argument("--lora_rank",   type=int,   default=32)
 parser.add_argument("--lora_alpha",  type=int,   default=16)
 parser.add_argument("--neftune_alpha", type=float, default=5.0,
                     help="NEFTune noise alpha. Set 0 to disable.")
+parser.add_argument("--eval_steps", type=int, default=25,
+                    help="Run evaluation every N steps. 0 to disable.")
+parser.add_argument("--eval_samples_per_class", type=int, default=5,
+                    help="Number of eval samples per category.")
+parser.add_argument("--eval_batch_size", type=int, default=4,
+                    help="Batch size for eval generation.")
+parser.add_argument("--tensorboard_dir", type=str,
+                    default="/home/jwj/tensorboard_logs",
+                    help="TensorBoard log directory.")
 args = parser.parse_args()
 
 print(f"[config] output_dir        = {args.output_dir}")
@@ -78,6 +89,10 @@ print(f"[config] max_length        = {args.max_length}")
 print(f"[config] lora_rank         = {args.lora_rank}")
 print(f"[config] lora_alpha        = {args.lora_alpha}")
 print(f"[config] neftune_alpha     = {args.neftune_alpha}")
+print(f"[config] eval_steps        = {args.eval_steps}")
+print(f"[config] eval_samples/cls  = {args.eval_samples_per_class}")
+print(f"[config] eval_batch_size  = {args.eval_batch_size}")
+print(f"[config] tensorboard_dir   = {args.tensorboard_dir}")
 print(f"[config] torch version     = {torch.__version__}")
 print(f"[config] GPUs available    = {torch.cuda.device_count()}")
 
@@ -103,56 +118,6 @@ _THINK_PREFIXES = (
     "<think>\n\n</think>\n\n",
 )
 
-
-def classify_task(prompt: str) -> str:
-    """Heuristic task-type classifier based on prompt keywords.
-
-    7 categories matching the competition's problem taxonomy:
-      bit_ops, cipher, numeral, gravity, unit_conv,
-      equation_numeric, equation_symbolic
-    """
-    p = prompt.lower()
-    if "bit manipulation" in p or "bit shift" in p or "binary" in p:
-        return "bit_ops"
-    if "encryption" in p or "cipher" in p:
-        return "cipher"
-    if "numeral system" in p or "number system" in p:
-        return "numeral"
-    if "gravitational" in p:
-        return "gravity"
-    if "unit conversion" in p:
-        return "unit_conv"
-    if "transformation rules" in p:
-        # Split equation type: if the first example's LHS contains digits,
-        # it's a numeric equation; otherwise it's a symbolic equation.
-        import re
-        m = re.search(r'examples:\s*\n(.*?)\nNow,', prompt, re.DOTALL)
-        if m:
-            first_line = m.group(1).strip().split('\n')[0].strip().strip('`')
-            lhs = first_line.split('=')[0].strip() if '=' in first_line else first_line
-            if re.search(r'\d', lhs):
-                return "equation_numeric"
-        return "equation_symbolic"
-    return "other"
-
-
-def stratified_sample(rows: list, samples_per_class: int, seed: int = 42) -> list:
-    """Return a stratified subsample: up to `samples_per_class` rows per category."""
-    rng = random.Random(seed)
-    buckets: dict[str, list] = defaultdict(list)
-    for row in rows:
-        buckets[classify_task(row[0])].append(row)
-
-    sampled = []
-    for task in sorted(buckets):
-        task_rows = buckets[task]
-        rng.shuffle(task_rows)
-        chosen = task_rows[:samples_per_class]
-        sampled.extend(chosen)
-        print(f"[dataset]   {task:12s}: {len(chosen):4d} / {len(task_rows):5d} sampled")
-
-    rng.shuffle(sampled)
-    return sampled
 
 
 def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
@@ -193,17 +158,26 @@ def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
 
 
 class NemotronSFTDataset(Dataset):
-    def __init__(self, csv_path: str, samples_per_class: int = 200, max_length: int = 1024):
-        print(f"[dataset] Loading {csv_path} ...")
-        rows = []
-        with open(csv_path, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                rows.append((row["prompt"], row["answer"]))
-        print(f"[dataset] Total rows in CSV: {len(rows)}")
-        print(f"[dataset] Stratified sampling ({samples_per_class} per class) ...")
-        sampled = stratified_sample(rows, samples_per_class)
-        print(f"[dataset] {len(sampled)} samples after stratified sampling.")
+    def __init__(self, data_dir: str, samples_per_class: int = 400, max_length: int = 512):
+        print(f"[dataset] Loading per-category CSVs from {data_dir} ...")
+        rng = random.Random(42)
+        sampled = []
+        self.eval_pool = {}  # {category: [(prompt, answer), ...]}
+        for csv_file in sorted(Path(data_dir).glob("*.csv")):
+            category = csv_file.stem
+            rows = []
+            with open(csv_file, newline="", encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    rows.append((row["prompt"], row["answer"]))
+            rng.shuffle(rows)
+            chosen = rows[:samples_per_class]
+            remaining = rows[samples_per_class:]
+            sampled.extend(chosen)
+            self.eval_pool[category] = remaining
+            print(f"[dataset]   {category:22s}: {len(chosen):4d} train / {len(remaining):4d} eval / {len(rows):5d} total")
+        rng.shuffle(sampled)
+        print(f"[dataset] {len(sampled)} train samples, "
+              f"{sum(len(v) for v in self.eval_pool.values())} eval pool samples.")
 
         # Pre-tokenize all samples once at init time so __getitem__ is a
         # simple list lookup. This moves CPU-heavy work (Jinja2 templating,
@@ -297,7 +271,7 @@ if args.neftune_alpha > 0:
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 dataset = NemotronSFTDataset(
-    DATA_PATH,
+    str(DATA_DIR),
     samples_per_class=args.samples_per_class,
     max_length=args.max_length,
 )
@@ -340,18 +314,73 @@ training_args = TrainingArguments(
     logging_steps=10,
     save_steps=100,
     save_total_limit=2,
-    report_to="none",
+    report_to="tensorboard",
+    logging_dir=args.tensorboard_dir,
     remove_unused_columns=False,
 )
+
+# ── Eval callback ────────────────────────────────────────────────────────────
+callbacks = []
+if args.eval_steps > 0:
+    eval_data = []
+    for category, pool in sorted(dataset.eval_pool.items()):
+        chosen = pool[:args.eval_samples_per_class]
+        eval_data.extend([(p, a, category) for p, a in chosen])
+    print(f"[eval] {len(eval_data)} eval samples across "
+          f"{len(dataset.eval_pool)} categories (eval every {args.eval_steps} steps)")
+
+    from torch.utils.tensorboard import SummaryWriter
+    tb_writer = SummaryWriter(log_dir=args.tensorboard_dir)
+
+    class EvalCallback(TrainerCallback):
+        def on_step_end(self, args, state, control, **kwargs):
+            if state.global_step > 0 and state.global_step % self.eval_steps == 0:
+                import time
+                t0 = time.time()
+                results = evaluate_samples(model, tokenizer, eval_data, batch_size=args.eval_batch_size)
+                elapsed = time.time() - t0
+
+                tb_writer.add_scalar("eval/accuracy", results["accuracy"], state.global_step)
+                for cat, cr in results["per_category"].items():
+                    tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], state.global_step)
+                tb_writer.flush()
+
+                cat_str = " | ".join(
+                    f"{c}: {r['correct']}/{r['total']}"
+                    for c, r in sorted(results["per_category"].items())
+                )
+                print(f"\n[eval @ step {state.global_step}] "
+                      f"accuracy={results['accuracy']:.3f} "
+                      f"({results['num_correct']}/{results['num_total']}) "
+                      f"[{elapsed:.1f}s]")
+                print(f"[eval]   {cat_str}")
+
+    eval_cb = EvalCallback()
+    eval_cb.eval_steps = args.eval_steps
+    callbacks.append(eval_cb)
 
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=dataset,
     data_collator=collator,
+    callbacks=callbacks,
 )
 
 trainer.train()
+
+# ── Final eval ────────────────────────────────────────────────────────────────
+if args.eval_steps > 0:
+    print("\n[final eval] Running final evaluation ...")
+    final_results = evaluate_samples(model, tokenizer, eval_data, batch_size=args.eval_batch_size)
+    tb_writer.add_scalar("eval/accuracy", final_results["accuracy"], trainer.state.global_step)
+    for cat, cr in final_results["per_category"].items():
+        tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"], trainer.state.global_step)
+    tb_writer.close()
+    print(f"[final eval] accuracy={final_results['accuracy']:.3f} "
+          f"({final_results['num_correct']}/{final_results['num_total']})")
+    for cat, cr in sorted(final_results["per_category"].items()):
+        print(f"[final eval]   {cat:22s}: {cr['correct']}/{cr['total']} = {cr['accuracy']:.3f}")
 
 # ── Save adapter ──────────────────────────────────────────────────────────────
 print(f"\n[done] Saving LoRA adapter to {args.output_dir} ...")

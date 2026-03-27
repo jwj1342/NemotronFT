@@ -29,7 +29,7 @@ pip install --no-index --upgrade pip --quiet
 pip install --no-index mamba-ssm causal-conv1d
 
 # Step 2: install the rest against the already-pinned torch version.
-pip install --no-index transformers peft accelerate einops
+pip install --no-index transformers peft accelerate einops tensorboard
 
 echo "[setup] Done. Installed packages:"
-pip list | grep -E "torch|mamba|causal|transform|peft|acceler|einops"
+pip list | grep -E "torch|mamba|causal|transform|peft|acceler|einops|tensorboard"

@@ -48,14 +48,18 @@ echo "================"
 python $PROJECT_DIR/baseline/train.py \
     --output_dir       $PROJECT_DIR/output/baseline-lora \
     --max_steps        -1 \
-    --samples_per_class 200 \
+    --samples_per_class 400 \
     --batch_size       4 \
     --grad_acc         4 \
     --lr               2e-4 \
     --max_length       512 \
     --lora_rank        32 \
     --lora_alpha       16 \
-    --neftune_alpha    5.0
+    --neftune_alpha    5.0 \
+    --eval_steps       25 \
+    --eval_samples_per_class 5 \
+    --eval_batch_size  4 \
+    --tensorboard_dir  /home/jwj/tensorboard_logs
 
 TRAIN_EXIT=$?
 echo ""

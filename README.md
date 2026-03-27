@@ -12,10 +12,19 @@ Kaggle 比赛：[NVIDIA Nemotron 3 Reasoning Challenge](https://www.kaggle.com/c
 NemotronFT/
 ├── model/                        # 下载的基础模型权重（~60GB BF16）
 ├── data/
-│   ├── train.csv                 # 训练集（~69k 条，含 id/prompt/answer）
-│   └── test.csv                  # 测试集（34 条）
+│   ├── train.csv                 # 原始训练集（~69k 条，含 id/prompt/answer）
+│   ├── test.csv                  # 测试集（34 条）
+│   └── by_category/              # 按 7 类别拆分的 CSV
+│       ├── bit_ops.csv           # 1602 条
+│       ├── cipher.csv            # 1576 条
+│       ├── equation_numeric.csv  # 732 条
+│       ├── equation_symbolic.csv # 823 条
+│       ├── gravity.csv           # 1597 条
+│       ├── numeral.csv           # 1576 条
+│       └── unit_conv.csv         # 1594 条
 ├── baseline/
-│   ├── train.py                  # LoRA 训练脚本
+│   ├── train.py                  # LoRA 训练脚本（含 eval callback）
+│   ├── eval.py                   # 评测模块（官方 metric，batch generate）
 │   └── run_baseline.sbatch       # SBATCH 作业脚本（训练 + 自动打包）
 ├── output/                       # 训练产物输出目录
 │   ├── baseline-lora/            # 正式训练 adapter 权重
@@ -131,17 +140,30 @@ kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge
 | GPU | 1× H100 |
 | 时间限制 | 2h |
 | 内存 | 80G |
-| 数据采样 | 分层采样：6 类别各 200 条，共 1200 条 |
-| max_steps | -1（完整 1 epoch，约 75 步） |
+| 数据采样 | 分层采样：7 类别各 400 条，共 2800 条 |
+| max_steps | -1（完整 1 epoch，约 175 步） |
 | batch_size | 4，grad_acc=4（等效 batch 16） |
 | max_length | 512 |
 | 学习率 | 2e-4，cosine decay |
-| warmup | `warmup_ratio=0.05`（总步数的 5%，约 8 步） |
+| warmup | `warmup_ratio=0.05`（总步数的 5%） |
 | 优化器 | AdamW Fused |
 | 精度 | BF16 |
 | NEFTune | noise_alpha=5.0 |
 
-**数据采样策略**：按任务类别（`bit_ops` / `cipher` / `numeral` / `gravity` / `symbol` / `unit_conv`）分层抽取，每类各 200 条，消除类别不均衡问题。max_length=512 适配实际序列长度（均值约 168 token，p99=312），消除 padding 浪费。
+**数据采样策略**：按 7 个任务类别（`bit_ops` / `cipher` / `equation_numeric` / `equation_symbolic` / `gravity` / `numeral` / `unit_conv`）从各自 CSV 中分层抽取，每类 400 条。未抽中的样本自动成为 eval pool，供训练中评测使用。
+
+### 训练中评测（Eval Callback）
+
+| 参数 | 值 |
+|------|----|
+| eval_steps | 25（每 25 步触发一次） |
+| eval_samples_per_class | 5（共 35 条） |
+| eval_batch_size | 4（batch generate 加速） |
+| max_new_tokens | 256 |
+| 评测指标 | 官方 metric：`\boxed{}` 提取 + 数值 1% 容差 / 字符串精确匹配 |
+| 日志 | TensorBoard（`eval/accuracy` + 各类别准确率） |
+
+评测数据来自各类别未参与训练的剩余样本（eval pool），无数据泄漏。使用 batched `model.generate()` + left-padding 并行推理，相比逐条生成显著加速。
 
 ### LoRA 配置
 
@@ -200,6 +222,7 @@ zip 必须包含的文件：
 | accelerate | 1.13.0 | 训练加速 |
 | mamba-ssm | 2.2.4 | Mamba 架构 CUDA kernel |
 | causal-conv1d | 1.5.4 | mamba-ssm 依赖 |
+| tensorboard | 2.20.0 | 训练/评测指标可视化 |
 | kaggle | 2.0.0 | 提交工具（需 2.0.0+ 以支持 KGAT_ token） |
 
 安装顺序：**先装 `mamba-ssm`，再装其余包**（保证 torch 版本由 mamba-ssm 依赖决定，避免 ABI 不兼容）。
@@ -210,8 +233,10 @@ zip 必须包含的文件：
 
 | Job ID | 配置摘要 | 训练时长 | 吞吐量 | 最终 loss | Kaggle 分数 |
 |--------|----------|----------|--------|-----------|-------------|
-| 10934369 | max_len=1024, batch=1, grad_acc=8 | ~49 min | 0.405 samples/s | 4.507 | 0.61 |
-| 10961113 | max_len=512, batch=4, grad_acc=4, NEFTune α=5 | ~26 min | 0.772 samples/s | 2.233（末步 1.915） | 待评测 |
+| 10934369 | 6类×200, max_len=1024, batch=1, grad_acc=8 | ~49 min | 0.405 samples/s | 4.507 | 0.61 |
+| 10961113 | 6类×200, max_len=512, batch=4, grad_acc=4, NEFTune | ~26 min | 0.772 samples/s | 2.233（末步 1.915） | 0.62 |
+| 11061119 | 7类×400, eval callback, 逐条 generate | 超时(2h) | — | loss 2.981@step 20 | — |
+| 11072751 | 7类×400, batch eval(bs=4) | 进行中 | — | — | — |
 
 **Job 10961113 loss 曲线（每 10 步记录）：**
 
@@ -237,3 +262,5 @@ epoch 0.93 → loss 1.915
 | `warmup_steps` 固定值难以适配不同步数 | 改用 `warmup_ratio=0.05`（自适应） |
 | max_length=1024 导致 GPU 利用率仅 45% | 序列均值 168 token（p99=312），改为 max_length=512 后利用率显著提升，吞吐翻倍 |
 | batch_size=8 触发 OOM（H100 80G） | 模型权重 + 优化器状态已占 ~78G，改为 batch_size=4 + grad_acc=4 维持等效 batch=16 |
+| 逐条 eval generate 导致 2h 超时 | 35 条 × ~190s/条 ≈ 110 分钟。改为 batch generate（bs=4）并行推理加速 |
+| GPU 利用率稳定 ~50% | 30B MoE 模型仅 3B 参数活跃，单卡顺序执行各层，属正常现象 |
