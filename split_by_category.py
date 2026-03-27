@@ -3,28 +3,27 @@ import os
 
 df = pd.read_csv('data/train_cleaned.csv')
 
-# 分类函数
+import pandas as pd
+import os
+
+df = pd.read_csv('data/train_cleaned.csv')
+
+# Extract category from cleaned prompt
 def categorize(prompt):
-    p = prompt.lower()
-    if 'bit manipulation' in p or 'bit' in p[:100]:
+    if 'Category: Bit Manipulation' in prompt:
         return 'bit_ops'
-    elif 'encryption' in p or 'decrypt' in p or 'cipher' in p:
+    elif 'Category: Text Cipher' in prompt:
         return 'cipher'
-    elif 'numeral system' in p or 'roman' in p:
+    elif 'Category: Numeral System' in prompt:
         return 'numeral'
-    elif 'unit conversion' in p:
+    elif 'Category: Unit Conversion' in prompt:
         return 'unit_conv'
-    elif 'gravitational' in p or 'gravity' in p:
+    elif 'Category: Gravity Constant' in prompt:
         return 'gravity'
-    elif 'transformation rules is applied to equations' in p:
-        # 检查示例中是否主要是数字
-        lines = prompt.split('\n')
-        has_numbers = any(any(c.isdigit() for c in line) for line in lines[2:5] if line.strip())
-        has_symbols = any(any(c in '`!@#$%^&*(){}[]<>?~' for c in line) for line in lines[2:5] if line.strip())
-        if has_numbers and not has_symbols:
-            return 'equation_numeric'
-        else:
-            return 'equation_symbolic'
+    elif 'Category: Equation Numeric' in prompt:
+        return 'equation_numeric'
+    elif 'Category: Equation Symbolic' in prompt:
+        return 'equation_symbolic'
     else:
         return 'other'
 

@@ -1,903 +1,4214 @@
 id,prompt,answer
-00d8b3db,"a secret set of transformation rules is applied to equations. Below are a few examples:
-34/44 = 1
+00d8b3db,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34/44 = 1
 41/32 = 9
 34|25 = 69
 87\64 = 8853
+
 Now, determine the result for: 69/52",17/
-01cd504a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-64-65 = 201
+01cd504a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64-65 = 201
 28-68 = 861
 82/15 = 8241
+
 Now, determine the result for: 85/77",6644
-0505ab22,"a secret set of transformation rules is applied to equations. Below are a few examples:
-46!92 = 138
+026106f5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52{43 = 9
+31*15 = 46
+37{26 = 11
+17{92 = 24
+
+Now, determine the result for: 75*97",631
+03f07b43,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55`39 = 16
+61\65 = 126
+42>23 = 4223
+17\21 = 38
+
+Now, determine the result for: 81`20",61
+04171e29,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34-73 = 6
+28*71 = 4931
+56-45 = 11
+13*39 = 3882
+57*67 = 0075
+
+Now, determine the result for: 97-65",32
+0505ab22,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46!92 = 138
 38-68 = 2583
 57-16 = 911
 51-33 = 1682
+
 Now, determine the result for: 20-75",1499
-0641ef58,"a secret set of transformation rules is applied to equations. Below are a few examples:
-76-68 = -91
+053f4545,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79-12 = 67
+27-05 = 22
+65-21 = 44
+65?19 = 5905
+
+Now, determine the result for: 06@77",731
+0641ef58,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:76-68 = -91
 16-61 = -54
 39-02 = -37
 36+88 = 151
 85+12 = 97
+
 Now, determine the result for: 54-89",-35
-0819520a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-82*77 = 6512
+078df00e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06+67 = 731
+45+99 = 451
+51-05 = -53
+
+Now, determine the result for: 56*02",1031
+07aef27f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73*57 = 6772
+29*49 = 9468
+56+16 = 1656
+
+Now, determine the result for: 22-84",-62
+0819520a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82*77 = 6512
 87+18 = 061
 06+02 = 18
 86+39 = 261
 48*15 = 4824
+
 Now, determine the result for: 57+82",401
-09302769,"a secret set of transformation rules is applied to equations. Below are a few examples:
-37-29 = 8
+08d8d7e1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:41+98 = 301
+94+07 = 911
+06*49 = 4906
+95*27 = 2795
+
+Now, determine the result for: 65+23",88
+09302769,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:37-29 = 8
 85-51 = 34
 21'16 = 38
+
 Now, determine the result for: 90'91",182
-094bf548,"a secret set of transformation rules is applied to equations. Below are a few examples:
-88(64 = 8864
-27:81 = 54
-52:57 = 5
-25:81 = 56
-Now, determine the result for: 80:32",48
-0c0683c3,"a secret set of transformation rules is applied to equations. Below are a few examples:
-21-75 = 54
+0a15c5c7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46-02 = 44
+84-62 = 22
+01(33 = 133
+46%92 = 39
+
+Now, determine the result for: 79-36",43
+0c0683c3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:21-75 = 54
 39-42 = 3
 56-50 = 6
 70-11 = 59
 14-90 = 76
+
 Now, determine the result for: 79""59",138
-10d7bd1b,"a secret set of transformation rules is applied to equations. Below are a few examples:
-02+39 = 311
+10d7bd1b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:02+39 = 311
 38-25 = 13
 43-96 = -53
+
 Now, determine the result for: 59-81",77
-10fdae00,"a secret set of transformation rules is applied to equations. Below are a few examples:
-64*81 = 928
+10fdae00,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64*81 = 928
 95+95 = 911
 97-03 = 94
+
 Now, determine the result for: 52-99",-47
-1497f970,"a secret set of transformation rules is applied to equations. Below are a few examples:
-84*15 = 9442
+10ff9431,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47""28 = 8606
+16%05 = 111
+12%08 = 101
+79""05 = 0584
+73+76 = 03
+
+Now, determine the result for: 02""68",0271
+111e3b8e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12*47 = 563
+63^39 = 101
+93*87 = 8090
+49*91 = 4458
+39""13 = 26
+
+Now, determine the result for: 32^10",41
+114a8d85,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83>82 = 66
+26>97 = 141
+71>89 = 511
+49-07 = 0856
+
+Now, determine the result for: 48>83",221
+118f8c86,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78?29 = 106
+18}50 = }32
+65}48 = 17
+79?53 = 131
+41-14 = 573
+
+Now, determine the result for: 50}49",1
+12d4a2df,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27-99 = -72
+72+71 = 7172
+81*83 = 486
+86*15 = 8643
+
+Now, determine the result for: 68-08",-6
+1322241b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93'85 = 178
+72&34 = 2447
+17-77 = 9
+41'71 = 112
+
+Now, determine the result for: 26'35",61
+13892a7c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:21+39 = 3921
+77+07 = 0777
+36+29 = 2936
+31*42 = 213
+63-46 = -82
+
+Now, determine the result for: 61-47",-85
+13ad7bce,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69-63 = 06
+06*17 = 1706
+37+29 = 461
+79*88 = 8879
+47-09 = -61
+
+Now, determine the result for: 71-45",-73
+144a3e31,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05-08 = 0004
+61-45 = 468
+88[21 = 4
+06{49 = 451
+
+Now, determine the result for: 51-91",582
+1497f970,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84*15 = 9442
 76+93 = 601
 27+89 = 071
+
 Now, determine the result for: 28+49",671
-163db2d8,"a secret set of transformation rules is applied to equations. Below are a few examples:
-97+14 = 021
+155b4694,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23+48 = 7862
+84?53 = 31
+81]36 = 18
+
+Now, determine the result for: 92+77",2322
+157228d7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28<40 = 69
+82<68 = 151
+28*78 = *50
+
+Now, determine the result for: 50*15",35
+1580f498,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09*42 = 1612
+88+98 = 871
+14-52 = 61
+08*18 = 1846
+01-01 = 0
+
+Now, determine the result for: 05*19",1554
+15a1d279,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15+42 = 67
+97-91 = -06
+37+25 = 621
+72*93 = 3501
+
+Now, determine the result for: 07*14",0782
+163db2d8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:97+14 = 021
 01+26 = 27
 93-97 = -04
 19+89 = 981
 25*01 = 915
+
 Now, determine the result for: 58+37",851
-1c4861e6,"a secret set of transformation rules is applied to equations. Below are a few examples:
-03-59 = 56
+164b3241,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83&85 = 167
+27+90 = 2790
+15&83 = 97
+
+Now, determine the result for: 12&41",52
+16699d43,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33@37 = 71
+67}12 = 6712
+45+21 = 24
+
+Now, determine the result for: 67+57",10
+17c98340,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:94}26 = 111
+45$22 = 8811
+52$97 = 5791
+05$17 = 0553
+89/44 = 45
+
+Now, determine the result for: 78}05",731
+18268687,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:49*98 = 4998
+84'18 = 66
+28*73 = 2873
+72'62 = 10
+
+Now, determine the result for: 75'75",0
+1b3beb8f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:80[32 = 16
+49[33 = 16
+82[20 = 2
+76*52 = 3952
+61*24 = 1464
+
+Now, determine the result for: 87|22",108
+1b6366af,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:14/75 = 7332
+25/82 = 6541
+96<62 = 59
+37!64 = 72!
+62/37 = 8981
+
+Now, determine the result for: 65!68",03!
+1bc85bd9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58-85 = 72
+88*95 = 9588
+19*31 = 3119
+
+Now, determine the result for: 16-22",93
+1c4861e6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03-59 = 56
 63-87 = 24
 72+49 = 021
 66-15 = 51
+
 Now, determine the result for: 12*91",993
-1eaf6228,"a secret set of transformation rules is applied to equations. Below are a few examples:
-25-55 = 3
+1c48f9aa,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:22{52 = 2252
+74*60 = 14
+31*65 = 34
+39{12 = 3912
+
+Now, determine the result for: 86{10",8610
+1da822f1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58*31 = 88
+79*93 = 171
+19*99 = 117
+77*88 = 164
+
+Now, determine the result for: 26%23",598
+1e0f6678,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33""30 = 3
+23""69 = 0
+64*65 = 4160
+
+Now, determine the result for: 37*36",1332
+1eaf6228,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:25-55 = 3
 94+41 = 26
 25+29 = 341
 35-35 = 0
+
 Now, determine the result for: 42*61",483
-1ee54412,"a secret set of transformation rules is applied to equations. Below are a few examples:
-07:33 = 301
+1ee54412,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:07:33 = 301
 58:23 = 711
 08:89 = 871
 93-13 = 8
 56-95 = 6
+
 Now, determine the result for: 58-85",72
-1f0674b0,"a secret set of transformation rules is applied to equations. Below are a few examples:
-69-14 = 55
+1ef51442,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68+31 = 99
+14*54 = 4481
+28+87 = 061
+93*84 = 1781
+
+Now, determine the result for: 94*14",8002
+1f0674b0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69-14 = 55
 13-75 = 62
 71+81 = 53
 58-66 = 91
+
 Now, determine the result for: 54+95",401
-1f0fbe5f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-06*79 = 0285
+1f0fbe5f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06*79 = 0285
 75-72 = 3
 88-32 = 91
+
 Now, determine the result for: 54-68",14
-23f98595,"a secret set of transformation rules is applied to equations. Below are a few examples:
-17-59 = 5476
+1f4c8169,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44+02 = 46
+79+53 = 231
+83*13 = 9711
+27+32 = 59
+
+Now, determine the result for: 86+28",051
+2049f01d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86+62 = 59
+48+71 = 201
+37-52 = 84
+29*75 = 4425
+16+11 = 37
+
+Now, determine the result for: 52-75",23
+20f0fac9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78]18 = 6
+95]24 = 23
+52*94 = 145
+21]91 = 7
+
+Now, determine the result for: 31%96",2976
+21261dc6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05-25 = -2
+74*67 = 2753
+89-85 = -04
+
+Now, determine the result for: 02-27",-25
+22288152,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17{75 = 821
+61'66 = 5501
+53{87 = 311
+36{82 = 19
+68/54 = 14
+
+Now, determine the result for: 98{19",081
+228bd26b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43!79 = 3397
+58-47 = 11
+84!32 = 2688
+25-93 = 18
+
+Now, determine the result for: 40/12",4012
+23800316,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87*46 = 41
+38]67 = 951
+58]95 = 441
+
+Now, determine the result for: 44]35",79
+23f98595,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17-59 = 5476
 62-45 = 4041
 58-38 = 5507
+
 Now, determine the result for: 33'69",03
-26168be6,"a secret set of transformation rules is applied to equations. Below are a few examples:
-96+63 = 501
+2423926d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:39-24 = 15
+88+93 = 621
+38*99 = 6128
+67+99 = 471
+53*53 = 4221
+
+Now, determine the result for: 33+25",48
+25f2f2cd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78+19 = 971
+85*57 = 0534
+02*35 = 0601
+
+Now, determine the result for: 15+75",901
+260f20c1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84[69 = 153
+13+97 = 1260
+46+47 = 2161
+52[80 = 132
+
+Now, determine the result for: 22\65",43
+26168be6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96+63 = 501
 08-09 = -01
 64+72 = 37
+
 Now, determine the result for: 23+76",99
-26b716ed,"a secret set of transformation rules is applied to equations. Below are a few examples:
-78!11 = 67
-26'86 = 131
-28'68 = 961
-87'91 = 89
-84&64 = 8022
-Now, determine the result for: 03'23",36
-274def88,"a secret set of transformation rules is applied to equations. Below are a few examples:
-33*74 = 2551
+26dbd20d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48*39 = 2187
+29+11 = 1129
+94*19 = 9544
+
+Now, determine the result for: 55*68",0374
+272bde97,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31-55 = -24
+21-97 = -76
+47*44 = 4447
+
+Now, determine the result for: 14+31",55
+274def88,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33*74 = 2551
 29-79 = -5
 17+69 = 861
 01-72 = -71
 42*38 = 3991
+
 Now, determine the result for: 85-92",92
-28f7012c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-47*91 = 6041
+27661a37,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12*54 = 549
+76-28 = 51
+07-79 = 72
+28*19 = 2647
+
+Now, determine the result for: 96+77",741
+286135d3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23@13 = 199
+79*69 = 391
+26$74 = 51$
+68$13 = 55$
+65@03 = 9761
+
+Now, determine the result for: 11@94",835
+28f7012c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47*91 = 6041
 62-33 = 7
 89-71 = 31
+
 Now, determine the result for: 41+75",7541
-2a73a462,"a secret set of transformation rules is applied to equations. Below are a few examples:
-26+56 = +3
+2a73a462,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26+56 = +3
 86+65 = 21
 77+39 = +61
 68:37 = 6837
 56[59 = 5716
+
 Now, determine the result for: 93:02",9302
-2aeb5265,"a secret set of transformation rules is applied to equations. Below are a few examples:
-61-76 = 15
+2aeb5265,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61-76 = 15
 28+64 = 721
 89-36 = 53
+
 Now, determine the result for: 28-52",75
-2cc274cb,"a secret set of transformation rules is applied to equations. Below are a few examples:
-13-48 = -35
+2af7134e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:13+14 = 1
+92+33 = 59
+95}54 = 9554
+56+21 = 35
+
+Now, determine the result for: 61+41",20
+2afebbc3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:85#34 = 8534
+20/37 = 17
+57#26 = 5726
+67#85 = 6785
+
+Now, determine the result for: 18/52",16
+2bc2a65a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88+81 = 601
+16+56 = 621
+95*19 = 1995
+51+17 = 68
+85+43 = 29
+
+Now, determine the result for: 14+66",701
+2cc274cb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:13-48 = -35
 63-75 = -12
 99+93 = 9399
 25-47 = -22
 08-67 = 4
+
 Now, determine the result for: 21+68",6821
-2d3e809c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-68*91 = 5361
+2cf587f6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33>28 = 60
+83>37 = 119
+95\55 = 5225
+30\11 = 330
+95\62 = 5890
+
+Now, determine the result for: 88>72",159
+2d3e809c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68*91 = 5361
 53-67 = -14
 43-63 = -2
 51-43 = -91
 33-74 = -41
+
 Now, determine the result for: 25*98",9264
-2f7e0e78,"a secret set of transformation rules is applied to equations. Below are a few examples:
-66+09 = 551
+2dd48cac,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:04*31 = 125
+53-01 = -52
+43*91 = 746
+66+11 = 77
+
+Now, determine the result for: 22-27",-05
+2e2d60b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24*52 = 1501
+31*51 = 691
+05+52 = 67
+41+52 = 04
+
+Now, determine the result for: 85+11",07
+2e37e963,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58*91 = 6161
+52+78 = 311
+95*65 = 5033
+56-97 = -41
+32*14 = 449
+
+Now, determine the result for: 71-86",-15
+2e9639de,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29-95 = 123
+86[93 = [7
+60&62 = 3721
+23-97 = 119
+
+Now, determine the result for: 64&56",3585
+2ee39f5f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56+67 = 6756
+93+76 = 7693
+91*59 = 5081
+17*75 = 7404
+
+Now, determine the result for: 63*53",0621
+2f485a40,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:20+44 = 2044
+15}39 = 1539
+35}43 = 3543
+82+31 = 8231
+
+Now, determine the result for: 18+67",1867
+2f7e0e78,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66+09 = 551
 74+42 = 07
 49+19 = 481
+
 Now, determine the result for: 98-99",01
-3013265c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-94-96 = 02
+3013265c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:94-96 = 02
 18-56 = 61
 29+41 = 601
+
 Now, determine the result for: 92+43",36
-30763ac0,"a secret set of transformation rules is applied to equations. Below are a few examples:
-67-47 = 2
+30763ac0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:67-47 = 2
 89+97 = 671
 14-72 = 41
 18+79 = 771
+
 Now, determine the result for: 79+44",041
-32a31236,"a secret set of transformation rules is applied to equations. Below are a few examples:
-63|08 = 6308
+30c0d5a2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68*88 = 8868
+47+42 = 99
+98*76 = 7698
+
+Now, determine the result for: 22+44",76
+317ec3e6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:40-82 = 2
+23-28 = 5
+31%94 = 125
+
+Now, determine the result for: 18-86",14
+320d8d2b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24`66 = 801
+98>49 = 7638
+37\41 = 95
+
+Now, determine the result for: 65>75",3913
+324f918b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61'64 = '3
+68-18 = 85
+63>41 = 6341
+62'14 = 48
+53'81 = '28
+
+Now, determine the result for: 62-47",108
+32815b79,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23+35 = +12
+89)87 = 671
+86]22 = 6941
+58)18 = 661
+
+Now, determine the result for: 34)62",96
+32a31236,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:63|08 = 6308
 14|62 = 1462
 61/34 = 886
 26|16 = 2616
+
 Now, determine the result for: 52[96",44
-32e9a308,"a secret set of transformation rules is applied to equations. Below are a few examples:
-86-22 = 1893
+32a812cd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66-27 = 1782
+94{67 = {27
+58{17 = {41
+
+Now, determine the result for: 12-37",444
+32e9a308,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86-22 = 1893
 39-29 = 1132
 54-54 = 2917
 25-67 = 1676
+
 Now, determine the result for: 94`31",124
-333d93ec,"a secret set of transformation rules is applied to equations. Below are a few examples:
-85+27 = 131
+33093ed0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:75+79 = 7975
+99*47 = 4799
+95*65 = 6595
+15-82 = 32
+
+Now, determine the result for: 07-79",-72
+330d5ef1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:57-76 = 8
+07*33 = 0132
+26*48 = 8025
+17-76 = 4
+
+Now, determine the result for: 27*56",0864
+333d93ec,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:85+27 = 131
 16+97 = 141
 16+76 = 921
 86-28 = 41
 63-52 = 11
+
 Now, determine the result for: 44-73",7
-3383d4ec,"a secret set of transformation rules is applied to equations. Below are a few examples:
-88-12 = 76
+3383d4ec,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88-12 = 76
 32+44 = 4432
 32+72 = 7232
+
 Now, determine the result for: 39-72",66
-35661801,"a secret set of transformation rules is applied to equations. Below are a few examples:
-72""28 = 7228
-62'49 = 111
-83'44 = 127
-Now, determine the result for: 90'38",128
-35672155,"a secret set of transformation rules is applied to equations. Below are a few examples:
-66*59 = *92
+339149c9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34-93 = 4
+53+23 = 2353
+81*69 = 8271
+99-34 = 31
+34-63 = 7
+
+Now, determine the result for: 32-62",3
+348d6225,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48+09 = 471
+35>98 = 6174
+26+11 = 37
+
+Now, determine the result for: 55+43",98
+34c563c5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28`44 = 83`
+77\54 = 221
+84\34 = 19
+
+Now, determine the result for: 45`41",04`
+35672155,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66*59 = *92
 15:16 = 1113
 27:56 = 0864
+
 Now, determine the result for: 76:27",4284
-3580648f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-83/40 = /43
+356e927c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18-43 = 4572
+46-34 = 2572
+49`55 = 93
+
+Now, determine the result for: 24#28",421
+3580648f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83/40 = /43
 69/91 = /22
 87-64 = 8764
 21-13 = 2113
 25/14 = /11
+
 Now, determine the result for: 26-40",2640
-3687bc41,"a secret set of transformation rules is applied to equations. Below are a few examples:
-81}95 = 14
+35e12b34,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79+65 = 14
+94+43 = 51
+45+11 = 34
+
+Now, determine the result for: 65`48",041
+3687bc41,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:81}95 = 14
 89|63 = 8963
 56|56 = 5656
 97|35 = 9735
+
 Now, determine the result for: 08`14",121
-39fd934f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-34+33 = 57
+379d18b7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84'59 = 241
+84*67 = *82
+78'78 = 371
+93'18 = 911
+05!84 = 0042
+
+Now, determine the result for: 22!64",2101
+37a2a7ff,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46-53 = 2438
+82#10 = 2
+67#40 = 27
+12/74 = 1274
+
+Now, determine the result for: 84/83",8483
+3831c67a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:32+26 = 58
+83-49 = -65
+11*27 = 2711
+
+Now, determine the result for: 46*51",5146
+386b6d03,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47[35 = 2293
+82-68 = -85
+09[97 = 0117
+
+Now, determine the result for: 79'97",671
+3937cbf8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23+52 = 75
+84-64 = -2
+33+82 = 16
+01*95 = 985
+
+Now, determine the result for: 84+61",46
+39fd934f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34+33 = 57
 31+13 = 34
 25-74 = 5
 98+55 = 341
 69-42 = 27
+
 Now, determine the result for: 32-23",-9
-3bf05c35,"a secret set of transformation rules is applied to equations. Below are a few examples:
-28-36 = 91
+3acfa7a4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:19-22 = 96
+81}78 = 7881
+44%92 = 6721
+38-04 = 34
+
+Now, determine the result for: 45%92",6651
+3b2e0cc3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:57-36 = 21
+56+35 = 711
+63-53 = 1
+12*23 = 276
+83*53 = 0331
+
+Now, determine the result for: 57-38",8
+3b51288b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:19%38 = 3557
+21%22 = 462
+89+46 = +43
+12%21 = 252
+
+Now, determine the result for: 95%05",0592
+3b7e71b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48|42 = 06|
+02$89 = 811
+54|77 = 23
+02!67 = 1251
+
+Now, determine the result for: 17!28",3285
+3b9e33f6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:41+57 = 88
+62*67 = 7791
+12-19 = -07
+27-79 = -52
+
+Now, determine the result for: 31+39",501
+3bf05c35,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28-36 = 91
 51-97 = 46
 02-01 = 01
+
 Now, determine the result for: 86+87",641
-3e42c4f9,"a secret set of transformation rules is applied to equations. Below are a few examples:
-34-44 = 1
+3bf0875d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:38%40 = 79
+92/95 = 8741
+75%74 = 150
+62<38 = 24
+
+Now, determine the result for: 28/38",1065
+3c12aeb9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68|06 = 62
+12$29 = 311
+29$51 = 701
+98|25 = 73
+27$85 = 031
+
+Now, determine the result for: 27$15",321
+3c424916,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26*84 = 5792
+22+78 = 901
+49*64 = 3234
+
+Now, determine the result for: 82*55",9351
+3c8a4e7c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05{51 = 56
+63{02 = 65
+76\74 = 9413
+44{27 = 611
+
+Now, determine the result for: 21\34",615
+3e42c4f9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34-44 = 1
 85-53 = 32
 51-38 = 8
 33-96 = 3
 45+32 = 77
+
 Now, determine the result for: 45-65",2
-3ec77e36,"a secret set of transformation rules is applied to equations. Below are a few examples:
-54*39 = 6814
+3ec77e36,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:54*39 = 6814
 75+51 = 27
 73-26 = -52
 68+37 = 951
 87+28 = 061
+
 Now, determine the result for: 86+83",601
-4245e455,"a secret set of transformation rules is applied to equations. Below are a few examples:
-98-22 = -76
+3ee36e0a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15-69 = -54
+74)02 = 149
+24>42 = 66
+
+Now, determine the result for: 48-99",-51
+3efc46c1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:36[15 = 3615
+55/38 = 93
+67<89 = 22
+86[39 = 8639
+
+Now, determine the result for: 39[64",3964
+3fa49035,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73/78 = 150
+96#58 = 38
+88>60 = 5280
+23/75 = 97
+
+Now, determine the result for: 24>29",696
+40c53743,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06-45 = 6
+49*58 = 1997
+22*17 = 3651
+42-65 = -23
+69*08 = 1867
+
+Now, determine the result for: 24*88",7963
+4179c322,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56*15 = 5133
+04*28 = 0823
+73*85 = 6412
+24-65 = -41
+76+06 = 0676
+
+Now, determine the result for: 15-75",-6
+418895f5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79-58 = 21
+47*04 = 9592
+58+61 = 101
+
+Now, determine the result for: 85*95",1243
+41babefd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24/63 = 88
+22/92 = 115
+50/81 = 132
+96{75 = 21
+39*12 = 3912
+
+Now, determine the result for: 41/85",127
+41e6cbfc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05+12 = 1205
+02*63 = 6302
+69+97 = 9769
+61+47 = 4761
+
+Now, determine the result for: 18+93",9318
+4245e455,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98-22 = -76
 34+43 = 87
 66-43 = -23
 45-35 = -1
 39-49 = -1
+
 Now, determine the result for: 49-56",-92
-42cb233d,"a secret set of transformation rules is applied to equations. Below are a few examples:
-81*84 = 368
+427ba852,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16+65 = 711
+56+45 = 911
+66*55 = 5566
+96*41 = 4196
+67-34 = 33
+
+Now, determine the result for: 14*22",2214
+42cb233d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:81*84 = 368
 17+26 = 431
 41-94 = -53
+
 Now, determine the result for: 59+29",881
-45582be0,"a secret set of transformation rules is applied to equations. Below are a few examples:
-17/59 = 76
+42d4dcf7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26-31 = 01
+21-49 = 01
+07*65 = 0293
+38-07 = 31
+
+Now, determine the result for: 65-57",91
+4350015c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:57*59 = 4217
+47-69 = 22
+32-75 = 11
+
+Now, determine the result for: 16*72",6461
+43837c5b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:90^36 = 18
+19*32 = 1932
+15<45 = 675
+54^25 = 4
+
+Now, determine the result for: 45*72",4572
+43980e72,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18:44 = 1844
+71-89 = 161
+96<48 = 48
+56<68 = <12
+90-82 = 173
+
+Now, determine the result for: 95<31",64
+44398869,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09^83 = 0243
+97^26 = 8984
+37^04 = 0292
+77^69 = 2937
+67+97 = 551
+
+Now, determine the result for: 54^17",5913
+44a57762,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:57|64 = 121
+49|62 = 021
+77|21 = 98
+
+Now, determine the result for: 56[71",5011
+45582be0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17/59 = 76
 73+71 = 5184
 86+75 = 6451
 15/46 = 61
 78/98 = 176
+
 Now, determine the result for: 68/36",104
-45dbc1cc,"a secret set of transformation rules is applied to equations. Below are a few examples:
-46*53 = 0422
+45dbc1cc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46*53 = 0422
 53-01 = -52
 49+39 = 3949
+
 Now, determine the result for: 98-63",-35
-45df54db,"a secret set of transformation rules is applied to equations. Below are a few examples:
-23-79 = 56
+45df54db,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23-79 = 56
 22+68 = 801
 29-58 = 7
+
 Now, determine the result for: 56-91",64
-47dc6570,"a secret set of transformation rules is applied to equations. Below are a few examples:
-79+05 = 1584
+4684abe0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06*88 = 1825
+26*35 = 7823
+61+53 = 5361
+
+Now, determine the result for: 74-86",-12
+47dc6570,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79+05 = 1584
 59+03 = 1582
 87+37 = 5965
 67+65 = 7524
 51#03 = #51
+
 Now, determine the result for: 48#26",22
-49ac9daf,"a secret set of transformation rules is applied to equations. Below are a few examples:
-75*17 = 921
+48c25e0e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82-18 = 1476
+93^50 = ^43
+26-61 = 1586
+
+Now, determine the result for: 43&11",53
+49578b02,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05*63 = 1081
+15+12 = 37
+05-39 = -34
+53*69 = 1633
+
+Now, determine the result for: 07+22",39
+49699136,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88*39 = 8839
+64<16 = 80
+26#12 = #14
+21*72 = 2172
+
+Now, determine the result for: 77#25",#52
+49743645,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83-86 = 03
+72*86 = 7381
+42+25 = 67
+83+05 = 88
+71+73 = 45
+
+Now, determine the result for: 99*07",1396
+49919931,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78:29 = 4008
+04*01 = 0
+02:18 = 0261
+
+Now, determine the result for: 42*59",32
+49ac9daf,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:75*17 = 921
 18+32 = 85
 07'05 = 0053
 89+73 = 16
+
 Now, determine the result for: 64*52",27
-4aeed935,"a secret set of transformation rules is applied to equations. Below are a few examples:
-24*74 = 7424
+4a569495,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52-27 = -74
+02+79 = 611
+13*13 = 1313
+
+Now, determine the result for: 53+04",47
+4a8eafe3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65+27 = 921
+02*91 = 183
+84*44 = 3112
+82+62 = 55
+
+Now, determine the result for: 95*68",5705
+4aabfc3b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03*61 = 64
+05*84 = 89
+27""97 = 8865
+
+Now, determine the result for: 31*85",17
+4aeed935,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24*74 = 7424
 75+78 = 7875
 31+96 = 9631
 07-19 = -12
+
 Now, determine the result for: 55*14",1455
-4cb5e927,"a secret set of transformation rules is applied to equations. Below are a few examples:
-37/18 = 665
+4b70414e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:35+44 = 79
+41#55 = 967
+07<13 = 93<
+19+14 = 231
+06#21 = 917
+
+Now, determine the result for: 48#83",1913
+4bc6e6b5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16/70 = 6
+59$26 = 1535
+31/58 = 27
+11/98 = 10
+23+49 = 72
+
+Now, determine the result for: 31+36",67
+4c6cf9d9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58*34 = 24
+41`35 = 86
+53`27 = 801
+29*25 = 04
+
+Now, determine the result for: 29*65",63
+4cb5e927,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:37/18 = 665
 88:71 = 159
 25-97 = -72
+
 Now, determine the result for: 69-49",-20
-4d714623,"a secret set of transformation rules is applied to equations. Below are a few examples:
-95""84 = 179
-67""31 = 98
-20""12 = 32
-11""91 = 102
-64:52 = 6452
-Now, determine the result for: 57""50",107
-4df01584,"a secret set of transformation rules is applied to equations. Below are a few examples:
-07+04 = 0407
+4cf073bf,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93+01 = 94
+19^33 = 1933
+04^26 = 0426
+
+Now, determine the result for: 02+06",08
+4d1ae327,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96&97 = &01
+44+52 = 96
+19&76 = 42
+99&84 = 15
+52?12 = 625
+
+Now, determine the result for: 22&64",&42
+4d39d098,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:94+92 = 97
+92+66 = 69
+12*99 = 9702
+67-32 = -35
+34*71 = 137
+
+Now, determine the result for: 96*36",7434
+4d8f8111,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98+78 = 7898
+77-93 = 83
+42-23 = 8
+42*09 = 0612
+92+63 = 6392
+
+Now, determine the result for: 01+76",7601
+4dbec546,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61-22 = -6
+51+72 = 24
+63*47 = 4763
+18*63 = 6318
+08*67 = 6708
+
+Now, determine the result for: 06+65",611
+4dcc1844,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17*71 = 87
+63$50 = 13
+85$33 = 52
+28$92 = $64
+69&17 = 6917
+
+Now, determine the result for: 63*21",83
+4df01584,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:07+04 = 0407
 62-71 = 9
 44-43 = 01
+
 Now, determine the result for: 35+19",1935
-5144897d,"a secret set of transformation rules is applied to equations. Below are a few examples:
-99-66 = 6533
+4e5fa95b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93(51 = 4744
+44(82 = 3609
+13(26 = 339
+49+81 = 32
+84?47 = 131
+
+Now, determine the result for: 27?59",86
+4e840a1a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58*93 = 152
+26*21 = 48
+56*65 = 122
+
+Now, determine the result for: 15+53",38
+4f06e1c0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79*29 = 2979
+12*65 = 6512
+47*03 = 0347
+
+Now, determine the result for: 07+38",351
+4f0e0273,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64*49 = 4234
+01{83 = 8
+33@74 = 08
+87{78 = 9
+
+Now, determine the result for: 36*53",5022
+4f660f4b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86[91 = 2921
+33\14 = 37
+94`42 = 52
+41\69 = 901
+
+Now, determine the result for: 76[86",6554
+4ff92c73,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33-91 = 41
+32-33 = 01
+31*13 = 204
+82*28 = 5922
+
+Now, determine the result for: 75-38",62
+5039d1a0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64*44 = 3202
+21*84 = 575
+64*69 = 5144
+28-18 = 1
+
+Now, determine the result for: 06+08",041
+50630ad8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:49`94 = 9449
+67`98 = 9867
+03$01 = 02
+37+35 = 621
+59`76 = 7659
+
+Now, determine the result for: 51$37",$85
+50adc396,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34*06 = 0634
+97+66 = 541
+13*26 = 2613
+16-23 = -92
+
+Now, determine the result for: 15+88",931
+50adfd54,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12*23 = 176
+52-61 = 9
+88*89 = 3268
+
+Now, determine the result for: 42-18",-75
+50c0b6f8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:39+04 = 331
+67*67 = 6767
+21*56 = 5621
+94+28 = 131
+26-76 = 5
+
+Now, determine the result for: 96+06",921
+50f8e2c0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:14-19 = -05
+35+39 = 3935
+62*58 = 1122
+
+Now, determine the result for: 31-53",-22
+5144897d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:99-66 = 6533
 13:92 = 1
 49|31 = 80
 76|65 = 141
+
 Now, determine the result for: 90:15",0
-549f5220,"a secret set of transformation rules is applied to equations. Below are a few examples:
-12+01 = 13
+51dafb5b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:67*68 = 5356
+03-99 = 96
+11-81 = 7
+02*14 = 918
+14-35 = 21
+
+Now, determine the result for: 86*53",9732
+52c62a3e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48\75 = 72\
+56\24 = 32\
+62*43 = 4362
+02*71 = 7102
+77*33 = 3377
+
+Now, determine the result for: 92*12",1292
+53b48918,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:70|42 = 7042
+51#94 = 4794
+56#88 = 4928
+22+71 = 49
+
+Now, determine the result for: 91+10",81
+549f5220,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12+01 = 13
 77+25 = 921
 94-82 = 12
 85+13 = 98
 32-15 = 82
+
 Now, determine the result for: 48*55",5548
-54c9bde5,"a secret set of transformation rules is applied to equations. Below are a few examples:
-52(28 = 79
+54c9bde5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52(28 = 79
 50-78 = 5078
 71\89 = \18
 36-79 = 3679
 87(18 = 104
+
 Now, determine the result for: 30-64",3064
-552e14d7,"a secret set of transformation rules is applied to equations. Below are a few examples:
-59+94 = 9459
+552e14d7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:59+94 = 9459
 68+08 = 0868
 14+35 = 3514
 12+98 = 9812
 76'52 = 24'
+
 Now, determine the result for: 56+17",1756
-55f19327,"a secret set of transformation rules is applied to equations. Below are a few examples:
-47-84 = 131
+553b3af9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86%99 = 13
+94+24 = 09
+43%52 = 9%
+87)52 = 0591
+
+Now, determine the result for: 08%46",61%
+5541d35c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33-12 = -21
+37+87 = 151
+32-34 = -02
+
+Now, determine the result for: 97*93",2803
+55954e3c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:02-87 = -85
+73+51 = 25
+53*69 = 1633
+57+97 = 451
+
+Now, determine the result for: 39*36",0685
+55f19327,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47-84 = 131
 72\97 = 6983
 72-20 = 92
 20:20 = 0
 44\21 = 923
+
 Now, determine the result for: 77:38",1
-58fed63a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-68*91 = 9168
+56343b77,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:02+35 = 27
+34-08 = -73
+79*44 = 4479
+05-21 = 83
+43*73 = 7343
+
+Now, determine the result for: 17+74",711
+56c59dfd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15+43 = 1543
+34-87 = -53
+28!85 = 112
+14+75 = 1475
+94+77 = 9477
+
+Now, determine the result for: 96-74",22
+585b3442,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27+58 = 84
+30}61 = 1
+12}90 = 6
+36$59 = 2124
+
+Now, determine the result for: 32$97",3104
+58b9492e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:39+16 = 54
+48^42 = 2016
+95^49 = 4655
+77\31 = 15
+
+Now, determine the result for: 14\15",1
+58f63e94,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:74*82 = 5131
+07*42 = 9761
+48-66 = -81
+35+73 = 09
+
+Now, determine the result for: 85+74",501
+58fed63a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68*91 = 9168
 06-65 = 4
 86-72 = 41
+
 Now, determine the result for: 11-39",5
-5d44a0b2,"a secret set of transformation rules is applied to equations. Below are a few examples:
-98-57 = -41
+592107c3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:70<36 = 2520
+21+95 = 2195
+69<15 = 1035
+
+Now, determine the result for: 75/62",/13
+59b2cbbf,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:38+27 = 551
+97+57 = 451
+74`59 = 84
+64+54 = 19
+87`28 = 4
+
+Now, determine the result for: 83+47",211
+5a0d5d2a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27-65 = 61
+47*42 = 7771
+81-09 = -27
+
+Now, determine the result for: 39+94",341
+5bc9b870,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:92<38 = 211
+89|98 = 3278
+97-05 = 92
+87<18 = 951
+01-57 = -56
+
+Now, determine the result for: 24<48",621
+5c938bea,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:97/53 = 5142
+84(80 = 4
+58/75 = 4351
+90(82 = 8
+37(72 = 35
+
+Now, determine the result for: 48(75",27
+5d44a0b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98-57 = -41
 19+77 = 861
 86-68 = -81
 17+87 = 941
 16*34 = 4262
+
 Now, determine the result for: 78*16",8035
-5d8c51ce,"a secret set of transformation rules is applied to equations. Below are a few examples:
-65+29 = 941
+5d834875,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:08`18 = 0846
+34-95 = 201
+79`94 = 3574
+33`23 = 6501
+
+Now, determine the result for: 91-33",25
+5d89a09c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:49*28 = 7077
+32*02 = 954
+46+78 = 151
+48*91 = 5951
+28*01 = 918
+
+Now, determine the result for: 78-78",0
+5d8c51ce,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65+29 = 941
 44+88 = 331
 87-24 = 63
+
 Now, determine the result for: 91+04",06
-603ad93b,"a secret set of transformation rules is applied to equations. Below are a few examples:
-38+05 = 231
+5dc0aca5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87+93 = 6
+70/47 = 118
+10)86 = 860
+69/17 = 87
+75/37 = 113
+
+Now, determine the result for: 15+12",3
+5f6798e1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:04-49 = -45
+21-74 = -53
+83*05 = 0583
+
+Now, determine the result for: 06-71",34
+5f6b6ea3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34+19 = 3193
+55+45 = 0792
+63+52 = 009
+
+Now, determine the result for: 51(63",6
+5fe8d710,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26-74 = 51
+83+52 = 46
+81*92 = 325
+14+39 = 531
+02*01 = 102
+
+Now, determine the result for: 59+68",281
+603ad93b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:38+05 = 231
 17-64 = 52
 97+37 = 151
 65-29 = -63
 83+43 = 17
+
 Now, determine the result for: 32*05",9411
-614408ea,"a secret set of transformation rules is applied to equations. Below are a few examples:
-32*88 = 011
+605e1c08,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:90""19 = 9019
+38]92 = 3497
+76+73 = 3
+
+Now, determine the result for: 10""20",1020
+614408ea,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:32*88 = 011
 71-22 = -5
 86+55 = 0473
 11+32 = 352
+
 Now, determine the result for: 15*33",38
-6402d0ee,"a secret set of transformation rules is applied to equations. Below are a few examples:
-03|85 = 88
+61766c6f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98[13 = 9572
+33\41 = 74
+23\23 = 46
+
+Now, determine the result for: 46[34",2572
+620c2521,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:35-83 = -51
+63+83 = 47
+54*78 = 6193
+
+Now, determine the result for: 85*11",936
+6385674a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24-87 = -63
+98-25 = -73
+61*43 = 345
+27*33 = 5732
+94*24 = 7502
+
+Now, determine the result for: 41+28",69
+6402d0ee,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03|85 = 88
 74|97 = 621
 17\27 = \1
 94\21 = 73
+
 Now, determine the result for: 92\86",\93
-656cfb5f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-83*09 = 1243
+648e2da2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84-33 = 51
+67*35 = 8204
+02*81 = 063
+
+Now, determine the result for: 34+88",031
+64fe405e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69<51 = 18
+56\81 = 4535
+44%71 = 115
+58\29 = 1681
+
+Now, determine the result for: 32<33",1
+656cfb5f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83*09 = 1243
 26-52 = -73
 73-39 = -65
+
 Now, determine the result for: 72+44",17
-67de8e10,"a secret set of transformation rules is applied to equations. Below are a few examples:
-27+72 = 99
+65c52214,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:67-65 = -02
+06+31 = 37
+44*27 = 7613
+94+19 = 041
+
+Now, determine the result for: 67*25",1593
+66a0856f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:70-75 = 7075
+60-87 = 6087
+53-49 = 5349
+
+Now, determine the result for: 74[36",38
+66c5974c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71-82 = 11
+37-69 = 32
+41*28 = 1148
+64*58 = 3712
+18^30 = 49
+
+Now, determine the result for: 55^24",80
+672029b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27*77 = 4455
+18*84 = 8883
+78*99 = 3168
+
+Now, determine the result for: 98-83",31
+67de8e10,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27+72 = 99
 26+02 = 28
 08-25 = 82
 69-37 = 32
 58+15 = 631
+
 Now, determine the result for: 69+47",071
-68903918,"a secret set of transformation rules is applied to equations. Below are a few examples:
-54/69 = 15
+67f1bc8a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:72-79 = 8162
+69?68 = 01?
+35?88 = 53
+31?46 = 15
+76>64 = 311
+
+Now, determine the result for: 77-61",1321
+68903918,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:54/69 = 15
 92/78 = 14
 23+20 = 43
+
 Now, determine the result for: 59-69",4072
-691f2f76,"a secret set of transformation rules is applied to equations. Below are a few examples:
-65+55 = 111
+68b9b9a8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73*37 = 1072
+16*82 = 8071
+84*78 = 6714
+11+42 = 63
+71+39 = 111
+
+Now, determine the result for: 45*18",4734
+691f2f76,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65+55 = 111
 15+04 = 19
 03+34 = 37
 13+44 = 57
+
 Now, determine the result for: 57+85",331
-6e60b0c5,"a secret set of transformation rules is applied to equations. Below are a few examples:
-70)60 = 7060
+69aa57b3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65+83 = 8365
+62-23 = -6
+69*72 = 2952
+
+Now, determine the result for: 72+44",4472
+6ac4d8c2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:08-29 = -21
+78*63 = 3313
+86*23 = 7712
+
+Now, determine the result for: 17+76",831
+6b769a9e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56-36 = 821
+84{57 = 9953
+51+19 = +67
+
+Now, determine the result for: 24+17",+92
+6bd59a1f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:35+01 = 34
+74$02 = 939
+93[74 = 68
+72[49 = 121
+41$63 = 305
+
+Now, determine the result for: 82$15",7241
+6be00ae9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:35*26 = 6823
+46*41 = 698
+61-26 = -64
+52*43 = 058
+07-66 = -4
+
+Now, determine the result for: 29+11",401
+6bef7413,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42*06 = 0441
+87+04 = 711
+46*25 = 8233
+71+58 = 101
+
+Now, determine the result for: 01-29",-28
+6dda26c0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47-51 = 2396
+32[26 = 3226
+50*72 = *22
+
+Now, determine the result for: 46[43",4643
+6e60b0c5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:70)60 = 7060
 89/98 = 8722
 91/90 = 8190
 79/76 = 6004
+
 Now, determine the result for: 95)55",9555
-6e6401d7,"a secret set of transformation rules is applied to equations. Below are a few examples:
-95'87 = 8266
-14'63 = 883
-40'97 = 3881
-Now, determine the result for: 94\93",1
-6f1211e2,"a secret set of transformation rules is applied to equations. Below are a few examples:
-71*91 = 9171
+6e6f8d9c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:49\62 = 86\
+65\04 = 61\
+68\49 = 8
+14?48 = 421
+29|59 = 0478
+
+Now, determine the result for: 49?66",951
+6f1211e2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71*91 = 9171
 24-75 = 51
 73-16 = 42
 44+75 = 101
+
 Now, determine the result for: 45*67",6745
-7306613b,"a secret set of transformation rules is applied to equations. Below are a few examples:
-59+02 = 411
+6f37d7be,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84*84 = 0
+89*38 = 51
+42\83 = 8342
+
+Now, determine the result for: 92*91",01
+6f88e240,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06-41 = 47
+45)45 = 0
+41)12 = 7
+
+Now, determine the result for: 43<61",445
+705bb686,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:95\91 = 2211
+68\29 = 3197
+47^12 = 35
+15<68 = 731
+
+Now, determine the result for: 54^04",5
+7195cb7b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12[66 = [54
+65\53 = 119
+28}28 = 2828
+49[49 = 0
+68\48 = 117
+
+Now, determine the result for: 33\34",68
+71e02000,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56-66 = -10
+25$31 = 2531
+47-19 = -28
+
+Now, determine the result for: 37$67",3767
+72336119,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:77>12 = 925
+99?83 = 9983
+92*43 = 49
+69>92 = 6349
+
+Now, determine the result for: 85>39",3316
+7306613b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:59+02 = 411
 91+62 = 44
 94+64 = 49
 86-82 = 04
 39*01 = 139
+
 Now, determine the result for: 79+65",251
-7688e06e,"a secret set of transformation rules is applied to equations. Below are a few examples:
-06-63 = 42
+743a293d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31*58 = 5011
+81*72 = 684
+25+11 = 1125
+96-25 = 71
+25-71 = 53
+
+Now, determine the result for: 32+24",2432
+744a2570,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91""19 = 51
+66""02 = 6
+51^95 = 47
+36\45 = 2043
+53\02 = 007
+
+Now, determine the result for: 87""38",5
+7475f2bf,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93\28 = 65
+33(95 = 3135
+88(48 = 4224
+36\12 = 24
+63\74 = 11
+
+Now, determine the result for: 26+86",111
+74fff108,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69-27 = 95
+58^91 = 33
+71?49 = 3479
+41?10 = 410
+26-82 = 107
+
+Now, determine the result for: 65^16",49
+75645166,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96*78 = 7896
+51*64 = 6451
+85<97 = 2854
+
+Now, determine the result for: 35<94",7952
+759cbdde,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18*04 = 121
+82(56 = 9181
+44'34 = 1
+
+Now, determine the result for: 84*46",211
+75eaf687,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:57'86 = 7
+77?09 = 1396
+56*96 = 431
+54'72 = 81
+
+Now, determine the result for: 79'82",96
+7688e06e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06-63 = 42
 96-32 = 64
 87-15 = 72
 58-64 = 93
 87-63 = 24
+
 Now, determine the result for: 63-19",-55
-7ac90433,"a secret set of transformation rules is applied to equations. Below are a few examples:
-02-23 = -21
+76d2ee64,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82-66 = -83
+97-87 = -1
+04*03 = 0021
+61*04 = 046
+06+39 = 3906
+
+Now, determine the result for: 02+94",9402
+773ca8a9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17^54 = 611
+76*83 = 92
+16-15 = 1113
+
+Now, determine the result for: 41^42",83
+791056ce,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15)47 = 521
+06{81 = 9701
+46*29 = *82
+96*02 = 94
+57)31 = 88
+
+Now, determine the result for: 58{72",4922
+791fc537,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:01`26 = 2601
+76-39 = -62
+85/52 = 38
+53`71 = 7153
+61/44 = 06
+
+Now, determine the result for: 42`53",5342
+794f71ed,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42-16 = -73
+43*45 = 6381
+28-17 = -11
+14-53 = -6
+
+Now, determine the result for: 53*76",5432
+7a962e17,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66$29 = 62$
+48[63 = 4203
+16/68 = 741
+21/09 = 201
+
+Now, determine the result for: 77/68",361
+7a9711b1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71+77 = 148
+98+51 = 149
+56/43 = 13
+
+Now, determine the result for: 18}38",1838
+7ac90433,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:02-23 = -21
 33-66 = -33
 75-58 = -82
+
 Now, determine the result for: 48-25",-23
-7bd5f8b9,"a secret set of transformation rules is applied to equations. Below are a few examples:
-45-54 = -9
+7bd5f8b9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45-54 = -9
 43+09 = 421
 44-59 = -15
 03+98 = 911
 89-62 = -27
+
 Now, determine the result for: 97-97",0
-7d9f6c40,"a secret set of transformation rules is applied to equations. Below are a few examples:
-71-81 = -1
+7c0c5227,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:58*47 = 0926
+63+23 = 2363
+68*18 = 6696
+
+Now, determine the result for: 69-55",14
+7c72ad99,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69*91 = 9169
+33*27 = 2733
+19*34 = 3419
+
+Now, determine the result for: 33*27",2733
+7d8fe3a8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:22""20 = 43
+84""52 = 137
+69|71 = |2
+
+Now, determine the result for: 91%84",7644
+7d9f6c40,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71-81 = -1
 97-58 = -6
 06-03 = 03
 51-72 = -21
+
 Now, determine the result for: 98+47",461
-8011cb24,"a secret set of transformation rules is applied to equations. Below are a few examples:
-79-69 = 7969
+7e2e8a95,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52&36 = 88
+20$43 = 861
+29$68 = 1973
+47*96 = 2
+
+Now, determine the result for: 63$86",5419
+7ed40e8a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56*48 = 2688
+81/77 = /4
+16&69 = 84
+
+Now, determine the result for: 99&82",180
+8011cb24,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79-69 = 7969
 95:22 = :73
 19-49 = 1949
+
 Now, determine the result for: 74:10",:64
-808a8f62,"a secret set of transformation rules is applied to equations. Below are a few examples:
-91-81 = 1
+8021718e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:92-71 = 21
+18-52 = 6
+26-63 = 62
+86*33 = 3386
+76-15 = 61
+
+Now, determine the result for: 79*64",6479
+806eba07,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:72$08 = 35
+28$47 = 8
+92*36 = 7281
+17$14 = 03
+28:08 = 261
+
+Now, determine the result for: 93:48",321
+808a8f62,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91-81 = 1
 69+89 = 591
 76-26 = 5
 17-02 = 15
+
 Now, determine the result for: 35-72",62
-852d16cb,"a secret set of transformation rules is applied to equations. Below are a few examples:
-99-58 = -41
+812c12cb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96-73 = -23
+21+77 = 98
+75*55 = 6313
+72+69 = 321
+36+82 = 19
+
+Now, determine the result for: 09-19",-1
+8154fbdc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93<77 = 9377
+82-79 = -96
+03<31 = 0331
+
+Now, determine the result for: 66`82",8481
+81c7ba7a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:50%83 = 133
+32%13 = 45
+99%17 = 116
+19?58 = ?39
+48+29 = 1391
+
+Now, determine the result for: 90?76",?14
+824d4bcb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09!22 = 0891
+49\72 = 121
+11:92 = 81:
+65!61 = 698
+68:06 = 62:
+
+Now, determine the result for: 24:88",64:
+8321a400,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98*36 = 3698
+04*82 = 8204
+26-11 = 15
+64*02 = 0264
+25+94 = 9425
+
+Now, determine the result for: 15*69",6915
+836d6c4a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31*08 = *76
+22>88 = 6391
+98>24 = 8373
+23*63 = *4
+09<86 = 751
+
+Now, determine the result for: 99>53",5643
+8373daa8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82+74 = 7482
+68+89 = 8968
+05-58 = -53
+02*61 = 913
+41+77 = 7741
+
+Now, determine the result for: 08-23",84
+837af955,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:95-23 = 72
+23*83 = 6121
+19-33 = 85
+12+55 = 77
+04*64 = 0481
+
+Now, determine the result for: 67*55",0814
+845e726e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66-39 = 72
+61+41 = 03
+65+18 = 731
+72*34 = 3472
+78-82 = 3
+
+Now, determine the result for: 67+47",051
+84af5d7e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61-23 = -61
+62-64 = -02
+47+74 = 7447
+48*52 = 9902
+57*37 = 4745
+
+Now, determine the result for: 55+61",6155
+850dc715,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43*32 = 187
+23-06 = -82
+17*14 = 0192
+69*56 = 9326
+
+Now, determine the result for: 96*68",3395
+852d16cb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:99-58 = -41
 11-87 = -76
 34-18 = -83
 34-44 = -1
 19+29 = 381
+
 Now, determine the result for: 09-79",-7
-878c843c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-99/10 = 89
+86cda2ec,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12-75 = 63
+73*21 = 444
+88+31 = 201
+
+Now, determine the result for: 26-39",13
+878c843c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:99/10 = 89
 37'26 = 3726
 76'94 = 7694
 57'21 = 5721
 88/47 = 41
+
 Now, determine the result for: 80/45",35
-8ae8e12a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-81*71 = 603
+87a89786,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24+33 = 67
+28+81 = 101
+98*39 = 7728
+
+Now, determine the result for: 53+53",17
+87a902eb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82*17 = 7891
+83+59 = 331
+52*95 = 4741
+
+Now, determine the result for: 75*31",047
+88b43464,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34*04 = 0271
+85*32 = 4331
+15-15 = 0
+97*77 = 3806
+76+05 = 0576
+
+Now, determine the result for: 11+53",5311
+88c93c2c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:76*62 = 2471
+68-47 = 21
+04-49 = 41
+44*51 = 066
+
+Now, determine the result for: 43*37",2842
+88fe5a52,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:49*95 = 5455
+03-58 = -55
+33*77 = 0452
+57+59 = 961
+79+61 = 211
+
+Now, determine the result for: 97*17",8065
+891942ba,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:72+29 = 2972
+91-11 = 8
+66*11 = 627
+88+19 = 1988
+
+Now, determine the result for: 85-88",03
+899e7ce8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:38)66 = 9745
+83/37 = 111
+06/66 = 621
+92)35 = 8351
+52/35 = 87
+
+Now, determine the result for: 33@23",1@
+8a800607,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:76-71 = 5396
+80]69 = 11
+14-53 = 742
+21-27 = 567
+67]82 = 15
+
+Now, determine the result for: 65]67",2
+8ae8e12a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:81*71 = 603
 35+55 = 5535
 49+21 = 2149
+
 Now, determine the result for: 08-17",9
-8d652f91,"a secret set of transformation rules is applied to equations. Below are a few examples:
-46*21 = 967
+8bc66fd7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28-27 = 01
+19*98 = 0018
+33+82 = 26
+45+02 = 57
+
+Now, determine the result for: 64*15",7432
+8bc6a26c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34{85 = 2889
+26#93 = 119
+20#75 = 95
+43*40 = *3
+
+Now, determine the result for: 12#26",38
+8bebef83,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55{76 = 4180
+75{33 = 2475
+95*43 = 9
+73/97 = 169
+
+Now, determine the result for: 44{77",3388
+8c1529e1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71-86 = -15
+62*67 = 7791
+02+49 = 311
+
+Now, determine the result for: 65-18",-52
+8d2546a5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33#75 = 9
+31#27 = 4
+22[73 = 95
+25-79 = 2579
+38[90 = 128
+
+Now, determine the result for: 12-11",1211
+8d652f91,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46*21 = 967
 39-82 = 56
 17+13 = 101
 94+72 = 57
 79+11 = 701
+
 Now, determine the result for: 97-57",4
-8dea05d7,"a secret set of transformation rules is applied to equations. Below are a few examples:
-03+06 = 0603
+8dea05d7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03+06 = 0603
 45+81 = 8145
 41-24 = 82
 33-37 = 04
+
 Now, determine the result for: 07+39",3907
-8df3daad,"a secret set of transformation rules is applied to equations. Below are a few examples:
-73@78 = 7378
+8df3daad,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73@78 = 7378
 60+19 = 6019
 69+97 = 6997
+
 Now, determine the result for: 45|11",34
-8e169174,"a secret set of transformation rules is applied to equations. Below are a few examples:
-84:14 = 0
+8e169174,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84:14 = 0
 36/69 = 2483
 27/31 = 836
 24:73 = 1
 45?78 = 123
+
 Now, determine the result for: 48/11",527
-8e3e4928,"a secret set of transformation rules is applied to equations. Below are a few examples:
-82\83 = 4601
+8e359dc8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:89*42 = 3532
+35[46 = 11
+24[58 = 34
+48^18 = 561
+54*19 = 6904
+
+Now, determine the result for: 37^75",031
+8e3e4928,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82\83 = 4601
 08""95 = 9508
 44""28 = 2844
 09\84 = 0234
+
 Now, determine the result for: 57$07",5
-904e3a54,"a secret set of transformation rules is applied to equations. Below are a few examples:
-83(50 = 134
+8eac8f69,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:99(38 = 9938
+57+32 = 5271
+05(03 = 0503
+01+31 = 031
+
+Now, determine the result for: 21+94",885
+8fad338f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42%53 = 96
+12-64 = 767
+76(83 = (7
+
+Now, determine the result for: 72-66",4751
+902da958,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:63`03 = 9701
+79/85 = 551
+32`23 = 537
+
+Now, determine the result for: 38/48",761
+904e3a54,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83(50 = 134
 27:29 = :2
 49:99 = :50
 84/71 = 5963
+
 Now, determine the result for: 76:10",66
-912d2b79,"a secret set of transformation rules is applied to equations. Below are a few examples:
-83*91 = 127
+90d57388,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26-88 = 62
+15*16 = 1113
+09-54 = 0
+61+78 = 7861
+02-98 = 9
+
+Now, determine the result for: 15+26",2615
+912c6ea5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06+15 = 1603
+26+26 = 5483
+06+03 = 1081
+56}46 = 921
+
+Now, determine the result for: 47}69",071
+912d2b79,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83*91 = 127
 06-94 = 11
 69+22 = 711
 46-71 = 74
 16+95 = 911
+
 Now, determine the result for: 08+03",901
-913fdf86,"a secret set of transformation rules is applied to equations. Below are a few examples:
-45*99 = 6435
+913b2d7f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:40""92 = 52
+59*38 = 2242
+75]92 = 166
+
+Now, determine the result for: 38]66",103
+913fdf86,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45*99 = 6435
 73-43 = -3
 24+34 = 68
+
 Now, determine the result for: 72+32",15
-91b34547,"a secret set of transformation rules is applied to equations. Below are a few examples:
-13+36 = 3613
+91b34547,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:13+36 = 3613
 06-65 = -4
 09+94 = 9409
+
 Now, determine the result for: 26-41",-84
-91b42a45,"a secret set of transformation rules is applied to equations. Below are a few examples:
-94>73 = 21
-97'87 = 185
-56'40 = 97
-Now, determine the result for: 73'96",170
-921da788,"a secret set of transformation rules is applied to equations. Below are a few examples:
-47:51 = 98
+921da788,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47:51 = 98
 41|72 = 873
 25|07 = 0463
 86|92 = 2791
+
 Now, determine the result for: 53|78",5403
-92471ca4,"a secret set of transformation rules is applied to equations. Below are a few examples:
-71+45 = 4571
+92471ca4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71+45 = 4571
 37+09 = 0937
 34-63 = 7
+
 Now, determine the result for: 02-38",36
-93481650,"a secret set of transformation rules is applied to equations. Below are a few examples:
-82+64 = 47
+93481650,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82+64 = 47
 35+89 = 151
 94-76 = 81
 21+25 = 46
 87+73 = 511
+
 Now, determine the result for: 42+61",04
-957c70fd,"a secret set of transformation rules is applied to equations. Below are a few examples:
-89-96 = 92
+936b3ae5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:37}11 = 308
+93|79 = 9379
+94>85 = 9
+62>22 = 4>
+89>07 = 82>
+
+Now, determine the result for: 95>81",14>
+93f3ae6b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:38-25 = 13
+24-38 = -14
+42[88 = 211
+
+Now, determine the result for: 74[06",701
+940df3f4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:74#48 = 131
+79-22 = 57
+91#84 = 76
+
+Now, determine the result for: 27!82",5102
+945c151e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42*54 = 9701
+18*78 = 6407
+79*01 = 969
+02*33 = 956
+
+Now, determine the result for: 38+08",461
+94b92001,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:51-63 = -12
+67*54 = 0243
+88+05 = 731
+
+Now, determine the result for: 95+05",801
+94bf323a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78*97 = 9778
+91+36 = 28
+55*83 = 8355
+47+02 = 49
+06*57 = 5706
+
+Now, determine the result for: 58+19",671
+957c70fd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:89-96 = 92
 69+79 = 291
 96+07 = 831
 28-37 = 9
+
 Now, determine the result for: 07-77",-7
-95d8ff2c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-06""61 = 57
+95d8ff2c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06""61 = 57
 19""33 = 321
 43|44 = 01
 16|87 = 71
 99""96 = 761
+
 Now, determine the result for: 88""96",651
-9610985a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-36)18 = 648
+9610985a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:36)18 = 648
 14-49 = -35
 88-72 = -16
+
 Now, determine the result for: 64-42",-22
-963bdc67,"a secret set of transformation rules is applied to equations. Below are a few examples:
-52*81 = 7
+963bdc67,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52*81 = 7
 49-83 = 2753
 96\83 = 9683
+
 Now, determine the result for: 99\73",9973
-966c1f9f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-43*19 = 4903
+966c1f9f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43*19 = 4903
 53-24 = -7
 51-49 = -97
+
 Now, determine the result for: 31+45",66
-96efb93a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-16*05 = 0503
+96efb93a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16*05 = 0503
 17""82 = 34""
 78""48 = 3""
 86""33 = 53""
+
 Now, determine the result for: 95""57",61
-9760032a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-32+98 = 9832
+9760032a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:32+98 = 9832
 51-63 = -12
 38+76 = 7638
+
 Now, determine the result for: 72+93",9372
-98a2636e,"a secret set of transformation rules is applied to equations. Below are a few examples:
-51+73 = 25
+97dee6aa,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16-06 = 1
+16-89 = 73
+91-96 = 21
+54*16 = 4472
+11*82 = 703
+
+Now, determine the result for: 74-03",71
+98a2636e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:51+73 = 25
 75-59 = 83
 41-27 = 2
+
 Now, determine the result for: 36+73",001
-99cc2e07,"a secret set of transformation rules is applied to equations. Below are a few examples:
-43^12 = 1243
+98bb54f7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24-55 = 31
+48*02 = 9761
+21*42 = 782
+49+96 = 361
+33+06 = 39
+
+Now, determine the result for: 96*49",5846
+99cc2e07,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43^12 = 1243
 06/67 = /61
 63/47 = /83
+
 Now, determine the result for: 22/15",/92
-9ae3b78e,"a secret set of transformation rules is applied to equations. Below are a few examples:
-15@99 = 9405
+99e2cf41,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09+62 = 6209
+32*63 = 828
+83+45 = 4583
+42*87 = 2781
+
+Now, determine the result for: 15+44",4415
+9a9f6025,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44-28 = -83
+56-18 = -61
+53*21 = 2153
+41+68 = 001
+29+56 = 751
+
+Now, determine the result for: 03-59",-56
+9aa48392,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28-08 = -2
+91*21 = 2191
+64-82 = -81
+15*39 = 3915
+39*36 = 3639
+
+Now, determine the result for: 58+66",151
+9ae3b78e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15@99 = 9405
 78|61 = 401
 64|17 = 811
 16\35 = 8\
+
 Now, determine the result for: 57@55",5214
-9b1ea308,"a secret set of transformation rules is applied to equations. Below are a few examples:
-37\35 = 02
+9b1ea308,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:37\35 = 02
 03|42 = 45
 81:87 = 8781
 18\91 = 26
+
 Now, determine the result for: 99|36",261
-9d4ae6b8,"a secret set of transformation rules is applied to equations. Below are a few examples:
-18)69 = 1869
+9b820b4e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29|97 = |68
+99*46 = 146
+20|32 = |12
+11}22 = 241
+13}43 = 558
+
+Now, determine the result for: 65}68",4419
+9b9e024b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66""66 = 6666
+88#67 = 461
+75\65 = 1\
+
+Now, determine the result for: 23#29",421
+9c8eef89,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29!92 = !63
+49""56 = 2744
+93!86 = !7
+19-49 = 67
+
+Now, determine the result for: 36""48",1728
+9cb03277,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:46*79 = 9026
+74*92 = 4631
+55`84 = 301
+57!58 = 01
+01*42 = 142
+
+Now, determine the result for: 52!78",26
+9d4ae6b8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18)69 = 1869
 96|81 = 177
 80-13 = 67
+
 Now, determine the result for: 51-35",16
-9ff6e9d2,"a secret set of transformation rules is applied to equations. Below are a few examples:
-18-55 = 62
+9d575da5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78-42 = 36
+27*08 = 1675
+61-86 = 25
+03+68 = 611
+
+Now, determine the result for: 32+88",111
+9d68ef62,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88(43 = 45(
+02)91 = 93
+17*06 = 0624
+
+Now, determine the result for: 69(85",83(
+9dd8adaa,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05+69 = 641
+98+28 = 171
+49*19 = 1949
+02*83 = 8302
+
+Now, determine the result for: 08*43",4308
+9e5d97de,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65-44 = 001
+97-88 = 761
+71%76 = 8311
+96?03 = 93?
+
+Now, determine the result for: 48-31",79
+9ef98294,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05!93 = 9491
+42|64 = 07
+13!75 = 6671
+58|62 = 111
+43!68 = 3292
+
+Now, determine the result for: 89]25",64]
+9f2fae58,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88+71 = 501
+76$06 = 9104
+99+56 = 461
+86+56 = 331
+93$23 = 7421
+
+Now, determine the result for: 88$13",7272
+9fa9ecdc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:97%32 = 3103
+25/84 = 109
+31%85 = 2634
+59/46 = 105
+45/67 = 112
+
+Now, determine the result for: 50^86",36
+9fb854c3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65*34 = 3465
+26-16 = 1
+09*81 = 8109
+
+Now, determine the result for: 83-43",4
+9ff6e9d2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18-55 = 62
 26-15 = 11
 02+03 = 05
+
 Now, determine the result for: 65-54",11
-a311baec,"a secret set of transformation rules is applied to equations. Below are a few examples:
-29+59 = 681
+a04ecffd,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44!24 = !20
+17>32 = 49
+59!87 = !28
+64-32 = 2047
+10!89 = !79
+
+Now, determine the result for: 67!35",!32
+a19a75ba,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55+66 = +11
+76+59 = +82
+53#08 = 5308
+19!91 = 9271
+
+Now, determine the result for: 26#55",2655
+a1bae076,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82]58 = 0832
+56/43 = 99
+86/73 = 501
+
+Now, determine the result for: 05]02",0001
+a311baec,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29+59 = 681
 27-27 = 0
 95+54 = 301
 51-43 = 4
+
 Now, determine the result for: 26+46",521
-a7454fdb,"a secret set of transformation rules is applied to equations. Below are a few examples:
-03-91 = 11
+a5124cb4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:89-80 = 9
+84(16 = 101
+95(69 = 165
+15-40 = -25
+80?13 = 1039
+
+Now, determine the result for: 62-86",-24
+a5f3a1ea,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17-38 = 21
+31*72 = 053
+46-29 = 82
+46+28 = 641
+
+Now, determine the result for: 52+11",63
+a7454fdb,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03-91 = 11
 24-36 = 12
 29+76 = 951
 88-14 = 74
 49*92 = 9249
+
 Now, determine the result for: 74+19",831
-b4a15ca6,"a secret set of transformation rules is applied to equations. Below are a few examples:
-44-81 = 62
+a7d582da,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:36-03 = 33
+65-07 = -41
+02*44 = 4402
+43*44 = 4443
+
+Now, determine the result for: 92-41",51
+a8e5eca1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44+54 = 98
+75-06 = -3
+93*77 = 7793
+
+Now, determine the result for: 74*42",4274
+a928ad6e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66+17 = 631
+33*65 = 8481
+48-08 = 4
+55-18 = 62
+05+64 = 59
+
+Now, determine the result for: 13+68",611
+a9c57983,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48{63 = 911
+39\58 = 5097
+94{08 = 821
+
+Now, determine the result for: 22{97",001
+a9deb8b5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91*76 = 2721
+84*44 = 1112
+68*97 = 3976
+
+Now, determine the result for: 75*32",0131
+aa8c76a1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23*34 = 3423
+85+56 = 421
+53-45 = -91
+
+Now, determine the result for: 61*08",0861
+aaec36e0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33-71 = 61
+38+52 = 901
+98*75 = 3705
+
+Now, determine the result for: 39*11",3201
+ab7809d1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:37+03 = 0337
+11-01 = -1
+76-56 = -2
+79*02 = 0491
+
+Now, determine the result for: 72+25",2572
+abbb5d43,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:51^81 = 132
+90/42 = 48
+63^32 = 95
+
+Now, determine the result for: 86{99",8513
+ac262f12,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42+63 = 16
+52*79 = 4242
+86-26 = 6
+
+Now, determine the result for: 19*92",8362
+aca5c614,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:25+25 = 2525
+77+53 = 5377
+57*31 = 579
+57*32 = 5271
+43+76 = 7643
+
+Now, determine the result for: 14-63",-5
+adad547a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66+13 = 69
+11*29 = 2101
+41*41 = 691
+
+Now, determine the result for: 52*67",0091
+afcac7af,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:47+15 = 421
+55+09 = 441
+71*66 = 3211
+
+Now, determine the result for: 01-91",-9
+b075e716,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:53[16 = 68
+51[77 = 127
+70-54 = 16
+52[61 = 112
+
+Now, determine the result for: 30+80",2400
+b3f9a15c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:32[35 = 0221
+64}04 = 6}
+23}18 = 94
+94/21 = 16
+
+Now, determine the result for: 85[56",1773
+b4342b90,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64\49 = 114
+66%87 = 21
+30%84 = 54
+77\30 = 108
+81)74 = 5994
+
+Now, determine the result for: 40\25",66
+b4a15ca6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44-81 = 62
 66+58 = 051
 98-47 = 51
+
 Now, determine the result for: 16+34",301
-b5e1e604,"a secret set of transformation rules is applied to equations. Below are a few examples:
-96""51 = 4301
+b4f701f5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88*22 = 6391
+51*47 = 0111
+45-93 = -51
+18+97 = 9718
+
+Now, determine the result for: 14*24",2271
+b5e1e604,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96""51 = 4301
 36\79 = 43
 33|92 = 26
+
 Now, determine the result for: 28|03",211
-b655eee9,"a secret set of transformation rules is applied to equations. Below are a few examples:
-16-71 = -44
+b62453dc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91*96 = 9691
+99-98 = 01
+16*74 = 7416
+
+Now, determine the result for: 43-19",-75
+b643d81f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33-39 = -06
+76-43 = 33
+42-25 = -82
+42*84 = 1511
+52*36 = 4751
+
+Now, determine the result for: 97-07",9
+b655eee9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16-71 = -44
 47-64 = -82
 37+79 = 171
+
 Now, determine the result for: 76-83",-92
-bd4c584a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-33$77 = 1452
+b73d0898,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16*42 = 3641
+36-71 = 21
+56-62 = 31
+64*73 = 1071
+
+Now, determine the result for: 41-15",9
+b7ad0671,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:22@75 = 4521
+58-63 = 121
+37-45 = 721
+28@77 = 4136
+
+Now, determine the result for: 28:12",16
+b7b1d1a8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:41""98 = ""57
+47]64 = 3009
+58-87 = 144
+91-84 = 174
+16-30 = 45
+
+Now, determine the result for: 74""17",57
+b980017a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55@23 = 78
+28>11 = 17>
+41/64 = 446
+28@44 = 621
+
+Now, determine the result for: 37/98",7946
+b989c740,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:13*63 = 6313
+03+21 = 2103
+56*85 = 8556
+56+74 = 7456
+66*17 = 1766
+
+Now, determine the result for: 18+86",8618
+b99d3059,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52-57 = 0
+15-59 = 44
+38*46 = 2135
+
+Now, determine the result for: 71-46",31
+b9bf883d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31?46 = 77
+38@95 = 3611
+31-83 = -52
+
+Now, determine the result for: 25?75",100
+bad6f95d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86+60 = 5160
+42-69 = 27
+26$56 = 83
+77+35 = 2695
+79+27 = 2133
+
+Now, determine the result for: 54-95",41
+bad9f9da,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87%30 = 2611
+96+79 = 175
+77%94 = 7239
+36%46 = 1657
+51%34 = 1735
+
+Now, determine the result for: 52+35",87
+bba186c3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:14-04 = 18
+99-07 = 961
+66*95 = 7
+
+Now, determine the result for: 71)42",704
+bc0935ee,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82|53 = 8253
+26|41 = 2641
+58@73 = @15
+40!59 = 2359
+
+Now, determine the result for: 57@82",@25
+bc42e664,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26*99 = *73
+62<75 = 3841
+29*19 = 1
+34*64 = *3
+
+Now, determine the result for: 47*75",71
+bce10d97,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:41*84 = 8441
+45+21 = 66
+95+58 = 441
+21*83 = 8321
+
+Now, determine the result for: 31-45",2
+bd4c584a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:33$77 = 1452
 97|76 = 21|
 67|91 = 75|
 42|97 = 55|
 87$95 = 2064
+
 Now, determine the result for: 02$79",0491
-c37a2a23,"a secret set of transformation rules is applied to equations. Below are a few examples:
-15-79 = 95
+bd8aa942,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45*46 = 92
+24*76 = 101
+98}78 = 7644
+99*53 = 153
+
+Now, determine the result for: 33}57",1881
+bdca0fac,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71-32 = -6
+35+63 = 6335
+69*27 = 2196
+39+09 = 0939
+
+Now, determine the result for: 45*89",2925
+be5971d7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09+17 = 161
+11+44 = 55
+43*07 = 0743
+
+Now, determine the result for: 18-32",-85
+be877da5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09+03 = 0309
+56*05 = 1523
+77*02 = 1451
+
+Now, determine the result for: 93-91",02
+c06e61a2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:25+15 = 401
+23*65 = 6523
+32*79 = 7932
+15*41 = 4115
+
+Now, determine the result for: 34+84",29
+c0dd90c0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34*65 = 100
+27!25 = 675
+28!40 = 1120
+85(92 = 7
+
+Now, determine the result for: 23(45",22
+c0f32a1e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:54+03 = 67
+03+86 = 99
+18*29 = 2547
+84+36 = 211
+14-79 = 65
+
+Now, determine the result for: 92*02",085
+c170f7d4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82-22 = 6
+02-66 = -64
+26+67 = 6726
+83*15 = 1583
+33*06 = 0633
+
+Now, determine the result for: 01-16",-15
+c2199ff2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31+57 = 26
+93+42 = 51
+17+21 = 95
+78{51 = 201
+17(22 = 2651
+
+Now, determine the result for: 37(79",1807
+c2945f2c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:81+79 = 511
+19-41 = 7
+58-87 = 7
+
+Now, determine the result for: 07*79",1976
+c37a2a23,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15-79 = 95
 94""45 = 4230
 73""66 = 4818
 50-90 = 141
+
 Now, determine the result for: 90""65",5850
-c541eb82,"a secret set of transformation rules is applied to equations. Below are a few examples:
-68-93 = 74
+c4f66ede,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:09+64 = 531
+37-85 = 51
+55*31 = 3155
+79*93 = 9379
+
+Now, determine the result for: 25*61",6125
+c541eb82,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68-93 = 74
 39-26 = 13
 93-46 = -52
 81-67 = -85
+
 Now, determine the result for: 47-48",-01
-c561264c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-54-34 = 2
+c561264c,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:54-34 = 2
 42-01 = 41
 86-52 = 34
 93-35 = -41
 46*72 = 7246
+
 Now, determine the result for: 79+02",0279
-c613082a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-24-35 = -11
+c613082a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24-35 = -11
 19+49 = 481
 82+02 = 74
 09-63 = 45
+
 Now, determine the result for: 78-47",31
-c6961082,"a secret set of transformation rules is applied to equations. Below are a few examples:
-55'82 = '27
-27'50 = '23
-54'75 = '21
-84'23 = '61
-64'64 = 0
-Now, determine the result for: 69]99",6831
-c84544db,"a secret set of transformation rules is applied to equations. Below are a few examples:
-18|74 = |56
+c6da25af,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65+76 = 2573
+21:89 = 68
+13+76 = 7702
+
+Now, determine the result for: 16}95",121
+c748b04f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29-11 = 4
+85+29 = 151
+42+12 = 64
+81*08 = 0441
+
+Now, determine the result for: 97+67",651
+c763054a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66*66 = 6666
+24*32 = 3224
+91*47 = 4791
+62+96 = 59
+29*55 = 5529
+
+Now, determine the result for: 97-12",85
+c7a7b13a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:52+61 = 14
+59-75 = 83
+89+89 = 691
+78*61 = 3931
+75*28 = 5764
+
+Now, determine the result for: 93-29",35
+c7bcab48,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:95+77 = 18
+19#54 = 1954
+31+13 = 18
+49`31 = 4931
+
+Now, determine the result for: 58#99",5899
+c81411a2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31+49 = 701
+15*38 = 4324
+59-88 = -7
+37-03 = -34
+82+88 = 611
+
+Now, determine the result for: 73+31",05
+c84544db,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18|74 = |56
 61|89 = |28
 95|59 = 36
 13|99 = |86
+
 Now, determine the result for: 20#24",2024
-c885e697,"a secret set of transformation rules is applied to equations. Below are a few examples:
-66-83 = -82
+c857a727,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16-65 = 5
+09*55 = 0594
+96*14 = 9282
+68+54 = 231
+84-26 = 41
+
+Now, determine the result for: 66*41",429
+c885e697,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66-83 = -82
 12+59 = 611
 55-54 = -01
 79+78 = 481
+
 Now, determine the result for: 34*82",8234
-c9c26b92,"a secret set of transformation rules is applied to equations. Below are a few examples:
-48*71 = 8241
+c9151e86,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:19*43 = 5903
+99*29 = 9019
+05-29 = 24
+88-83 = 05
+
+Now, determine the result for: 69*31",9421
+c9c26b92,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:48*71 = 8241
 53+24 = 87
 95+48 = 441
 26-83 = 42
+
 Now, determine the result for: 24*63",2151
-cb2fdb6b,"a secret set of transformation rules is applied to equations. Below are a few examples:
-17-95 = 21
+cb2fdb6b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:17-95 = 21
 42+65 = 18
 08-36 = 71
 14+08 = 221
+
 Now, determine the result for: 08-53",54
-cbe4288b,"a secret set of transformation rules is applied to equations. Below are a few examples:
-77+77 = 351
+cb796a2b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:67}40 = 27
+84}88 = 4
+44+85 = 129
+
+Now, determine the result for: 23+91",114
+cbe4288b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:77+77 = 351
 57+54 = 911
 82+48 = 111
 34-59 = -25
+
 Now, determine the result for: 38+23",411
-cd149ff8,"a secret set of transformation rules is applied to equations. Below are a few examples:
-45*73 = 8991
+cc800930,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91`57 = 9157
+25`02 = 2502
+71/78 = 401
+53`29 = 5329
+54#65 = 11
+
+Now, determine the result for: 59/63",131
+cd149ff8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45*73 = 8991
 67-54 = -13
 96+76 = 731
 04-39 = -35
+
 Now, determine the result for: 53+39",921
-cd9d50e2,"a secret set of transformation rules is applied to equations. Below are a few examples:
-61-79 = -18
+cd9d50e2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61-79 = -18
 92+76 = 7692
 53-24 = -7
+
 Now, determine the result for: 93+52",5293
-d1bd7478,"a secret set of transformation rules is applied to equations. Below are a few examples:
-89$90 = 8010
+ce7138bf,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34|42 = 75
+65[10 = 650
+78[97 = 7566
+95%35 = 25
+65[18 = 1170
+
+Now, determine the result for: 75%24",3
+cee07c09,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:98*06 = 0698
+09<69 = 6
+93$64 = 4971
+26*93 = 9326
+
+Now, determine the result for: 84$83",4281
+cf356d18,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55>52 = 3
+73>14 = 59
+38?78 = 115
+10-76 = 760
+59-45 = 2655
+
+Now, determine the result for: 78>72",6
+cf84c023,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:78]94 = 7331
+23*98 = *75
+93]42 = 3905
+
+Now, determine the result for: 45*32",13
+cfa59b38,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18#56 = 1007
+89-22 = 111
+81+97 = 16
+63#91 = 5732
+76-58 = 134
+
+Now, determine the result for: 13#18",233
+d008b0b6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:79+05 = 741
+23+28 = 411
+14*82 = 7411
+
+Now, determine the result for: 37+85",131
+d033513f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:35+34 = 59
+32*46 = 2741
+75*62 = 2841
+07+94 = 811
+57*66 = 0594
+
+Now, determine the result for: 91+12",93
+d096a492,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23*15 = 2361
+85*01 = 085
+71*68 = 2641
+99+55 = 5599
+
+Now, determine the result for: 98-33",-65
+d17d3a7a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29-52 = 76
+18>29 = 2918
+55>11 = 1155
+
+Now, determine the result for: 66-67",-01
+d1bd7478,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:89$90 = 8010
 88:77 = 11
 10|87 = 98
 41|87 = 129
+
 Now, determine the result for: 37:67",30
-d303ae8e,"a secret set of transformation rules is applied to equations. Below are a few examples:
-55-42 = 13
+d204b9cc,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69%51 = 18
+11*77 = 648
+81*94 = 188
+22*12 = 164
+49)04 = 431
+
+Now, determine the result for: 75)57",231
+d22f2d08,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:97*75 = 22
+73?77 = 151
+89[83 = 7386
+
+Now, determine the result for: 47*73",*26
+d303ae8e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55-42 = 13
 84-17 = -32
 23+71 = 05
 44-19 = -74
+
 Now, determine the result for: 86+42",39
-d3b20e29,"a secret set of transformation rules is applied to equations. Below are a few examples:
-59-11 = 48
+d3092ac1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43*39 = 1613
+29*41 = 7821
+36*02 = 9521
+67-44 = 23
+16*99 = 8306
+
+Now, determine the result for: 92-63",-7
+d3b20e29,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:59-11 = 48
 91-22 = -3
 03+35 = 3503
 15+69 = 6915
+
 Now, determine the result for: 22+39",3922
-d5aa5564,"a secret set of transformation rules is applied to equations. Below are a few examples:
-31*11 = 41
+d4483d51,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56+14 = 601
+74-71 = 03
+91*88 = 1761
+84*27 = 5543
+76-16 = 6
+
+Now, determine the result for: 33*87",3752
+d44ef285,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34*24 = 5081
+86*08 = 9345
+51*44 = 956
+14-43 = 7
+
+Now, determine the result for: 01*98",988
+d5aa5564,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31*11 = 41
 63\23 = 40
 55\84 = 29
 11+58 = 638
 23\68 = 45
+
 Now, determine the result for: 30*16",45
-d6baf5e6,"a secret set of transformation rules is applied to equations. Below are a few examples:
-64-01 = 63
+d67f28ad,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:32#89 = 120
+41\97 = 56
+28#56 = 83
+88\24 = 64
+
+Now, determine the result for: 68#64",131
+d6baf5e6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:64-01 = 63
 73+48 = 221
 65-42 = 23
 21-72 = -51
 78-25 = 53
+
 Now, determine the result for: 87*69",7847
-d78128b2,"a secret set of transformation rules is applied to equations. Below are a few examples:
-71-11 = 6
+d7682996,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87$78 = 165
+30$52 = 82
+54|41 = 5441
+
+Now, determine the result for: 95$62",157
+d78128b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:71-11 = 6
 19-16 = 03
 22-53 = -31
 17-33 = 83
 65*99 = 5455
+
 Now, determine the result for: 73-21",52
-d78ce112,"a secret set of transformation rules is applied to equations. Below are a few examples:
-27+69 = +42
+d78ce112,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27+69 = +42
 56\86 = 0244
 33\34 = 9141
+
 Now, determine the result for: 38\92",7042
-dc178d1c,"a secret set of transformation rules is applied to equations. Below are a few examples:
-17""04 = 111
-29""45 = 641
-72""48 = 111
-Now, determine the result for: 65+69",04
-dcbf2073,"a secret set of transformation rules is applied to equations. Below are a few examples:
-92+49 = 9249
+d82f5933,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73-89 = -16
+31*47 = 78
+58*41 = 99
+51-02 = -5
+36*22 = 58
+
+Now, determine the result for: 91*94",86
+d8735cc4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91!15 = 76
+66!77 = !11
+17!17 = 0
+12+31 = 1231
+44<43 = 4443
+
+Now, determine the result for: 95!60",35
+d8a47cb7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:12#92 = 016
+55*39 = *83
+65*49 = *83
+14*66 = *52
+16&76 = 821
+
+Now, determine the result for: 92&56",49
+d8b3310a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68-64 = 7593
+22<01 = 23
+47-99 = 7237
+17-94 = 0843
+
+Now, determine the result for: 63-45",5491
+d8bc44b3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:01+55 = 56
+35*04 = 9112
+85-98 = 13
+
+Now, determine the result for: 37-06",31
+d9a2b78f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61*15 = 76
+41""12 = 4112
+61""01 = 6101
+07*61 = 68
+18""37 = 1837
+
+Now, determine the result for: 74*26",901
+d9bedb64,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:39(76 = 62
+71^08 = 0631
+21(98 = (77
+28^15 = 2814
+75*77 = 7775
+
+Now, determine the result for: 04(14",(1
+da3f727d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:72'53 = 124
+12$15 = 179
+48/25 = 23
+32$28 = 895
+26$57 = 1481
+
+Now, determine the result for: 59/73",/14
+db5a5b71,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:21*31 = 651
+54""25 = 7
+74*52 = 5711
+
+Now, determine the result for: 58""42",31
+db6a5663,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:59}32 = 92
+72""49 = 3528
+71}11 = 83
+92*64 = *28
+11""43 = 473
+
+Now, determine the result for: 31""95",2945
+dbd0e3c9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:68*11 = 6811
+31*85 = 3185
+82`11 = 901
+46#14 = 32
+43`30 = 1289
+
+Now, determine the result for: 56*31",5631
+dc73d295,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45%82 = %37
+15*11 = 25
+75*60 = 134
+22%27 = %5
+12%83 = %71
+
+Now, determine the result for: 22*65",86
+dcaf44c4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:28-22 = 06
+06+41 = 4106
+09+13 = 1309
+
+Now, determine the result for: 24*95",8742
+dcbf2073,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:92+49 = 9249
 33|45 = |12
 47-97 = 143
 18+77 = 1877
 10+39 = 1039
+
 Now, determine the result for: 77-48",124
-df92aa6a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-02+12 = 24
+dd626fd0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55-34 = -21
+97+96 = 841
+04+34 = 38
+84*85 = 5872
+18+14 = 221
+
+Now, determine the result for: 08*22",1671
+debff779,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55*31 = 617
+05-42 = 62
+31*27 = 739
+45*89 = 3925
+59*26 = 1985
+
+Now, determine the result for: 36-41",94
+df92aa6a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:02+12 = 24
 23-25 = -02
 82+17 = 001
 94-63 = 31
+
 Now, determine the result for: 82*76",7682
-e07fffa6,"a secret set of transformation rules is applied to equations. Below are a few examples:
-08*89 = 9387
+dfec0ed4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15*59 = 1559
+81}30 = 2431
+18*77 = 1877
+
+Now, determine the result for: 93*70",9370
+e07fffa6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:08*89 = 9387
 42-88 = -46
 92+62 = 65
+
 Now, determine the result for: 36-32",04
-e102a09d,"a secret set of transformation rules is applied to equations. Below are a few examples:
-43*33 = 3343
+e102a09d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:43*33 = 3343
 78-45 = 33
 76+78 = 7876
 67+69 = 6967
 25*43 = 4325
+
 Now, determine the result for: 42-44",-02
-e1c0ae13,"a secret set of transformation rules is applied to equations. Below are a few examples:
-18`29 = 522
+e1c0ae13,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:18`29 = 522
 97+36 = 134
 79+75 = 155
 52-33 = -19
+
 Now, determine the result for: 92`54",4968
-e2bb1d9f,"a secret set of transformation rules is applied to equations. Below are a few examples:
-27-76 = 5
+e247d364,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:29!81 = 47
+08{33 = 0462
+19|99 = 091
+
+Now, determine the result for: 65!76",11
+e2bb1d9f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27-76 = 5
 19+88 = 081
 49+76 = 261
+
 Now, determine the result for: 03-94",-91
-e307429d,"a secret set of transformation rules is applied to equations. Below are a few examples:
-42\92 = 5\
+e2f2bea4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61+75 = 7561
+19-54 = 64
+21-37 = -16
+
+Now, determine the result for: 29*26",3075
+e307429d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42\92 = 5\
 34/94 = 29
 82\67 = 84\
 71/14 = 85
+
 Now, determine the result for: 47[44",6523
-e33f1695,"a secret set of transformation rules is applied to equations. Below are a few examples:
-75'62 = 4650
+e33f1695,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:75'62 = 4650
 51'59 = 3009
 56'13 = 728
 64+59 = +5
+
 Now, determine the result for: 55^54",5554
-e3b3573a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-65""66 = 221
+e3b3573a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:65""66 = 221
 46|47 = 5374
 56""39 = 851
 12""43 = 55
+
 Now, determine the result for: 76|48",7265
-e70d5739,"a secret set of transformation rules is applied to equations. Below are a few examples:
-95*89 = 3875
+e4b6ce82,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:36/55 = 811
+13@04 = 0421
+53@71 = 595
+
+Now, determine the result for: 24@32",669
+e5d4eeb8,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:93+97 = 811
+73-66 = -92
+41*27 = 9001
+01+34 = 35
+
+Now, determine the result for: 92*09",1162
+e667f2d7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:62*82 = *2
+77*61 = *16
+46*88 = *42
+
+Now, determine the result for: 73*33",*4
+e70d5739,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:95*89 = 3875
 99-81 = 18
 32+87 = 8732
+
 Now, determine the result for: 57+62",6257
-ed561f79,"a secret set of transformation rules is applied to equations. Below are a few examples:
-06*46 = 4606
+e7cf0394,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88\87 = 7656
+30]47 = 3047
+52*15 = *37
+
+Now, determine the result for: 97]83",9783
+e836fb20,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:73+73 = 47
+65*51 = 148
+97*61 = 5621
+58-04 = 54
+
+Now, determine the result for: 89-21",68
+e8de8b47,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:99\73 = 171
+28}55 = 1540
+96\90 = 185
+48$12 = 0
+
+Now, determine the result for: 57$56",1
+e952f61f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:27+68 = 96
+23$56 = 1287
+80$62 = 4959
+91+92 = 184
+83&17 = 66
+
+Now, determine the result for: 50$94",4699
+e9a84dd6,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:16*39 = 3916
+78*71 = 7178
+37+81 = 19
+77+41 = 19
+
+Now, determine the result for: 97+89",771
+e9afa4a0,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56-18 = 73
+49{82 = 4019
+26}35 = }9
+
+Now, determine the result for: 13}64",}51
+ea6d926a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15-77 = 62
+78*32 = 2002
+41-05 = 8
+95*11 = 056
+
+Now, determine the result for: 25+62",87
+ea9f3811,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:82+71 = 8271
+37{45 = 1666
+22+80 = 2280
+21+73 = 2173
+
+Now, determine the result for: 46}59",}13
+eafc7e67,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:23-36 = 13
+74-85 = 11
+66*39 = 9316
+
+Now, determine the result for: 85*67",9044
+eb68289b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:97+53 = 411
+54*48 = 1873
+49-99 = -5
+87+07 = 841
+
+Now, determine the result for: 72-55",-82
+ec37a5e7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:15*06 = 0603
+81*54 = 018
+35*55 = 5192
+46*95 = 6773
+82*78 = 6342
+
+Now, determine the result for: 42-59",-17
+ec694941,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56-89 = -33
+61*02 = 123
+74+42 = 07
+
+Now, determine the result for: 54*63",1261
+ed561f79,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:06*46 = 4606
 91+67 = 59
 87+24 = 021
 67+67 = 251
 85-97 = -12
+
 Now, determine the result for: 41+96",38
-f3e08a24,"a secret set of transformation rules is applied to equations. Below are a few examples:
-25*82 = 7541
+ed80cf3e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:56-78 = -22
+34-95 = -61
+67+11 = 1167
+
+Now, determine the result for: 31*14",1431
+ee9239e9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91-73 = 18
+91@61 = 151
+93*58 = 9358
+
+Now, determine the result for: 26*29",2629
+eeae398e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:63]67 = 4
+18]81 = 9
+72-22 = 95
+64]48 = 16
+65]15 = 5
+
+Now, determine the result for: 65/58",3770
+f0a2d457,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:05/32 = 0532
+23/82 = 2382
+73<25 = 51
+95<05 = 9<
+45/79 = 4579
+
+Now, determine the result for: 86<09",22
+f28681ad,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:85+03 = 88
+26*56 = 5626
+76+36 = 031
+66+56 = 131
+43-13 = 3
+
+Now, determine the result for: 14*43",4314
+f299569f,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:34{31 = 55
+44{74 = 09
+91'95 = 04
+19\16 = 1555
+22{69 = 711
+
+Now, determine the result for: 18\73",7992
+f2afd89d,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44-87 = 43
+03-38 = 35
+86+73 = 401
+79*95 = 3275
+
+Now, determine the result for: 84*24",6102
+f2fa334a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:31*29 = 61
+89`59 = 30
+66{51 = 3365
+59`70 = `11
+98*41 = 140
+
+Now, determine the result for: 42{13",545
+f2ff37b2,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:66^67 = 1
+87^60 = 27
+80+96 = 8096
+
+Now, determine the result for: 91(29",2639
+f3e08a24,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:25*82 = 7541
 85+82 = 8285
 62+12 = 1262
+
 Now, determine the result for: 48+05",0548
-f93475e9,"a secret set of transformation rules is applied to equations. Below are a few examples:
-42*83 = 219
+f4ecefa4,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:81-45 = 36
+11-61 = 50
+58%35 = 94
+31%95 = 127
+
+Now, determine the result for: 27%58",86
+f642e7b5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:88*48 = 1937
+94+14 = 09
+79+29 = 981
+36*08 = 9305
+
+Now, determine the result for: 73-48",-74
+f6db706e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87*91 = 95
+52/06 = 0652
+45*26 = *8
+63*58 = *94
+49/24 = 2449
+
+Now, determine the result for: 94*54",4
+f7d90ae3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:61`23 = 38
+84/48 = 8448
+87`85 = 2
+73/54 = 7354
+
+Now, determine the result for: 98/19",9819
+f93475e9,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:42*83 = 219
 19-19 = 0
 74-29 = 54
 36+46 = 4636
+
 Now, determine the result for: 24*28",4443
-f96e1e6e,"a secret set of transformation rules is applied to equations. Below are a few examples:
-26""92 = 33
+f94810f5,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:41{23 = 4123
+91/49 = 57
+12}74 = 789
+11{15 = 1115
+
+Now, determine the result for: 15{92",1592
+f96e1e6e,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:26""92 = 33
 57""93 = 63
 75-49 = 151
+
 Now, determine the result for: 85-28",041
-f971f8dd,"a secret set of transformation rules is applied to equations. Below are a few examples:
-71]54 = 567
-32""79 = 5
-62""77 = 52
-Now, determine the result for: 88:34",131
-fa7426d3,"a secret set of transformation rules is applied to equations. Below are a few examples:
-87<82 = 601
+f9bd3119,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91*42 = 34
+93|17 = 9672
+11|02 = 022
+86*59 = 361
+01*96 = 97
+
+Now, determine the result for: 53)73",)2
+f9ff29fa,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:86-87 = -01
+17-25 = -91
+01+86 = 8601
+57*91 = 5241
+
+Now, determine the result for: 23*98",8482
+fa7426d3,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:87<82 = 601
 43/93 = /5
 15/77 = /62
 05/23 = 81
 83/76 = /92
+
 Now, determine the result for: 14<51",65
-fb3f7b77,"a secret set of transformation rules is applied to equations. Below are a few examples:
-83+84 = 78
+fa952980,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:91)11 = 1001
+31$70 = 100
+47/61 = 14
+67/23 = 21
+87$17 = 103
+
+Now, determine the result for: 18$54",71
+fb3f7b77,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:83+84 = 78
 34-39 = -05
 96+63 = 601
+
 Now, determine the result for: 46-83",62
-fb4bc935,"a secret set of transformation rules is applied to equations. Below are a few examples:
-69*47 = 4017
+fb4bc935,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:69*47 = 4017
 28+26 = 341
 14+39 = 331
 45+56 = 811
+
 Now, determine the result for: 64-25",-6
-fc799f0a,"a secret set of transformation rules is applied to equations. Below are a few examples:
-45*41 = 657
+fb623471,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:84*57 = 1063
+67-37 = 3
+77*65 = 3134
+
+Now, determine the result for: 08-29",-21
+fc799f0a,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:45*41 = 657
 71+87 = 49
 11+41 = 42
+
 Now, determine the result for: 37+84",021
-fc7e53c7,"a secret set of transformation rules is applied to equations. Below are a few examples:
-03+99 = 9903
+fc7e53c7,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:03+99 = 9903
 12-64 = -52
 28-88 = -6
+
 Now, determine the result for: 77-35",42
+fd683004,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:55+36 = 811
+34-24 = 1
+54*18 = 6463
+
+Now, determine the result for: 43+75",19
+fdd9ff2b,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:24-99 = 51
+97-87 = 1
+02-73 = 71
+
+Now, determine the result for: 21*44",825
+fe393711,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:44\66 = 22
+57\79 = 22
+67}91 = 5441
+49\19 = 3\
+31\62 = 31
+
+Now, determine the result for: 46}03",1291
+febd3442,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:96-27 = 3
+78+05 = 631
+31*82 = 463
+76-66 = 1
+
+Now, determine the result for: 64-77",13
+fef61ca1,"Category: Equation Numeric (numeric equation transformation)
+
+Examples:22*33 = *11
+72]18 = 89
+71%17 = 7117
+56%68 = 5668
+23*46 = *23
+
+Now, determine the result for: 18]94",111
