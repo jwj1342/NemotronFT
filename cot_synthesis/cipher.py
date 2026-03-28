@@ -318,6 +318,125 @@ def _find_multi_occurrence_letters(examples: list[tuple[str, str]]
             if len(indices) >= 2]
 
 
+# ── Phrasing Diversity ────────────────────────────────────────────────────────
+
+_OPENINGS = [
+    "Let me analyze the encrypted-decrypted pairs to find the encryption rule.",
+    "I need to figure out the encryption pattern from these examples.",
+    "Let me work through these examples to crack the cipher.",
+    "Looking at the example pairs to determine the encryption method.",
+    "I'll compare the encrypted and decrypted text to find the pattern.",
+]
+
+_CAESAR_DISCOVERIES = [
+    "All shifts are **{shift}**! This is a Caesar cipher with shift {shift}.",
+    "Every letter is shifted by exactly **{shift}** — a Caesar cipher.",
+    "The shift is constant: **{shift}**. Classic Caesar cipher.",
+    "Consistent shift of **{shift}** across all pairs — Caesar cipher confirmed.",
+]
+
+_SUB_CONCLUSIONS = [
+    ("The shifts are different ({shifts}), so this is NOT a Caesar cipher. "
+     "It must be a general monoalphabetic substitution cipher."),
+    ("Shifts vary ({shifts}) — not Caesar. This is a random substitution cipher."),
+    ("Different shifts ({shifts}) rule out Caesar. "
+     "Each letter has its own unique mapping."),
+]
+
+
+# ── Light CoT Generation (abbreviated reasoning, key insights only) ──────────
+
+def generate_light_cot(problem: CipherProblem, rng: random.Random) -> str:
+    """Generate abbreviated CoT: 3-5 sentences capturing key insights only.
+
+    Focuses on: method choice → pattern discovery → verification → answer.
+    No step numbers, no code blocks, no full mapping table.
+    """
+    if problem.cipher_type == "caesar":
+        return _generate_light_cot_caesar(problem, rng)
+    return _generate_light_cot_substitution(problem, rng)
+
+
+def _generate_light_cot_caesar(problem: CipherProblem,
+                                rng: random.Random) -> str:
+    """Light CoT for Caesar cipher: ~4 sentences."""
+    shift = problem.cipher_params["shift"]
+    ex = problem.examples
+    first_pairs = _extract_letter_pairs(ex[0][0], ex[0][1])
+
+    lines = []
+    lines.append("Comparing encrypted and decrypted letter positions "
+                 "to find a shift pattern.")
+    lines.append("")
+
+    # Show 3 shift computations
+    samples = first_pairs[:3]
+    parts = [f"'{e}'→'{p}' (shift {_compute_shift(e, p)})"
+             for e, p in samples]
+    lines.append(f"From example 1: {', '.join(parts)} — "
+                 f"constant shift of {shift}.")
+    lines.append("")
+
+    # Quick verification
+    verify_pairs = _extract_letter_pairs(ex[1][0], ex[1][1])[:2]
+    parts = [f"'{e}'−{shift}='{p}' ✓" for e, p in verify_pairs]
+    lines.append(f"Verified on example 2: {', '.join(parts)}. "
+                 f"Caesar cipher with shift {shift} confirmed.")
+    lines.append("")
+
+    # Decrypt word by word
+    enc_words = problem.query_ciphertext.split()
+    plain_words = problem.query_plaintext.split()
+    word_parts = [f"\"{ew}\"→\"{pw}\"" for ew, pw in
+                  zip(enc_words, plain_words)]
+    lines.append(f"Decrypting: {', '.join(word_parts)}")
+
+    return "\n".join(lines)
+
+
+def _generate_light_cot_substitution(problem: CipherProblem,
+                                      rng: random.Random) -> str:
+    """Light CoT for substitution cipher: ~5 sentences."""
+    ex = problem.examples
+    all_mapping = _build_mapping_from_examples(ex)
+
+    lines = []
+    lines.append("Aligning encrypted and decrypted letters from all "
+                 f"{len(ex)} examples to build a substitution mapping.")
+    lines.append("")
+
+    # Show shift variation to rule out Caesar
+    first_pairs = _extract_letter_pairs(ex[0][0], ex[0][1])
+    shifts = [_compute_shift(e, p) for e, p in first_pairs[:4]]
+    lines.append(f"Shifts vary ({', '.join(str(s) for s in shifts)}) — "
+                 "not Caesar, each letter has its own mapping.")
+    lines.append("")
+
+    # Show partial mapping
+    sorted_pairs = sorted(all_mapping.items())[:12]
+    mapping_str = ", ".join(f"{e}→{p}" for e, p in sorted_pairs)
+    lines.append(f"Extracted mapping ({len(all_mapping)} letters): "
+                 f"{mapping_str}, ...")
+    lines.append("")
+
+    # Quick consistency note
+    multi = _find_multi_occurrence_letters(ex)
+    if multi:
+        e, p, _ = multi[0]
+        lines.append(f"Consistency check: '{e}' always maps to '{p}' "
+                     "across examples. ✓")
+        lines.append("")
+
+    # Decrypt word by word
+    enc_words = problem.query_ciphertext.split()
+    plain_words = problem.query_plaintext.split()
+    word_parts = [f"\"{ew}\"→\"{pw}\"" for ew, pw in
+                  zip(enc_words, plain_words)]
+    lines.append(f"Decrypting: {', '.join(word_parts)}")
+
+    return "\n".join(lines)
+
+
 # ── Detour Generators (wrong paths / self-correction) ────────────────────────
 
 def _generate_wrong_shift_detour(problem: CipherProblem,
@@ -445,8 +564,7 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
     shift = problem.cipher_params["shift"]
     step = 1  # dynamic step counter
 
-    lines.append("Let me analyze the encrypted-decrypted pairs to find "
-                 "the encryption rule.")
+    lines.append(rng.choice(_OPENINGS))
     lines.append("")
 
     # ── Observation ──────────────────────────────────────────────────────────
@@ -517,8 +635,7 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
                      f"mod 26 = {s}")
 
     lines.append("")
-    lines.append(f"All shifts are **{shift}**! This is a Caesar cipher "
-                 f"with shift {shift}.")
+    lines.append(rng.choice(_CAESAR_DISCOVERIES).format(shift=shift))
     lines.append(f"To decrypt: plain = (encrypted_pos − {shift}) mod 26.")
     lines.append("")
 
@@ -577,8 +694,7 @@ def _generate_cot_substitution(problem: CipherProblem,
     ex = problem.examples
     step = 1  # dynamic step counter
 
-    lines.append("Let me analyze the encrypted-decrypted pairs to find "
-                 "the encryption rule.")
+    lines.append(rng.choice(_OPENINGS))
     lines.append("")
 
     # ── Observation ──────────────────────────────────────────────────────────
@@ -646,10 +762,7 @@ def _generate_cot_substitution(problem: CipherProblem,
     unique_shifts = sorted(set(shifts))
     if len(unique_shifts) > 1:
         shift_strs = ", ".join(str(s) for s in shifts)
-        lines.append(f"The shifts are different ({shift_strs}), so this is "
-                     "NOT a Caesar cipher.")
-        lines.append("It must be a general monoalphabetic substitution cipher "
-                     "with a unique mapping for each letter.")
+        lines.append(rng.choice(_SUB_CONCLUSIONS).format(shifts=shift_strs))
     lines.append("")
 
     # ── Build mapping table ──────────────────────────────────────────────────
@@ -824,6 +937,47 @@ def format_answer_direct(answer: str) -> str:
     return f"\\boxed{{{answer}}}"
 
 
+def format_answer_think(cot_text: str, answer: str, depth: str) -> str:
+    r"""Format answer for <think> training mode.
+
+    The chat template prefix provides '<think>\n', so the answer column
+    starts immediately after that.
+
+    - depth="direct":  </think>\n\boxed{answer}
+    - depth="light":   light_reasoning\n</think>\n\boxed{answer}
+    - depth="full":    full_reasoning\n</think>\n\boxed{answer}
+    """
+    if depth == "direct":
+        return f"</think>\n\\boxed{{{answer}}}"
+    return f"{cot_text}\n</think>\n\\boxed{{{answer}}}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CoT Depth Assignment (direct / light / full per difficulty level)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Depth distribution per curriculum level:
+# Easy problems → more direct/light (model should learn to be efficient)
+# Hard problems → more full CoT (model should learn to reason deeply)
+_DEPTH_RATIOS = {
+    #          direct  light   full
+    1:        (0.40,   0.35,   0.25),   # Caesar: often straightforward
+    2:        (0.25,   0.30,   0.45),   # Substitution, many examples
+    3:        (0.15,   0.25,   0.60),   # Substitution, few examples: need more reasoning
+}
+
+
+def _assign_depth(level: int, rng: random.Random) -> str:
+    """Assign CoT depth (direct/light/full) based on level and randomness."""
+    ratios = _DEPTH_RATIOS.get(level, (0.30, 0.30, 0.40))
+    r = rng.random()
+    if r < ratios[0]:
+        return "direct"
+    elif r < ratios[0] + ratios[1]:
+        return "light"
+    return "full"
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Main: Generate Dataset
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -834,10 +988,14 @@ def generate_dataset(
     seed: int = 42,
     num_examples_range: tuple[int, int] = (3, 6),
 ) -> list[dict]:
-    """Generate a full CoT dataset for cipher tasks.
+    """Generate a CoT dataset for cipher tasks with layered depth.
+
+    Each sample is assigned a cot_depth (direct / light / full) based on
+    its difficulty level. This teaches the model to adaptively calibrate
+    its reasoning effort.
 
     Returns list of dicts with keys: id, prompt, answer, cot_answer,
-    level, cipher_type, cipher_description.
+    think_answer, cot_depth, level, cipher_type, cipher_description.
     """
     rng = random.Random(seed)
 
@@ -854,14 +1012,25 @@ def generate_dataset(
 
             prompt = format_prompt(problem)
             answer = problem.query_plaintext
-            cot = generate_cot(problem, rng)
+            depth = _assign_depth(level, rng)
+
+            # Generate reasoning at the assigned depth
+            if depth == "full":
+                cot = generate_cot(problem, rng)
+            elif depth == "light":
+                cot = generate_light_cot(problem, rng)
+            else:
+                cot = ""
 
             sample_id = uuid.uuid4().hex[:8]
             dataset.append({
                 "id": sample_id,
                 "prompt": prompt,
                 "answer": answer,
-                "cot_answer": format_answer_with_cot(cot, answer),
+                "cot_answer": format_answer_with_cot(cot, answer)
+                              if cot else format_answer_direct(answer),
+                "think_answer": format_answer_think(cot, answer, depth),
+                "cot_depth": depth,
                 "level": level,
                 "cipher_type": problem.cipher_type,
                 "cipher_description": problem.cipher_description,
@@ -872,7 +1041,7 @@ def generate_dataset(
 
 
 def save_dataset(dataset: list[dict], output_dir: Path):
-    """Save dataset in multiple formats (JSONL, CSV, per-level splits)."""
+    """Save dataset in multiple formats."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Full JSONL (all fields)
@@ -882,7 +1051,7 @@ def save_dataset(dataset: list[dict], output_dir: Path):
             f.write(json.dumps(sample, ensure_ascii=False) + "\n")
     print(f"[saved] {jsonl_path} ({len(dataset)} samples)")
 
-    # 2. Competition-format CSV (id, prompt, answer) — direct answer only
+    # 2. Competition-format CSV — direct answer only
     csv_direct_path = output_dir / "cipher_direct.csv"
     with open(csv_direct_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -892,7 +1061,7 @@ def save_dataset(dataset: list[dict], output_dir: Path):
                              sample["answer"]])
     print(f"[saved] {csv_direct_path}")
 
-    # 3. CoT-format CSV (id, prompt, answer) — answer includes CoT
+    # 3. CoT-format CSV — answer includes CoT reasoning
     csv_cot_path = output_dir / "cipher_cot.csv"
     with open(csv_cot_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -902,7 +1071,17 @@ def save_dataset(dataset: list[dict], output_dir: Path):
                              sample["cot_answer"]])
     print(f"[saved] {csv_cot_path}")
 
-    # 4. Per-level splits
+    # 4. <think> format CSV — for train.py --enable_thinking mode
+    csv_think_path = output_dir / "cipher_think.csv"
+    with open(csv_think_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "prompt", "answer"])
+        for sample in dataset:
+            writer.writerow([sample["id"], sample["prompt"],
+                             sample["think_answer"]])
+    print(f"[saved] {csv_think_path}")
+
+    # 5. Per-level splits
     by_level = {}
     for sample in dataset:
         by_level.setdefault(sample["level"], []).append(sample)
@@ -914,11 +1093,26 @@ def save_dataset(dataset: list[dict], output_dir: Path):
                 f.write(json.dumps(sample, ensure_ascii=False) + "\n")
         print(f"[saved] {level_path} ({len(samples)} samples, level {level})")
 
-    # 5. Stats
+    # 6. Stats (including depth distribution)
+    by_depth = {}
+    for sample in dataset:
+        by_depth.setdefault(sample["cot_depth"], []).append(sample)
+
     stats = {
         "total_samples": len(dataset),
         "by_level": {
             str(level): len(samples)
+            for level, samples in sorted(by_level.items())
+        },
+        "by_depth": {
+            depth: len(samples)
+            for depth, samples in sorted(by_depth.items())
+        },
+        "depth_by_level": {
+            str(level): {
+                depth: sum(1 for s in samples if s["cot_depth"] == depth)
+                for depth in ["direct", "light", "full"]
+            }
             for level, samples in sorted(by_level.items())
         },
     }
@@ -960,15 +1154,19 @@ def main():
     save_dataset(dataset, output_dir)
     print(f"\nDone! {len(dataset)} samples saved to {output_dir}/")
 
-    # Print a sample preview
-    print("\n" + "=" * 70)
-    print("SAMPLE PREVIEW (first entry)")
-    print("=" * 70)
-    sample = dataset[0]
-    print(f"Level: {sample['level']}")
-    print(f"Cipher: {sample['cipher_description']}")
-    print(f"\n--- Prompt ---\n{sample['prompt']}")
-    print(f"\n--- CoT Answer ---\n{sample['cot_answer'][:1500]}...")
+    # Print a sample preview for each depth
+    for depth in ["direct", "light", "full"]:
+        samples = [s for s in dataset if s["cot_depth"] == depth]
+        if samples:
+            s = samples[0]
+            print(f"\n{'=' * 70}")
+            print(f"SAMPLE PREVIEW — depth={depth}, level={s['level']}, "
+                  f"cipher={s['cipher_description']}")
+            print("=" * 70)
+            print(f"Prompt: {s['prompt'][:120]}...")
+            think = s["think_answer"]
+            print(f"\n--- Think Answer ---\n{think[:800]}"
+                  f"{'...' if len(think) > 800 else ''}")
 
 
 if __name__ == "__main__":

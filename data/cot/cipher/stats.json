@@ -4,5 +4,27 @@
     "1": 167,
     "2": 167,
     "3": 166
+  },
+  "by_depth": {
+    "direct": 120,
+    "full": 217,
+    "light": 163
+  },
+  "depth_by_level": {
+    "1": {
+      "direct": 62,
+      "light": 59,
+      "full": 46
+    },
+    "2": {
+      "direct": 41,
+      "light": 56,
+      "full": 70
+    },
+    "3": {
+      "direct": 17,
+      "light": 48,
+      "full": 101
+    }
   }
 }

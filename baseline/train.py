@@ -77,6 +77,13 @@ parser.add_argument("--eval_batch_size", type=int, default=4,
 parser.add_argument("--tensorboard_dir", type=str,
                     default="/home/jwj/tensorboard_logs",
                     help="TensorBoard log directory.")
+parser.add_argument("--enable_thinking", action="store_true",
+                    help="Enable <think> mode: train on CoT reasoning inside "
+                         "<think>...</think> tags. Requires CoT-formatted data.")
+parser.add_argument("--cot_data_dir", type=str, default=None,
+                    help="Optional directory containing *_think.csv files with "
+                         "CoT training data. These are added to the training set "
+                         "alongside the original data from --data_dir.")
 args = parser.parse_args()
 
 print(f"[config] output_dir        = {args.output_dir}")
@@ -93,6 +100,8 @@ print(f"[config] eval_steps        = {args.eval_steps}")
 print(f"[config] eval_samples/cls  = {args.eval_samples_per_class}")
 print(f"[config] eval_batch_size  = {args.eval_batch_size}")
 print(f"[config] tensorboard_dir   = {args.tensorboard_dir}")
+print(f"[config] enable_thinking   = {args.enable_thinking}")
+print(f"[config] cot_data_dir      = {args.cot_data_dir}")
 print(f"[config] torch version     = {torch.__version__}")
 print(f"[config] GPUs available    = {torch.cuda.device_count()}")
 
@@ -121,33 +130,54 @@ _THINK_PREFIXES = (
 
 
 def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
-    """
+    r"""
     Returns (full_text, prefix_len) where prefix_len is the number of tokens
-    that should be masked out (user turn + assistant-start tokens, including
-    any think-token preamble added by the chat template).
+    that should be masked out (user turn + assistant-start tokens).
 
-    The training target is exactly: \\boxed{answer}<|im_end|>
-    No <think></think> tokens appear in the supervised signal.
+    Two modes controlled by --enable_thinking:
+
+    1. enable_thinking=False (original, answer-only):
+       Training target: \boxed{answer}<|im_end|>
+       No <think> tokens in the supervised signal.
+
+    2. enable_thinking=True (CoT reasoning):
+       Training target: <reasoning>\n</think>\n\boxed{answer}<|im_end|>
+       The prefix includes the template's <think>\n preamble (masked out).
+       If the answer already contains </think>, it's used as-is (CoT data).
+       Otherwise it's auto-wrapped as </think>\n\boxed{answer} (direct data).
     """
     user_content = prompt + BOXED_INSTRUCTION
 
-    # Get everything up to (and including) the start of the assistant turn.
-    prefix_text = tokenizer.apply_chat_template(
-        [{"role": "user", "content": user_content}],
-        tokenize=False,
-        add_generation_prompt=True,
-        enable_thinking=False,
-    )
-
-    # Strip any think-token preamble that the template appended to the
-    # generation prefix so it doesn't bleed into the training target.
-    for think_frag in _THINK_PREFIXES:
-        if prefix_text.endswith(think_frag):
-            prefix_text = prefix_text[:-len(think_frag)]
-            break
-
-    # Append the answer directly — no think tokens in the training target.
-    full_text = prefix_text + f"\\boxed{{{answer}}}<|im_end|>\n"
+    if args.enable_thinking:
+        # ── Thinking mode: train on <think>reasoning</think>\boxed{ans} ──
+        prefix_text = tokenizer.apply_chat_template(
+            [{"role": "user", "content": user_content}],
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=True,
+        )
+        # The template's prefix ends with "<think>\n".
+        # answer is the training target that follows.
+        if "</think>" in answer:
+            # CoT data: answer = "reasoning\n</think>\n\boxed{ans}"
+            full_text = prefix_text + answer + "<|im_end|>\n"
+        else:
+            # Direct data: auto-wrap plain answer into thinking format
+            full_text = (prefix_text
+                         + f"</think>\n\\boxed{{{answer}}}<|im_end|>\n")
+    else:
+        # ── Original mode: answer-only, no think tokens ──
+        prefix_text = tokenizer.apply_chat_template(
+            [{"role": "user", "content": user_content}],
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False,
+        )
+        for think_frag in _THINK_PREFIXES:
+            if prefix_text.endswith(think_frag):
+                prefix_text = prefix_text[:-len(think_frag)]
+                break
+        full_text = prefix_text + f"\\boxed{{{answer}}}<|im_end|>\n"
 
     prefix_ids = tokenizer(
         prefix_text,
@@ -158,7 +188,8 @@ def build_conversation(prompt: str, answer: str) -> tuple[str, int]:
 
 
 class NemotronSFTDataset(Dataset):
-    def __init__(self, data_dir: str, samples_per_class: int = 400, max_length: int = 512):
+    def __init__(self, data_dir: str, samples_per_class: int = 400,
+                 max_length: int = 512, cot_data_dir: str = None):
         print(f"[dataset] Loading per-category CSVs from {data_dir} ...")
         rng = random.Random(42)
         sampled = []
@@ -175,6 +206,21 @@ class NemotronSFTDataset(Dataset):
             sampled.extend(chosen)
             self.eval_pool[category] = remaining
             print(f"[dataset]   {category:22s}: {len(chosen):4d} train / {len(remaining):4d} eval / {len(rows):5d} total")
+
+        # ── Load CoT data (additional training samples) ──────────────────────
+        if cot_data_dir:
+            cot_dir = Path(cot_data_dir)
+            cot_count = 0
+            for csv_file in sorted(cot_dir.rglob("*_think.csv")):
+                rows = []
+                with open(csv_file, newline="", encoding="utf-8") as f:
+                    for row in csv.DictReader(f):
+                        rows.append((row["prompt"], row["answer"]))
+                sampled.extend(rows)
+                cot_count += len(rows)
+                print(f"[dataset]   CoT {csv_file.stem:18s}: {len(rows):4d} samples")
+            print(f"[dataset] {cot_count} CoT samples added to training set.")
+
         rng.shuffle(sampled)
         print(f"[dataset] {len(sampled)} train samples, "
               f"{sum(len(v) for v in self.eval_pool.values())} eval pool samples.")
@@ -274,6 +320,7 @@ dataset = NemotronSFTDataset(
     str(DATA_DIR),
     samples_per_class=args.samples_per_class,
     max_length=args.max_length,
+    cot_data_dir=args.cot_data_dir,
 )
 
 collator = DataCollatorForSeq2Seq(
