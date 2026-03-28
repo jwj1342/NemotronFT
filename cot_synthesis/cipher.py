@@ -318,37 +318,148 @@ def _find_multi_occurrence_letters(examples: list[tuple[str, str]]
             if len(indices) >= 2]
 
 
+# ── Detour Generators (wrong paths / self-correction) ────────────────────────
+
+def _generate_wrong_shift_detour(problem: CipherProblem,
+                                  rng: random.Random) -> list[str]:
+    """Generate a wrong-shift hypothesis (e.g. ROT13) that fails.
+
+    The model tries a common shift, gets gibberish, then realizes
+    it needs to compute the actual shift value.
+    """
+    correct_shift = problem.cipher_params["shift"]
+
+    # Pick a plausible wrong shift
+    common_shifts = [13, 7, 3, 11, 19, 5]
+    candidates = [s for s in common_shifts if s != correct_shift]
+    wrong_shift = rng.choice(candidates[:3])
+
+    lines = []
+    label = f"ROT{wrong_shift}" if wrong_shift == 13 else f"shift-by-{wrong_shift}"
+
+    lines.append(f"A common cipher is {label}. Let me try decrypting the "
+                 f"first example by shifting each letter back by {wrong_shift}:")
+    lines.append("")
+
+    # Apply wrong shift to first two words of first example
+    enc_words = problem.examples[0][0].split()
+    plain_words = problem.examples[0][1].split()
+    for ew, pw in zip(enc_words[:2], plain_words[:2]):
+        wrong_result = "".join(
+            chr((ord(c) - ord('a') - wrong_shift) % 26 + ord('a'))
+            if c.isalpha() else c for c in ew)
+        lines.append(f"  \"{ew}\" − {wrong_shift} → \"{wrong_result}\" "
+                     f"(expected \"{pw}\") — "
+                     f"{'matches!' if wrong_result == pw else 'DOES NOT match'}")
+    lines.append("")
+
+    lines.append(f"That gives nonsensical results. {label} is not the right "
+                 "shift. Let me compute the actual shift value from the "
+                 "letter pairs instead of guessing.")
+    lines.append("")
+
+    return lines
+
+
+def _generate_premature_decrypt_detour(problem: CipherProblem,
+                                        rng: random.Random) -> list[str]:
+    """Generate a premature decryption attempt with incomplete mapping.
+
+    The model eagerly tries to decrypt the query using only the first
+    1-2 examples, gets '?' for unmapped letters, and realizes it needs
+    to use all examples.
+    """
+    # Build mapping from only first 1-2 examples
+    n_partial = rng.randint(1, min(2, len(problem.examples)))
+    partial_mapping = {}
+    for enc, plain in problem.examples[:n_partial]:
+        for e, p in zip(
+            [c for c in enc if c.isalpha()],
+            [c for c in plain if c.isalpha()],
+        ):
+            partial_mapping[e] = p
+
+    # Attempt to decrypt query with partial mapping
+    partial_result = []
+    unknown_count = 0
+    for c in problem.query_ciphertext:
+        if c.isalpha():
+            if c in partial_mapping:
+                partial_result.append(partial_mapping[c])
+            else:
+                partial_result.append("?")
+                unknown_count += 1
+        else:
+            partial_result.append(c)
+    partial_str = "".join(partial_result)
+
+    if unknown_count == 0:
+        return []  # partial mapping already covers everything — skip detour
+
+    lines = []
+    lines.append(f"With the mappings from the first "
+                 f"{n_partial} example{'s' if n_partial > 1 else ''}, "
+                 "let me try decrypting the query right away:")
+    lines.append("")
+    lines.append(f"  \"{problem.query_ciphertext}\" → \"{partial_str}\"")
+    lines.append("")
+
+    # Show which words are incomplete
+    partial_words = partial_str.split()
+    plain_words = problem.query_plaintext.split()
+    incomplete = [(pw, rw) for pw, rw in zip(plain_words, partial_words)
+                  if "?" in rw]
+    if incomplete:
+        word_list = ", ".join(f"\"{rw}\" (should be \"{pw}\")"
+                              for pw, rw in incomplete[:3])
+        lines.append(f"  Incomplete words: {word_list}")
+        lines.append("")
+
+    lines.append(f"Hmm, there are still {unknown_count} unknown letters "
+                 f"(shown as '?'). The mappings from just "
+                 f"{n_partial} example{'s' if n_partial > 1 else ''} aren't "
+                 f"enough — I need to extract mappings from all "
+                 f"{len(problem.examples)} examples to fill in the gaps.")
+    lines.append("")
+
+    return lines
+
+
 # ── Caesar CoT ───────────────────────────────────────────────────────────────
 
 def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
     """Generate CoT for Caesar cipher problems.
 
-    Structure:
+    Dynamic structure with optional detours:
     1. Observation
-    2. Extract letter mappings from first example
-    3. Wrong hypothesis: Atbash cipher → fails
-    4. Compute shifts → discover constant shift
-    5. Verify on second example
-    6. Code verification
-    7. Decrypt query
+    2. Extract letter mappings
+    3. Wrong hypothesis: Atbash → fails
+    [Optional] N. Wrong shift detour (e.g. ROT13) → fails
+    N+1. Compute shifts → discover constant shift
+    N+2. Verify on second example
+    N+3. Code verification
+    N+4. Decrypt query
     """
     lines = []
     ex = problem.examples
     shift = problem.cipher_params["shift"]
+    step = 1  # dynamic step counter
 
     lines.append("Let me analyze the encrypted-decrypted pairs to find "
                  "the encryption rule.")
     lines.append("")
 
-    # ── Phase 1: Observation ─────────────────────────────────────────────────
-    lines.append("**Step 1: Initial Observation**")
+    # ── Observation ──────────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Initial Observation**")
+    step += 1
     lines.append(f"We have {len(ex)} examples of encrypted text with their "
                  "decryptions. I'll align each pair letter by letter to "
                  "find the pattern.")
     lines.append("")
 
-    # ── Phase 2: Extract mappings from first example ─────────────────────────
-    lines.append("**Step 2: Extract Letter Mappings**")
+    # ── Extract mappings from first two examples ─────────────────────────────
+    lines.append(f"**Step {step}: Extract Letter Mappings**")
+    step += 1
     enc0_words = ex[0][0].split()
     plain0_words = ex[0][1].split()
     lines.append(f"Example 1: \"{ex[0][0]}\" → \"{ex[0][1]}\"")
@@ -358,7 +469,6 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
         lines.append(f"  \"{ew}\" → \"{pw}\": {pairs_str}")
     lines.append("")
 
-    # Show second example too
     if len(ex) > 1:
         enc1_words = ex[1][0].split()
         plain1_words = ex[1][1].split()
@@ -368,8 +478,9 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
             lines.append(f"  \"{ew}\" → \"{pw}\": {pairs_str}")
         lines.append("")
 
-    # ── Phase 3: Wrong hypothesis — Atbash ───────────────────────────────────
-    lines.append("**Step 3: Test hypothesis — Atbash cipher**")
+    # ── Wrong hypothesis — Atbash (always) ───────────────────────────────────
+    lines.append(f"**Step {step}: Test hypothesis — Atbash cipher**")
+    step += 1
     lines.append("In an Atbash cipher, each letter maps to its reverse: "
                  "a↔z, b↔y, c↔x, etc.")
 
@@ -384,8 +495,15 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
             break
     lines.append("")
 
-    # ── Phase 4: Compute shifts → discover Caesar ────────────────────────────
-    lines.append("**Step 4: Compute shift values**")
+    # ── [Optional] Wrong shift detour (~40%) ─────────────────────────────────
+    if rng.random() < 0.4:
+        lines.append(f"**Step {step}: Test hypothesis — common shift**")
+        step += 1
+        lines.extend(_generate_wrong_shift_detour(problem, rng))
+
+    # ── Compute shifts → discover Caesar ─────────────────────────────────────
+    lines.append(f"**Step {step}: Compute shift values**")
+    step += 1
     lines.append("Let me compute the shift (encrypted_pos − plain_pos, "
                  "mod 26) for each letter pair:")
     lines.append("")
@@ -404,8 +522,9 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
     lines.append(f"To decrypt: plain = (encrypted_pos − {shift}) mod 26.")
     lines.append("")
 
-    # ── Phase 5: Verify on second example ────────────────────────────────────
-    lines.append("**Step 5: Verify on another example**")
+    # ── Verify on second example ─────────────────────────────────────────────
+    lines.append(f"**Step {step}: Verify on another example**")
+    step += 1
     verify_idx = min(1, len(ex) - 1)
     lines.append(f"Example {verify_idx + 1}: \"{ex[verify_idx][0]}\" → "
                  f"\"{ex[verify_idx][1]}\"")
@@ -420,13 +539,14 @@ def _generate_cot_caesar(problem: CipherProblem, rng: random.Random) -> str:
     lines.append("All letters verify correctly!")
     lines.append("")
 
-    # ── Phase 6: Code verification ───────────────────────────────────────────
-    lines.append("**Step 6: Code Verification**")
+    # ── Code verification ────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Code Verification**")
+    step += 1
     lines.extend(_generate_code_verification_caesar(problem))
     lines.append("")
 
-    # ── Phase 7: Decrypt query ───────────────────────────────────────────────
-    lines.append("**Step 7: Decrypt the query**")
+    # ── Decrypt query ────────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Decrypt the query**")
     lines.append(f"Query: \"{problem.query_ciphertext}\"")
     lines.append("")
     lines.extend(_decrypt_word_by_word(problem))
@@ -442,31 +562,36 @@ def _generate_cot_substitution(problem: CipherProblem,
                                 rng: random.Random) -> str:
     """Generate CoT for random substitution cipher problems.
 
-    Structure:
+    Dynamic structure with optional detours:
     1. Observation
     2. Extract letter mappings from each example
-    3. Wrong hypothesis: Caesar cipher → shifts not constant → fails
-    4. Build complete substitution table
-    5. Verify consistency across examples
-    6. Code verification
-    7. Decrypt query word by word
+    [Optional] N. Premature decrypt attempt → partial '?' result
+    N+1. Caesar hypothesis → different shifts → fails
+    N+2. Build complete substitution table
+    N+3. Verify consistency
+    N+4. Code verification
+    N+5. Full verification on all examples
+    N+6. Decrypt query word by word
     """
     lines = []
     ex = problem.examples
+    step = 1  # dynamic step counter
 
     lines.append("Let me analyze the encrypted-decrypted pairs to find "
                  "the encryption rule.")
     lines.append("")
 
-    # ── Phase 1: Observation ─────────────────────────────────────────────────
-    lines.append("**Step 1: Initial Observation**")
+    # ── Observation ──────────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Initial Observation**")
+    step += 1
     lines.append(f"We have {len(ex)} examples of encrypted text with their "
                  "decryptions. I'll align each pair letter by letter to "
                  "build a substitution mapping.")
     lines.append("")
 
-    # ── Phase 2: Extract mappings ────────────────────────────────────────────
-    lines.append("**Step 2: Extract Letter Mappings**")
+    # ── Extract mappings ─────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Extract Letter Mappings**")
+    step += 1
 
     all_mapping = {}  # enc → plain
     detail_limit = min(3, len(ex))  # show first 3 in detail
@@ -493,8 +618,19 @@ def _generate_cot_substitution(problem: CipherProblem,
                      f"example{'s' if remaining > 1 else ''} as well...)")
         lines.append("")
 
-    # ── Phase 3: Wrong hypothesis — Caesar ───────────────────────────────────
-    lines.append("**Step 3: Test hypothesis — Caesar cipher (constant shift)**")
+    # ── [Optional] Premature decrypt detour (~50%) ───────────────────────────
+    detour_lines = []
+    if rng.random() < 0.5:
+        detour_lines = _generate_premature_decrypt_detour(problem, rng)
+    if detour_lines:
+        lines.append(f"**Step {step}: Early decryption attempt**")
+        step += 1
+        lines.extend(detour_lines)
+
+    # ── Wrong hypothesis — Caesar ────────────────────────────────────────────
+    lines.append(f"**Step {step}: Test hypothesis — Caesar cipher "
+                 "(constant shift)**")
+    step += 1
     lines.append("Let me check if all letters are shifted by the same amount:")
     lines.append("")
 
@@ -516,8 +652,9 @@ def _generate_cot_substitution(problem: CipherProblem,
                      "with a unique mapping for each letter.")
     lines.append("")
 
-    # ── Phase 4: Build mapping table ─────────────────────────────────────────
-    lines.append("**Step 4: Build Complete Substitution Table**")
+    # ── Build mapping table ──────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Build Complete Substitution Table**")
+    step += 1
     lines.append("From all examples, I've extracted these mappings "
                  "(encrypted → decrypted):")
     lines.append("")
@@ -532,8 +669,9 @@ def _generate_cot_substitution(problem: CipherProblem,
     lines.append(f"Total: {len(all_mapping)} letter mappings extracted.")
     lines.append("")
 
-    # ── Phase 5: Consistency verification ────────────────────────────────────
-    lines.append("**Step 5: Verify Consistency**")
+    # ── Consistency verification ─────────────────────────────────────────────
+    lines.append(f"**Step {step}: Verify Consistency**")
+    step += 1
     lines.append("Let me verify that the same encrypted letter always "
                  "decrypts to the same letter:")
     lines.append("")
@@ -549,13 +687,15 @@ def _generate_cot_substitution(problem: CipherProblem,
     lines.append("The mapping is consistent across all examples.")
     lines.append("")
 
-    # ── Phase 6: Code verification ───────────────────────────────────────────
-    lines.append("**Step 6: Code Verification**")
+    # ── Code verification ────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Code Verification**")
+    step += 1
     lines.extend(_generate_code_verification_substitution(problem, all_mapping))
     lines.append("")
 
-    # ── Phase 7: Full verification on all examples ───────────────────────────
-    lines.append("**Step 7: Full Verification**")
+    # ── Full verification on all examples ────────────────────────────────────
+    lines.append(f"**Step {step}: Full Verification**")
+    step += 1
     for i, (enc, plain) in enumerate(ex):
         decrypted = "".join(all_mapping.get(c, c) for c in enc)
         match = decrypted == plain
@@ -565,8 +705,8 @@ def _generate_cot_substitution(problem: CipherProblem,
     lines.append("All examples verified successfully!")
     lines.append("")
 
-    # ── Phase 8: Decrypt query ───────────────────────────────────────────────
-    lines.append("**Step 8: Decrypt the Query**")
+    # ── Decrypt query ────────────────────────────────────────────────────────
+    lines.append(f"**Step {step}: Decrypt the Query**")
     lines.append(f"Query: \"{problem.query_ciphertext}\"")
     lines.append("")
     lines.extend(_decrypt_word_by_word(problem))
