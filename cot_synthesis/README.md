@@ -1,6 +1,6 @@
 # cot_synthesis — 合成 CoT 训练数据
 
-本目录包含两个脚本，用于为比赛中的推理任务生成带有**思维链（Chain-of-Thought, CoT）**的合成训练样本。每个样本均包含：
+本目录包含三个脚本，用于为比赛中的推理任务生成带有**思维链（Chain-of-Thought, CoT）**的合成训练样本。每个样本均包含：
 
 - 与比赛格式完全一致的 `prompt`
 - 逐步推导的 CoT 解题过程（`reasoning`）
@@ -59,14 +59,44 @@
 
 ---
 
+### `cipher.py` — 密文解密任务
+
+生成 **cipher** 类别的 CoT 样本。
+
+**任务结构**：给定若干组"密文 → 明文"的示例，要求推断字母替换映射规则，并对新的密文进行解密。密文仅对小写字母进行替换，空格和词边界保持不变。
+
+**支持的密码类型**：
+- **Caesar 密码**：所有字母按固定偏移量平移（如 shift=7 时 a→h, b→i, ...）
+- **随机单表替换密码（Monoalphabetic Substitution）**：字母表的任意去重排列（derangement），每个字母映射到不同的字母
+
+**课程难度**：
+- Level 1：Caesar 密码（恒定偏移），4-6 个示例——最简单，只需发现偏移量
+- Level 2：随机替换密码，5-6 个示例——证据充分，需构建完整映射表
+- Level 3：随机替换密码，3-4 个示例——证据较少，难度最大
+
+**CoT 风格**：密码分析式推理：
+1. 对齐密文/明文逐字母提取映射
+2. 先测试错误假设（Caesar 测 Atbash，替换密码测 Caesar）并排除
+3. 发现正确规则并构建映射表
+4. 一致性验证（同一密文字母在多个示例中映射一致）
+5. Code-as-Thought 代码验证
+6. 逐词解密查询文本
+
+**词库**：使用与比赛一致的 Alice's Wonderland 主题词汇（名词、动词、形容词、介词），覆盖全部 26 个字母。
+
+---
+
 ## 输出格式
 
-两个脚本均输出到指定目录，每次运行生成两个文件：
+三个脚本均输出到指定目录，每次运行生成以下文件：
 
 | 文件 | 内容 |
 |------|------|
-| `{task}.csv` | 与原始训练集格式一致的 CSV（`id`, `prompt`, `answer`），可直接用于训练 |
-| `{task}_with_cot.jsonl` | 附带完整 CoT 推导过程的 JSONL（额外含 `reasoning` 字段） |
+| `{task}_cot.jsonl` | 附带完整 CoT 推导过程的 JSONL（含 `cot_answer` 字段） |
+| `{task}_cot.csv` | CoT 格式 CSV（`id`, `prompt`, `answer`），answer 含 CoT |
+| `{task}_direct.csv` | 与原始训练集格式一致的 CSV（`id`, `prompt`, `answer`），仅直接答案 |
+| `level_{n}.jsonl` | 按难度级别拆分的 JSONL |
+| `stats.json` | 生成统计信息 |
 
 ---
 
@@ -112,14 +142,34 @@ python cot_synthesis/equation_symbolic.py \
 | `--exotic_op_prob` | `0.3` | 使用非标准运算符字符的概率（增加难度） |
 | `--seed` | `42` | 随机种子 |
 
+### cipher
+
+```bash
+python cot_synthesis/cipher.py \
+    --output_dir  data/cot/cipher \
+    --num_samples 500 \
+    --levels      1 2 3 \
+    --seed        42
+```
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--output_dir` | `data/cot/cipher` | 输出目录（自动创建） |
+| `--num_samples` | `500` | 生成样本总数 |
+| `--levels` | `1 2 3` | 课程难度级别（1=Caesar, 2=替换+多示例, 3=替换+少示例） |
+| `--min_examples` | `3` | 每道题最少示例组数 |
+| `--max_examples` | `6` | 每道题最多示例组数 |
+| `--seed` | `42` | 随机种子 |
+
 ---
 
 ## 集成到训练
 
-生成的 `{task}.csv` 与 `data/by_category/` 下的原始 CSV 格式相同，可直接传入 `baseline/train.py` 的数据加载逻辑，或合并到对应类别的原始 CSV 中扩充训练集。
+生成的 `{task}_direct.csv` 与 `data/by_category/` 下的原始 CSV 格式相同，可直接传入 `baseline/train.py` 的数据加载逻辑，或合并到对应类别的原始 CSV 中扩充训练集。
 
 ```bash
 # 合并到原始数据（可选）
-cat data/cot/bit_ops/bit_ops.csv >> data/by_category/bit_ops.csv
-cat data/cot/equation_symbolic/equation_symbolic.csv >> data/by_category/equation_symbolic.csv
+cat data/cot/bit_ops/bit_ops_direct.csv >> data/by_category/bit_ops.csv
+cat data/cot/equation_symbolic/equation_symbolic_direct.csv >> data/by_category/equation_symbolic.csv
+cat data/cot/cipher/cipher_direct.csv >> data/by_category/cipher.csv
 ```
