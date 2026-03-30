@@ -1,9 +1,11 @@
-from openai import AsyncOpenAI, APIError, APITimeoutError, RateLimitError
-import os
 import asyncio
 import json
+import os
 from typing import Any
-from prompt import SYSTEM_PROMPT, DISTILLATION_COT_SYSTEM_PROMPT, DISTILLATION_COT_USER_PROMPT
+
+from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
+
+from prompt import DISTILLATION_COT_SYSTEM_PROMPT
 from utils import prompt_format
 
 from dotenv import load_dotenv, find_dotenv
@@ -24,6 +26,14 @@ def build_response_payload(response: Any) -> dict[str, Any]:
     choice = response.choices[0] if response.choices else None
     message = getattr(choice, "message", None)
     usage = getattr(response, "usage", None)
+    reasoning = ""
+
+    if message is not None:
+        for field_name in ("reasoning", "reasoning_content"):
+            field_value = getattr(message, field_name, None)
+            if isinstance(field_value, str) and field_value:
+                reasoning = field_value
+                break
 
     if hasattr(response, "model_dump_json"):
         raw_response = response.model_dump_json(exclude_none=True)
@@ -33,6 +43,7 @@ def build_response_payload(response: Any) -> dict[str, Any]:
         raw_response = str(response)
 
     return {
+        "reasoning": reasoning,
         "content": getattr(message, "content", "") or "",
         "finish_reason": getattr(choice, "finish_reason", "") or "",
         "prompt_tokens": getattr(usage, "prompt_tokens", "") or "",
@@ -68,21 +79,34 @@ class BaseLLM:
             return build_response_payload(response)
         return await retry_on_error(_call)
 
-    async def get_response(self, prompt: str, system_prompt: str = DISTILLATION_COT_SYSTEM_PROMPT, **kwargs) -> str:
+    async def get_response(
+        self,
+        prompt: str,
+        system_prompt: str = DISTILLATION_COT_SYSTEM_PROMPT,
+        **kwargs,
+    ) -> tuple[str, str]:
         response_payload = await self.get_response_payload(
             prompt=prompt,
             system_prompt=system_prompt,
             **kwargs,
         )
-        return str(response_payload["content"])
+        return (
+            str(response_payload.get("reasoning", "") or ""),
+            str(response_payload.get("content", "") or ""),
+        )
 
-    async def get_response_batch(self, queries: list[str], concurrency: int = 10, **kwargs) -> list[str]:
+    async def get_response_batch(
+        self,
+        queries: list[str],
+        concurrency: int = 10,
+        **kwargs,
+    ) -> list[tuple[str, str]]:
         if concurrency <= 0:
             raise ValueError("concurrency must be greater than 0")
 
         semaphore = asyncio.Semaphore(concurrency)
 
-        async def _worker(query: str) -> str:
+        async def _worker(query: str) -> tuple[str, str]:
             async with semaphore:
                 return await self.get_response(query, **kwargs)
 
@@ -99,7 +123,7 @@ class SiliconflowLLM(BaseLLM):
 
 
 class StepLLM(BaseLLM):
-    def __init__(self, api_key: str = None, base_url: str = None, model: str = "step-3.5-flash"):
+    def __init__(self, api_key: str = None, base_url: str = None, model: str = "step-3.5-flash-2603"):
         self.api_key = api_key if api_key else os.getenv("STEP_API_KEY")
         self.base_url = base_url if base_url else "https://api.stepfun.com/v1"
         self.model = model
@@ -112,6 +136,7 @@ class StepLLM(BaseLLM):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
+            reasoning_effort="low",
             **kwargs
         )
 
@@ -152,14 +177,15 @@ Now, determine the result for: 69/52
             responses = await llm.get_response_batch(
                 queries,
                 concurrency=2,
-                max_tokens=8196,
+                max_tokens=254000,
                 temperature=0.1,
             )
 
             print("Batch 测试结果:")
-            for idx, (query, response) in enumerate(zip(queries, responses), start=1):
+            for idx, (query, (reasoning, content)) in enumerate(zip(queries, responses), start=1):
                 print(f"{idx}. query: {query}")
-                print(f"\n\n#####response: {response}")
+                print(f"\n\n#####reasoning: {reasoning}")
+                print(f"\n\n#####content: {content}")
         except Exception as e:
             print(f"batch 测试失败: {type(e).__name__}: {e}")
             import traceback
