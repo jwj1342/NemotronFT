@@ -260,7 +260,9 @@ class MixedDataset(Dataset):
             labels[-1] = input_ids[-1]
 
         # Build raw loss_weights: default reasoning_weight for supervised tokens
+        # is_boxed: boolean mask to distinguish boxed tokens for TensorBoard logging
         loss_weights = [0.0] * seq_len
+        is_boxed = [False] * seq_len
         for i in range(seq_len):
             if labels[i] != -100:
                 loss_weights[i] = reasoning_weight
@@ -277,6 +279,7 @@ class MixedDataset(Dataset):
                 for i in range(seq_len - boxed_len, seq_len):
                     if labels[i] != -100:
                         loss_weights[i] = boxed_weight
+                        is_boxed[i] = True
 
         # ── Sample-level normalisation ───────────────────────────────────
         # Scale weights so that sum(loss_weights) = 1.0 for every sample.
@@ -292,6 +295,7 @@ class MixedDataset(Dataset):
                 "attention_mask": attention_mask,
                 "labels": labels,
                 "loss_weights": loss_weights,
+                "is_boxed": is_boxed,
             },
             "truncated": truncated,
         }

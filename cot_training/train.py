@@ -36,18 +36,13 @@ import torch
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainerCallback,
     TrainingArguments,
 )
 from peft import PeftModel
 
 # Local modules
-from dataset import MixedDataset, load_eval_pool
+from dataset import MixedDataset
 from weighted_trainer import WeightedDataCollator, WeightedTrainer
-
-# Eval from baseline
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "baseline"))
-from eval import evaluate_samples
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -64,8 +59,6 @@ parser.add_argument("--checkpoint_dir", default=DEFAULT_CHECKPOINT,
 # Data
 parser.add_argument("--regular_samples_per_class", type=int, default=500,
                     help="Regular SFT samples per category.")
-parser.add_argument("--eval_samples_per_class", type=int, default=5,
-                    help="Eval samples per category.")
 parser.add_argument("--max_length", type=int, default=2048,
                     help="Max sequence length.")
 # Loss weighting
@@ -88,17 +81,14 @@ parser.add_argument("--lr", type=float, default=5e-5,
                     help="Learning rate.")
 parser.add_argument("--neftune_alpha", type=float, default=5.0,
                     help="NEFTune noise alpha. 0 to disable.")
-# Eval
-parser.add_argument("--eval_steps", type=int, default=200,
-                    help="Run eval every N steps. 0 to disable.")
-parser.add_argument("--eval_max_new_tokens", type=int, default=7680,
-                    help="Max new tokens for eval generation (Kaggle uses 7680).")
-parser.add_argument("--eval_batch_size", type=int, default=1,
-                    help="Batch size for eval (1 for long generation).")
 # Infra
 parser.add_argument("--tensorboard_dir", type=str,
                     default="/home/jwj/tensorboard_logs")
 parser.add_argument("--save_steps", type=int, default=50)
+parser.add_argument("--save_total_limit", type=int, default=3,
+                    help="Max checkpoints to keep. -1 for unlimited.")
+parser.add_argument("--save_only_model", action="store_true",
+                    help="Save only model weights, skip optimizer/scheduler state.")
 parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
@@ -126,7 +116,6 @@ dataset = MixedDataset(
     regular_data_dir=str(REGULAR_DATA_DIR),
     cot_data_dir=str(COT_DATA_DIR),
     regular_samples_per_class=args.regular_samples_per_class,
-    eval_samples_per_class=args.eval_samples_per_class,
     max_length=args.max_length,
     boxed_loss_weight=args.boxed_loss_weight,
     reasoning_loss_weight=args.reasoning_loss_weight,
@@ -142,7 +131,7 @@ collator = WeightedDataCollator(
 )
 
 # ── Model + LoRA ─────────────────────────────────────────────────────────────
-print("\n[3/5] Loading base model ...")
+print("\n[3/4] Loading base model ...")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
     dtype=torch.bfloat16,
@@ -180,7 +169,7 @@ if args.neftune_alpha > 0:
     print(f"[neftune] Registered embedding noise hook (alpha={_neftune_alpha})")
 
 # ── Training args ────────────────────────────────────────────────────────────
-print("\n[4/5] Configuring training ...")
+print("\n[4/4] Configuring training ...")
 os.makedirs(args.output_dir, exist_ok=True)
 
 training_args = TrainingArguments(
@@ -201,146 +190,40 @@ training_args = TrainingArguments(
     dataloader_num_workers=0,
     logging_steps=5,
     save_steps=args.save_steps,
-    save_total_limit=3,
+    save_total_limit=args.save_total_limit if args.save_total_limit > 0 else None,
+    save_only_model=args.save_only_model,
     report_to="tensorboard",
     logging_dir=args.tensorboard_dir,
     remove_unused_columns=False,  # CRITICAL: keep loss_weights
 )
 
-# ── Eval callback ────────────────────────────────────────────────────────────
-callbacks = []
-eval_data = None
-
-if args.eval_steps > 0:
-    eval_data = load_eval_pool(
-        str(REGULAR_DATA_DIR),
-        train_samples_per_class=args.regular_samples_per_class,
-        eval_samples_per_class=args.eval_samples_per_class,
-        seed=args.seed,
-    )
-    print(f"[eval] {len(eval_data)} eval samples "
-          f"(every {args.eval_steps} steps, max_new_tokens={args.eval_max_new_tokens}, "
-          f"batch_size={args.eval_batch_size})")
-
-    class EvalCallback(TrainerCallback):
-        def __init__(self, eval_steps, eval_batch_size, eval_max_new_tokens):
-            self.eval_steps = eval_steps
-            self.eval_batch_size = eval_batch_size
-            self.eval_max_new_tokens = eval_max_new_tokens
-            self._tb_writer = None
-
-        def _get_tb_writer(self, **kwargs):
-            """Retrieve TensorBoard writer from the Trainer's callback list."""
-            if self._tb_writer is None:
-                # on_step_end receives model= but not trainer=.
-                # Walk the callback list via the model's reference is not possible,
-                # so we look for tb_writer among sibling callbacks passed in kwargs.
-                # Fallback: search all callbacks if a 'callbacks' key exists.
-                model = kwargs.get("model")
-                if model is not None and hasattr(model, "_trainer"):
-                    for cb in model._trainer.callback_handler.callbacks:
-                        if hasattr(cb, "tb_writer") and cb.tb_writer is not None:
-                            self._tb_writer = cb.tb_writer
-                            break
-            return self._tb_writer
-
-        def set_tb_writer(self, writer):
-            """Directly set the TensorBoard writer (called after trainer init)."""
-            self._tb_writer = writer
-
-        def on_step_end(self, _args, state, control, **kwargs):
-            if state.global_step > 0 and state.global_step % self.eval_steps == 0:
-                import time
-                t0 = time.time()
-                results = evaluate_samples(
-                    model, tokenizer, eval_data,
-                    max_new_tokens=self.eval_max_new_tokens,
-                    batch_size=self.eval_batch_size,
-                )
-                elapsed = time.time() - t0
-
-                tb_writer = self._tb_writer
-                if tb_writer is not None:
-                    tb_writer.add_scalar("eval/accuracy", results["accuracy"],
-                                         state.global_step)
-                    for cat, cr in results["per_category"].items():
-                        tb_writer.add_scalar(f"eval/accuracy_{cat}",
-                                             cr["accuracy"], state.global_step)
-                    tb_writer.flush()
-
-                cat_str = " | ".join(
-                    f"{c}: {r['correct']}/{r['total']}"
-                    for c, r in sorted(results["per_category"].items())
-                )
-                print(f"\n[eval @ step {state.global_step}] "
-                      f"accuracy={results['accuracy']:.3f} "
-                      f"({results['num_correct']}/{results['num_total']}) "
-                      f"[{elapsed:.1f}s]")
-                print(f"[eval]   {cat_str}")
-
-    eval_cb = EvalCallback(args.eval_steps, args.eval_batch_size,
-                           args.eval_max_new_tokens)
-    callbacks.append(eval_cb)
-
 # ── Train ────────────────────────────────────────────────────────────────────
-print(f"\n[5/5] Starting mixed CoT training ...")
+print(f"\nStarting mixed CoT training ...")
 
 trainer = WeightedTrainer(
     model=model,
     args=training_args,
     train_dataset=dataset,
     data_collator=collator,
-    callbacks=callbacks,
 )
-
-# Inject TensorBoard writer into eval callback.
-# TensorBoardCallback is auto-registered by Trainer when report_to="tensorboard".
-# We grab its writer and pass it to our EvalCallback so eval metrics land in
-# the same event file as training metrics.
-if eval_data is not None:
-    for cb in trainer.callback_handler.callbacks:
-        if hasattr(cb, "_SummaryWriter") and hasattr(cb, "tb_writer"):
-            # Force TensorBoardCallback to initialise its writer now
-            if cb.tb_writer is None:
-                if cb.logging_dir is None:
-                    from transformers.integrations.integration_utils import default_logdir
-                    cb.logging_dir = os.path.join(args.output_dir, default_logdir())
-                cb._init_summary_writer(training_args)
-            if cb.tb_writer is not None:
-                eval_cb.set_tb_writer(cb.tb_writer)
-                print(f"[tensorboard] eval callback connected (log_dir={cb.logging_dir})")
-            break
 
 if args.resume_from_checkpoint:
     print(f"[resume] Resuming from {args.resume_from_checkpoint}")
 trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
 
-# ── Final eval ───────────────────────────────────────────────────────────────
-if eval_data is not None:
-    print("\n[final eval] Running final evaluation ...")
-    final_results = evaluate_samples(
-        model, tokenizer, eval_data,
-        max_new_tokens=args.eval_max_new_tokens,
-        batch_size=args.eval_batch_size,
-    )
-
-    tb_writer = eval_cb._tb_writer
-    if tb_writer is not None:
-        tb_writer.add_scalar("eval/accuracy", final_results["accuracy"],
-                             trainer.state.global_step)
-        for cat, cr in final_results["per_category"].items():
-            tb_writer.add_scalar(f"eval/accuracy_{cat}", cr["accuracy"],
-                                 trainer.state.global_step)
-        tb_writer.flush()
-
-    print(f"[final eval] accuracy={final_results['accuracy']:.3f} "
-          f"({final_results['num_correct']}/{final_results['num_total']})")
-    for cat, cr in sorted(final_results["per_category"].items()):
-        print(f"[final eval]   {cat:22s}: "
-              f"{cr['correct']}/{cr['total']} = {cr['accuracy']:.3f}")
-
 # ── Save ─────────────────────────────────────────────────────────────────────
 print(f"\n[done] Saving LoRA adapter to {args.output_dir} ...")
 model.save_pretrained(args.output_dir)
 tokenizer.save_pretrained(args.output_dir)
+
+# Save TensorBoard run directory path so eval can write to the same run
+for cb in trainer.callback_handler.callbacks:
+    if hasattr(cb, "tb_writer") and cb.tb_writer is not None:
+        tb_run_dir = cb.tb_writer.log_dir
+        marker = os.path.join(args.output_dir, ".tb_run_dir")
+        with open(marker, "w") as f:
+            f.write(tb_run_dir)
+        print(f"[tensorboard] run dir saved to {marker} -> {tb_run_dir}")
+        break
+
 print("[done] Mixed CoT training complete.")

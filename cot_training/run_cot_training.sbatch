@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=nemotron-cot-mixed
+#SBATCH --job-name=cot-mixed-v2
 #SBATCH --account=def-zhouyang
-#SBATCH --time=8:00:00
+#SBATCH --time=24:00:00
 #SBATCH --gpus-per-node=h100:2
 #SBATCH --cpus-per-task=28
 #SBATCH --mem=160G
@@ -13,16 +13,13 @@ module purge
 module load python/3.11.5
 
 PROJECT_DIR=/scratch/jwj/NemotronFT
-VENV_DIR=$PROJECT_DIR/venv
-
-source $VENV_DIR/bin/activate
+source $PROJECT_DIR/venv/bin/activate
 unset PIP_PREFIX
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export TOKENIZERS_PARALLELISM=false
 export TRANSFORMERS_OFFLINE=1
 export HF_DATASETS_OFFLINE=1
-
 export CUDA_VISIBLE_DEVICES=0,1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -35,9 +32,6 @@ echo "Started  : $(date)"
 echo "================"
 
 # ── Auto-link TensorBoard logs ───────────────────────────────────────────────
-# Trainer writes events to {output_dir}/runs/{timestamp}/.
-# Create symlinks in ~/tensorboard_logs/ so TensorBoard can discover new runs
-# immediately.  A background loop checks for new run dirs every 30s.
 TB_LINK_DIR=/home/jwj/tensorboard_logs
 TB_RUN_DIR=$PROJECT_DIR/output/cot-lora/runs
 mkdir -p "$TB_LINK_DIR" "$TB_RUN_DIR"
@@ -54,31 +48,28 @@ mkdir -p "$TB_LINK_DIR" "$TB_RUN_DIR"
 TB_LINK_PID=$!
 
 # ── Mixed CoT Training ──────────────────────────────────────────────────────
-# Data: 7 categories × 500 regular + ~1500 CoT (bit_ops, equation_symbolic, cipher)
-# Total: ~5000 samples, shuffled.
-# Effective batch = 1 × 16 = 16 → ~313 steps/epoch × 2 = ~625 steps total.
-# Loss: boxed tokens 5× weight vs reasoning tokens 1×.
+# No in-training eval — saves checkpoints every 20 steps for post-training
+# vLLM evaluation (eval_vllm.py).
+# save_only_model: skip optimizer state (~1.7GB vs ~10GB per checkpoint)
 python $PROJECT_DIR/cot_training/train.py \
     --output_dir                $PROJECT_DIR/output/cot-lora \
     --checkpoint_dir            $PROJECT_DIR/output/baseline-lora/checkpoint-100 \
     --regular_samples_per_class 500 \
-    --eval_samples_per_class    5 \
     --max_length                2048 \
     --boxed_loss_weight         5.0 \
     --reasoning_loss_weight     1.0 \
-    --num_epochs                2 \
+    --num_epochs                1 \
     --batch_size                1 \
     --grad_acc                  16 \
     --lr                        5e-5 \
     --neftune_alpha             5.0 \
-    --eval_steps                200 \
-    --eval_max_new_tokens       7680 \
-    --eval_batch_size           2 \
-    --save_steps                50 \
+    --save_steps                20 \
+    --save_total_limit          -1 \
+    --save_only_model \
     --tensorboard_dir           /home/jwj/tensorboard_logs
 
 TRAIN_EXIT=$?
-kill $TB_LINK_PID 2>/dev/null  # stop symlink watcher
+kill $TB_LINK_PID 2>/dev/null
 echo ""
 echo "Training exit code: $TRAIN_EXIT"
 
@@ -87,13 +78,14 @@ if [[ $TRAIN_EXIT -ne 0 ]]; then
     exit $TRAIN_EXIT
 fi
 
-# ── Package submission ────────────────────────────────────────────────────────
 echo ""
-echo "=== Packaging submission.zip ==="
-bash $PROJECT_DIR/scripts/build_submission.sh \
-    $PROJECT_DIR/output/cot-lora \
-    $PROJECT_DIR/output
+echo "Checkpoints saved to: $PROJECT_DIR/output/cot-lora/"
+ls -d $PROJECT_DIR/output/cot-lora/checkpoint-* 2>/dev/null
 
+# ── Auto-submit vLLM eval ────────────────────────────────────────────────────
+echo ""
+echo "=== Auto-submitting vLLM eval job ==="
+EVAL_JOB=$(sbatch --parsable $PROJECT_DIR/cot_training/eval_vllm.sbatch)
+echo "Eval job submitted: $EVAL_JOB"
 echo ""
 echo "Done at: $(date)"
-echo "Submission zip: $PROJECT_DIR/output/submission.zip"
