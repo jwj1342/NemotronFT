@@ -70,3 +70,16 @@ python3 distillation.py \
   --resume \
   --temperature 0.1
 ```
+
+Evaluation
+
+```bash
+python3 evaluation.py \
+  --input data/evaluation_dataset.csv \
+  --output data/evaluation_results.csv \
+  --provider step \
+  --concurrency 5 \
+  --max-tokens 254000 \
+  --resume \
+  --temperature 0.1
+```
