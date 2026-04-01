@@ -22,10 +22,12 @@ NemotronFT/
 │   │   ├── gravity.csv           # 1597 条
 │   │   ├── numeral.csv           # 1576 条
 │   │   └── unit_conv.csv         # 1594 条
-│   └── cot/                      # 合成 CoT 训练数据（由 cot_synthesis/ 生成）
-│       ├── bit_ops/              # 1000 条 bit_ops CoT 样本
-│       ├── cipher/               # 1000 条 cipher CoT 样本
-│       └── equation_symbolic/    # 1000 条 equation_symbolic CoT 样本
+│   ├── cot/                      # 合成 CoT 训练数据（由 cot_synthesis/ 生成）
+│   │   ├── bit_ops/              # 1000 条 bit_ops CoT 样本
+│   │   ├── cipher/               # 1000 条 cipher CoT 样本
+│   │   └── equation_symbolic/    # 1000 条 equation_symbolic CoT 样本
+│   └── distillation/             # 蒸馏生成的训练数据（由 distillation_synthesis/ 生成）
+│       └── sample1200-train-distilled-step-3.5-flash-0326.json  # 1200 条蒸馏 CoT 样本
 ├── baseline/                     # Baseline answer-only 训练（第一阶段，详见 baseline/README.md）
 │   ├── train.py                  # LoRA 训练脚本（含 eval callback）
 │   ├── eval.py                   # 评测工具库（官方 metric，被 cot_training 复用）
@@ -44,6 +46,15 @@ NemotronFT/
 │   ├── cipher.py                 # 密码任务 CoT 生成器
 │   ├── equation_symbolic.py      # 符号方程任务 CoT 生成器
 │   └── README.md                 # 生成脚本使用说明
+├── distillation_synthesis/       # Teacher 蒸馏数据生成管线（详见 distillation_synthesis/README.md）
+│   ├── distillation.py           # 异步调用 teacher 模型生成 CoT，输出带 teacher_cot 的 CSV
+│   ├── export_distilled_dataset.py  # 将蒸馏 CSV 转换为 JSON 训练集
+│   ├── evaluation.py             # 调用 teacher 模型对数据集进行评测
+│   ├── sample_train.py           # 按 label 均匀采样训练集
+│   ├── llm.py                    # LLM 封装（StepLLM / SiliconflowLLM / ArkPlanLLM）
+│   ├── prompt.py                 # 蒸馏用系统/用户 prompt 模板
+│   ├── utils.py                  # prompt_format 工具函数
+│   └── README.md                 # 蒸馏管线使用说明
 ├── output/                       # 训练产物输出目录
 │   ├── baseline-lora/            # 第一阶段 baseline adapter 权重
 │   ├── cot-lora/                 # 第二阶段 CoT adapter 权重
@@ -158,8 +169,19 @@ bash scripts/build_submission.sh output/cot-lora/checkpoint-XXX output/
 
 ---
 
+## 第三阶段：Teacher 蒸馏
+
+使用 step-3.5-flash（Stepfun）作为 teacher 模型，对原始训练集进行 CoT 蒸馏标注。异步并发调用 teacher API，为每道题生成详细的逐步推理过程（`teacher_cot`），输出可直接用于 SFT 的 JSON 训练集。
+
+当前已完成：7 类 × 200 条（共 1200 条）蒸馏样本，保存于 `data/distillation/sample1200-train-distilled-step-3.5-flash-0326.json`。
+
+详细的管线说明、参数配置等参见 **[distillation_synthesis/README.md](distillation_synthesis/README.md)**。
+
+---
+
 ## 下一步计划
 
 1. **完整 1 epoch 训练**：从头训练 ~313 步（24h job），每 20 步保存 checkpoint，训练后 vLLM 批量 eval
 2. **扩展 CoT 覆盖范围**：为 bit_ops、equation_symbolic 改进 CoT 数据质量（当前 eval 仍为 0%）
-3. **排行榜差距**：当前 0.67 vs 榜首 0.82，差距 0.15
+3. **蒸馏数据融合训练**：将 `data/distillation/` 中的蒸馏样本与 CoT 合成数据混合，继续第三阶段训练
+4. **排行榜差距**：当前 0.67 vs 榜首 0.82，差距 0.15
