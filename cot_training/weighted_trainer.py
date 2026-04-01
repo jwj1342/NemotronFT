@@ -98,7 +98,7 @@ class WeightedTrainer(Trainer):
 
         return (weighted_loss, outputs) if return_outputs else weighted_loss
 
-    def log(self, logs, **kwargs):
+    def log(self, logs, start_time=None, **kwargs):
         """Inject decomposed losses into the log dict before TensorBoard write."""
         if hasattr(self, "_boxed_loss"):
             logs["train/boxed_loss"] = self._boxed_loss
@@ -106,4 +106,4 @@ class WeightedTrainer(Trainer):
         if hasattr(self, "_reasoning_loss"):
             logs["train/reasoning_loss"] = self._reasoning_loss
             del self._reasoning_loss
-        super().log(logs, **kwargs)
+        super().log(logs, start_time=start_time, **kwargs)

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=eval-vllm
 #SBATCH --account=def-zhouyang
-#SBATCH --time=04:00:00
+#SBATCH --time=02:30:00
 #SBATCH --gpus-per-node=h100:1
 #SBATCH --cpus-per-task=14
 #SBATCH --mem=80G

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=cot-mixed-v2
 #SBATCH --account=def-zhouyang
-#SBATCH --time=24:00:00
+#SBATCH --time=02:00:00
 #SBATCH --gpus-per-node=h100:2
 #SBATCH --cpus-per-task=28
 #SBATCH --mem=160G
@@ -59,8 +59,8 @@ python $PROJECT_DIR/cot_training/train.py \
     --boxed_loss_weight         5.0 \
     --reasoning_loss_weight     1.0 \
     --num_epochs                1 \
-    --batch_size                1 \
-    --grad_acc                  16 \
+    --batch_size                4 \
+    --grad_acc                  4 \
     --lr                        5e-5 \
     --neftune_alpha             5.0 \
     --save_steps                20 \

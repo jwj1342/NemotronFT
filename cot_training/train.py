@@ -73,9 +73,9 @@ parser.add_argument("--num_epochs", type=int, default=2)
 parser.add_argument("--resume_from_checkpoint", type=str, default=None,
                     help="Path to checkpoint dir to resume training from. "
                          "Restores optimizer, scheduler, step count and RNG state.")
-parser.add_argument("--batch_size", type=int, default=1,
-                    help="Per-device batch size (1 due to long CoT sequences).")
-parser.add_argument("--grad_acc", type=int, default=16,
+parser.add_argument("--batch_size", type=int, default=4,
+                    help="Per-device batch size.")
+parser.add_argument("--grad_acc", type=int, default=4,
                     help="Gradient accumulation steps.")
 parser.add_argument("--lr", type=float, default=5e-5,
                     help="Learning rate.")
@@ -187,7 +187,7 @@ training_args = TrainingArguments(
     fp16=False,
     gradient_checkpointing=False,  # already enabled manually
     dataloader_pin_memory=True,
-    dataloader_num_workers=0,
+    dataloader_num_workers=4,
     logging_steps=5,
     save_steps=args.save_steps,
     save_total_limit=args.save_total_limit if args.save_total_limit > 0 else None,
