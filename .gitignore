@@ -37,3 +37,7 @@ logs/
 
 # distillation
 distillation/data/
+
+# Environment management — each contributor manages their own
+pyproject.toml
+uv.lock
