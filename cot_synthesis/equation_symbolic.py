@@ -46,7 +46,7 @@ from typing import Optional
 SYMBOL_POOL = list("!@#$%^&*()[]{}|<>?/\\`~'_:;.")
 # Exclude chars that conflict with CSV/formatting, equation parsing ('-','='),
 # or numeric sign rendering ('-' must only appear as a math minus, never as a symbol).
-SAFE_SYMBOLS = [c for c in SYMBOL_POOL if c not in ['"', ',', '\n', '=', '-']]
+SAFE_SYMBOLS = [c for c in SYMBOL_POOL if c not in ['"', ',', '\n', '=', '-', '{', '}', '\\']]
 
 OPERATOR_CHARS = list("+-*/")           # standard operators (familiar to model)
 EXOTIC_OPERATOR_CHARS = list("@#$%^&!") # exotic operators (harder)
@@ -983,16 +983,36 @@ def generate_dataset(
     seed: int = 42,
     n_symbols_range: tuple[int, int] = (6, 10),
     exotic_op_prob: float = 0.3,
+    level_weights: Optional[dict[int, float]] = None,
 ) -> list[dict]:
-    """Generate a full CoT dataset for symbolic equation problems."""
+    """Generate a full CoT dataset for symbolic equation problems.
+
+    Args:
+        level_weights: Optional mapping from level to relative weight.
+            e.g. {1: 2.0, 2: 1.0, 3: 1.0, 4: 0.5} makes Level 1 get ~2x
+            more samples. If None, samples are split evenly across levels.
+    """
     rng = random.Random(seed)
 
-    samples_per_level = num_samples // len(levels)
-    remainder = num_samples % len(levels)
+    if level_weights:
+        total_weight = sum(level_weights.get(l, 1.0) for l in levels)
+        raw_counts = {l: num_samples * level_weights.get(l, 1.0) / total_weight
+                      for l in levels}
+        # Floor then distribute remainder by fractional part
+        counts = {l: int(c) for l, c in raw_counts.items()}
+        remainder = num_samples - sum(counts.values())
+        fractionals = sorted(levels, key=lambda l: raw_counts[l] - counts[l], reverse=True)
+        for l in fractionals[:remainder]:
+            counts[l] += 1
+    else:
+        samples_per_level = num_samples // len(levels)
+        remainder = num_samples % len(levels)
+        counts = {l: samples_per_level + (1 if i < remainder else 0)
+                  for i, l in enumerate(levels)}
 
     dataset = []
-    for level_idx, level in enumerate(levels):
-        count = samples_per_level + (1 if level_idx < remainder else 0)
+    for level in levels:
+        count = counts[level]
         for _ in range(count):
             n_syms = rng.randint(*n_symbols_range)
             use_exotic = rng.random() < exotic_op_prob
@@ -1083,6 +1103,9 @@ def main():
     parser.add_argument("--max_symbols", type=int, default=10)
     parser.add_argument("--exotic_op_prob", type=float, default=0.3,
                         help="Probability of using exotic operator chars (harder).")
+    parser.add_argument("--level_weights", type=str, default=None,
+                        help="Comma-separated level:weight pairs, e.g. '1:2,2:1,3:1,4:0.5'. "
+                             "Overweights easier levels for curriculum learning.")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -1090,14 +1113,24 @@ def main():
     if not output_dir.is_absolute():
         output_dir = Path("/scratch/jwj/NemotronFT") / output_dir
 
+    # Parse level weights
+    level_weights = None
+    if args.level_weights:
+        level_weights = {}
+        for pair in args.level_weights.split(","):
+            lv, w = pair.split(":")
+            level_weights[int(lv)] = float(w)
+
     print(f"Generating {args.num_samples} symbolic-equation CoT samples "
-          f"(levels={args.levels}, seed={args.seed})...")
+          f"(levels={args.levels}, seed={args.seed}"
+          f"{f', weights={level_weights}' if level_weights else ''})...")
     dataset = generate_dataset(
         num_samples=args.num_samples,
         levels=args.levels,
         seed=args.seed,
         n_symbols_range=(args.min_symbols, args.max_symbols),
         exotic_op_prob=args.exotic_op_prob,
+        level_weights=level_weights,
     )
     save_dataset(dataset, output_dir)
     print(f"\nDone! {len(dataset)} samples saved to {output_dir}/")

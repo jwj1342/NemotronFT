@@ -961,9 +961,9 @@ def format_answer_think(cot_text: str, answer: str, depth: str) -> str:
 # Hard problems → more full CoT (model should learn to reason deeply)
 _DEPTH_RATIOS = {
     #          direct  light   full
-    1:        (0.40,   0.35,   0.25),   # Caesar: often straightforward
-    2:        (0.25,   0.30,   0.45),   # Substitution, many examples
-    3:        (0.15,   0.25,   0.60),   # Substitution, few examples: need more reasoning
+    1:        (0.00,   0.55,   0.45),   # Caesar: light is usually enough
+    2:        (0.00,   0.35,   0.65),   # Substitution, many examples
+    3:        (0.00,   0.15,   0.85),   # Substitution, few examples: need more reasoning
 }
 
 
