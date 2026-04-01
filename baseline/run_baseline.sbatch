@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=nemotron-baseline
 #SBATCH --account=def-zhouyang
-#SBATCH --time=1:00:00
+#SBATCH --time=4:00:00
 #SBATCH --gpus-per-node=h100:1
 #SBATCH --cpus-per-task=14
 #SBATCH --mem=80G
+#SBATCH --exclude=g7,g26,g37
 #SBATCH --output=/scratch/jwj/NemotronFT/logs/%x-%j.out
 #SBATCH --error=/scratch/jwj/NemotronFT/logs/%x-%j.err
 
@@ -41,15 +42,24 @@ echo "Started  : $(date)"
 echo "================"
 
 # ── Training ──────────────────────────────────────────────────────────────────
+# Stratified sampling: 200 samples × 6 task categories = 1200 total.
+# 1 epoch, effective batch = batch_size × grad_acc = 1 × 8 = 8.
+# → ~150 optimiser steps; warmup = 5% ≈ 8 steps.
 python $PROJECT_DIR/baseline/train.py \
-    --output_dir   $PROJECT_DIR/output/debug-lora \
-    --max_steps    10 \
-    --batch_size   1 \
-    --grad_acc     1 \
-    --lr           2e-4 \
-    --max_length   512 \
-    --lora_rank    32 \
-    --lora_alpha   64
+    --output_dir       $PROJECT_DIR/output/baseline-lora \
+    --max_steps        -1 \
+    --samples_per_class 400 \
+    --batch_size       4 \
+    --grad_acc         4 \
+    --lr               2e-4 \
+    --max_length       512 \
+    --lora_rank        32 \
+    --lora_alpha       16 \
+    --neftune_alpha    5.0 \
+    --eval_steps       25 \
+    --eval_samples_per_class 5 \
+    --eval_batch_size  8 \
+    --tensorboard_dir  /home/jwj/tensorboard_logs
 
 TRAIN_EXIT=$?
 echo ""
@@ -64,7 +74,7 @@ fi
 echo ""
 echo "=== Packaging submission.zip ==="
 bash $PROJECT_DIR/scripts/build_submission.sh \
-    $PROJECT_DIR/output/debug-lora \
+    $PROJECT_DIR/output/baseline-lora \
     $PROJECT_DIR/output
 
 echo ""

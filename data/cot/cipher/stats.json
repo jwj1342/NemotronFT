@@ -1,0 +1,29 @@
+{
+  "total_samples": 500,
+  "by_level": {
+    "1": 167,
+    "2": 167,
+    "3": 166
+  },
+  "by_depth": {
+    "full": 331,
+    "light": 169
+  },
+  "depth_by_level": {
+    "1": {
+      "direct": 0,
+      "light": 84,
+      "full": 83
+    },
+    "2": {
+      "direct": 0,
+      "light": 61,
+      "full": 106
+    },
+    "3": {
+      "direct": 0,
+      "light": 24,
+      "full": 142
+    }
+  }
+}

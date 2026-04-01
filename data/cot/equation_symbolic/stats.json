@@ -1,0 +1,16 @@
+{
+  "total": 500,
+  "by_level": {
+    "1": 200,
+    "2": 150,
+    "3": 100,
+    "4": 50
+  },
+  "op_mode_distribution": {
+    "rev_concat": 264,
+    "mul": 146,
+    "add": 159,
+    "concat": 276,
+    "sub": 145
+  }
+}
