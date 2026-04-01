@@ -36,7 +36,28 @@ def extract_final_answer(text: str | None) -> str:
     if text is None:
         return "NOT_FOUND"
 
-    matches = re.findall(r'\\boxed\{([^}]*)(?:\}|$)', text)
+    # Balanced-brace extraction: handles answers containing } characters
+    def _extract_boxed(s):
+        results = []
+        tag = r'\boxed{'
+        start = 0
+        while True:
+            idx = s.find(tag, start)
+            if idx == -1:
+                break
+            depth = 1
+            i = idx + len(tag)
+            while i < len(s) and depth > 0:
+                if s[i] == '{':
+                    depth += 1
+                elif s[i] == '}':
+                    depth -= 1
+                i += 1
+            results.append(s[idx + len(tag):i - 1])
+            start = i
+        return results
+
+    matches = _extract_boxed(text)
     if matches:
         non_empty = [m.strip() for m in matches if m.strip()]
         if non_empty:

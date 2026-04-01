@@ -486,16 +486,20 @@ def _generate_code_verification(problem: BitOpsProblem) -> list[str]:
 
 
 def generate_cot(problem: BitOpsProblem, rng: random.Random) -> str:
-    """Generate a detective-style CoT reasoning trace for the given problem.
+    """Generate a compact CoT reasoning trace for the given problem.
 
-    The CoT follows a hypothesis-testing structure:
-    1. Observe patterns in the examples
-    2. Heuristic feature analysis (hamming weight, parity) to prune search
-    3. Test wrong hypotheses first (and show why they fail)
-    4. Discover the correct rule through systematic elimination
-    5. Code-as-Thought verification
-    6. Verify the rule on all examples
-    7. Apply the rule to the query
+    Streamlined structure (fits within 2048 training tokens):
+    1. Observe examples
+    2. Discover the rule (direct analysis, no wrong hypotheses)
+    3. Code verification
+    4. Verify on all examples
+    5. Apply to query
+
+    The old hypothesis-testing steps (heuristic analysis + 2-3 wrong guesses)
+    consumed ~37% of tokens and caused 40% of samples to be truncated at
+    max_length=2048, losing the \\boxed{} answer. This compact version keeps
+    the useful signal (discovery + verification + application) while ensuring
+    every sample fits in the training window.
     """
     lines = []
     ex = problem.examples
@@ -506,53 +510,18 @@ def generate_cot(problem: BitOpsProblem, rng: random.Random) -> str:
     lines.append("Let me analyze these input-output pairs to find the hidden rule.")
     lines.append("")
 
-    # ── Phase 1: Initial observation ─────────────────────────────────────────
-    lines.append("**Step 1: Initial Observation**")
-    lines.append(f"We have {len(ex)} examples of 8-bit transformations. "
-                 "Let me look for patterns.")
+    # ── Step 1: Observation ──────────────────────────────────────────────────
+    lines.append("**Step 1: Observation**")
+    lines.append(f"We have {len(ex)} examples of 8-bit transformations.")
     lines.append("")
 
-    # Show a couple of examples in spaced format for clarity
     for i in range(min(3, len(ex))):
         inp, out = ex[i]
         lines.append(f"  Example {i+1}: {fmt(inp)} -> {fmt(out)}")
     lines.append("")
 
-    # ── Phase 1.5: Heuristic feature analysis ────────────────────────────────
-    lines.append("**Step 2: Bit Count Analysis (Heuristics)**")
-    lines.extend(_generate_heuristic_analysis(problem))
-
-    # ── Phase 2: Test wrong hypotheses ───────────────────────────────────────
-    wrong_hypotheses = _generate_wrong_hypotheses(problem, rng)
-    step_offset = 3  # next step number after heuristics
-    for hyp_idx, (hyp_name, hyp_test_fn, hyp_description) in enumerate(wrong_hypotheses):
-        step = step_offset + hyp_idx
-        lines.append(f"**Step {step}: Test hypothesis — {hyp_name}**")
-        lines.append(f"Let me check if the rule is: {hyp_description}")
-
-        # Test on first 2-3 examples
-        all_match = True
-        for i in range(min(3, len(ex))):
-            inp, expected_out = ex[i]
-            hyp_result = hyp_test_fn(inp)
-            match = (hyp_result == expected_out)
-            status = "matches!" if match else "DOES NOT match"
-            lines.append(f"  Example {i+1}: {fmt(inp)} -> {fmt(hyp_result)} "
-                         f"(expected {fmt(expected_out)}) — {status}")
-            if not match:
-                all_match = False
-                lines.append(f"  This hypothesis fails on example {i+1}. Moving on.")
-                break
-
-        if all_match:
-            lines.append("  Wait, this seems to work... let me check more examples.")
-            lines.append("  Actually, checking further examples reveals mismatches.")
-
-        lines.append("")
-
-    # ── Phase 3: Discover correct rule ───────────────────────────────────────
-    step_num = step_offset + len(wrong_hypotheses)
-    lines.append(f"**Step {step_num}: Deeper analysis — finding the actual rule**")
+    # ── Step 2: Discover correct rule (direct) ───────────────────────────────
+    lines.append("**Step 2: Discover the rule**")
 
     if len(ops) == 1:
         lines.extend(_explain_discovery_single(problem, rng))
@@ -563,16 +532,14 @@ def generate_cot(problem: BitOpsProblem, rng: random.Random) -> str:
 
     lines.append("")
 
-    # ── Phase 3.5: Code-as-Thought verification ─────────────────────────────
-    step_num += 1
-    lines.append(f"**Step {step_num}: Code Verification**")
+    # ── Step 3: Code verification ────────────────────────────────────────────
+    lines.append("**Step 3: Code Verification**")
     lines.extend(_generate_code_verification(problem))
     lines.append("")
 
-    # ── Phase 4: Verify on all examples ──────────────────────────────────────
-    step_num += 1
-    lines.append(f"**Step {step_num}: Full Verification**")
-    lines.append(f"Let me verify: the rule is **{problem.rule_description}**.")
+    # ── Step 4: Verify on all examples ───────────────────────────────────────
+    lines.append("**Step 4: Full Verification**")
+    lines.append(f"The rule is **{problem.rule_description}**.")
     lines.append("")
 
     for i, (inp, expected_out) in enumerate(ex):
@@ -583,13 +550,11 @@ def generate_cot(problem: BitOpsProblem, rng: random.Random) -> str:
     lines.append("All examples verified successfully!")
     lines.append("")
 
-    # ── Phase 5: Apply to query ──────────────────────────────────────────────
-    step_num += 1
-    lines.append(f"**Step {step_num}: Apply the rule to the query input**")
+    # ── Step 5: Apply to query ───────────────────────────────────────────────
+    lines.append("**Step 5: Apply the rule to the query input**")
     lines.append(f"Input: {fmt(query_in)}")
     lines.append("")
 
-    # Show step-by-step application
     current = query_in
     for i, op in enumerate(ops):
         result = op.apply(current)
