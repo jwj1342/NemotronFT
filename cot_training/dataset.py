@@ -98,7 +98,8 @@ class MixedDataset(Dataset):
         tokenizer:                 The tokenizer.
         regular_data_dir:          Path to by_category CSVs.
         cot_data_dir:              Path to cot/ directory with task subdirs.
-        regular_samples_per_class: Number of regular samples per category.
+        regular_samples_per_class: Default number of regular samples per category.
+        category_samples:          Per-category overrides, e.g. {"gravity": 200}.
         eval_samples_per_class:    Number of eval samples per category.
         max_length:                Max token length for truncation.
         boxed_loss_weight:         Loss weight for \\boxed{} tokens in CoT samples.
@@ -112,6 +113,7 @@ class MixedDataset(Dataset):
         regular_data_dir: str,
         cot_data_dir: str,
         regular_samples_per_class: int = 500,
+        category_samples: dict | None = None,
         eval_samples_per_class: int = 5,
         max_length: int = 2048,
         boxed_loss_weight: float = 5.0,
@@ -131,8 +133,9 @@ class MixedDataset(Dataset):
                 for row in csv.DictReader(f):
                     rows.append((row["prompt"], row["answer"]))
             rng.shuffle(rows)
-            chosen = rows[:regular_samples_per_class]
-            remaining = rows[regular_samples_per_class:]
+            n = category_samples.get(category, regular_samples_per_class) if category_samples else regular_samples_per_class
+            chosen = rows[:n]
+            remaining = rows[n:]
             self.eval_pool[category] = remaining[:eval_samples_per_class]
             regular_raw.extend([(p, a, category) for p, a in chosen])
             print(f"[dataset]   {category:22s}: {len(chosen):4d} train / "

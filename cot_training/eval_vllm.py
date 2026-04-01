@@ -142,7 +142,7 @@ from vllm.lora.request import LoRARequest
 t_load = time.time()
 llm = LLM(
     model=MODEL_PATH,
-    tensor_parallel_size=1,
+    tensor_parallel_size=torch.cuda.device_count(),
     gpu_memory_utilization=args.gpu_memory_utilization,
     dtype="auto",
     max_model_len=8192,

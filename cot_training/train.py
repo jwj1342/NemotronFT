@@ -38,7 +38,7 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
 )
-from peft import PeftModel
+from peft import PeftModel, LoraConfig, get_peft_model, TaskType
 
 # Local modules
 from dataset import MixedDataset
@@ -55,10 +55,14 @@ DEFAULT_CHECKPOINT = str(PROJECT_ROOT / "output" / "baseline-lora" / "checkpoint
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", default=str(PROJECT_ROOT / "output" / "cot-lora"))
 parser.add_argument("--checkpoint_dir", default=DEFAULT_CHECKPOINT,
-                    help="Baseline LoRA checkpoint to continue from.")
+                    help="Baseline LoRA checkpoint to continue from. Use 'none' to train from scratch.")
+parser.add_argument("--lora_rank", type=int, default=32)
+parser.add_argument("--lora_alpha", type=int, default=16)
 # Data
 parser.add_argument("--regular_samples_per_class", type=int, default=500,
                     help="Regular SFT samples per category.")
+parser.add_argument("--category_samples", type=str, default=None,
+                    help="Per-category sample overrides, e.g. 'gravity:200,numeral:200,unit_conv:200'.")
 parser.add_argument("--max_length", type=int, default=2048,
                     help="Max sequence length.")
 # Loss weighting
@@ -73,9 +77,9 @@ parser.add_argument("--num_epochs", type=int, default=2)
 parser.add_argument("--resume_from_checkpoint", type=str, default=None,
                     help="Path to checkpoint dir to resume training from. "
                          "Restores optimizer, scheduler, step count and RNG state.")
-parser.add_argument("--batch_size", type=int, default=4,
+parser.add_argument("--batch_size", type=int, default=8,
                     help="Per-device batch size.")
-parser.add_argument("--grad_acc", type=int, default=4,
+parser.add_argument("--grad_acc", type=int, default=2,
                     help="Gradient accumulation steps.")
 parser.add_argument("--lr", type=float, default=5e-5,
                     help="Learning rate.")
@@ -111,11 +115,19 @@ tokenizer.padding_side = "right"
 
 # ── Dataset ──────────────────────────────────────────────────────────────────
 print("\n[2/5] Loading mixed dataset ...")
+category_samples = None
+if args.category_samples:
+    category_samples = {}
+    for pair in args.category_samples.split(","):
+        k, v = pair.split(":")
+        category_samples[k.strip()] = int(v.strip())
+
 dataset = MixedDataset(
     tokenizer=tokenizer,
     regular_data_dir=str(REGULAR_DATA_DIR),
     cot_data_dir=str(COT_DATA_DIR),
     regular_samples_per_class=args.regular_samples_per_class,
+    category_samples=category_samples,
     max_length=args.max_length,
     boxed_loss_weight=args.boxed_loss_weight,
     reasoning_loss_weight=args.reasoning_loss_weight,
@@ -141,12 +153,24 @@ model = AutoModelForCausalLM.from_pretrained(
 model.is_parallelizable = True
 model.model_parallel = True
 
-print(f"[3/5] Loading LoRA adapter from {args.checkpoint_dir} ...")
-model = PeftModel.from_pretrained(
-    model,
-    args.checkpoint_dir,
-    is_trainable=True,
-)
+if args.checkpoint_dir.lower() == "none":
+    print(f"[3/5] Creating new LoRA adapter (rank={args.lora_rank}, alpha={args.lora_alpha}) ...")
+    lora_config = LoraConfig(
+        r=args.lora_rank,
+        lora_alpha=args.lora_alpha,
+        target_modules=r".*\.(in_proj|out_proj|up_proj|down_proj)$",
+        lora_dropout=0.05,
+        bias="none",
+        task_type=TaskType.CAUSAL_LM,
+    )
+    model = get_peft_model(model, lora_config)
+else:
+    print(f"[3/5] Loading LoRA adapter from {args.checkpoint_dir} ...")
+    model = PeftModel.from_pretrained(
+        model,
+        args.checkpoint_dir,
+        is_trainable=True,
+    )
 model.print_trainable_parameters()
 
 model.enable_input_require_grads()

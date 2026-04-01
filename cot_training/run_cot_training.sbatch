@@ -53,17 +53,17 @@ TB_LINK_PID=$!
 # save_only_model: skip optimizer state (~1.7GB vs ~10GB per checkpoint)
 python $PROJECT_DIR/cot_training/train.py \
     --output_dir                $PROJECT_DIR/output/cot-lora \
-    --checkpoint_dir            $PROJECT_DIR/output/baseline-lora/checkpoint-100 \
-    --regular_samples_per_class 500 \
+    --checkpoint_dir            none \
+    --regular_samples_per_class 600 \
     --max_length                2048 \
     --boxed_loss_weight         5.0 \
     --reasoning_loss_weight     1.0 \
-    --num_epochs                1 \
-    --batch_size                4 \
-    --grad_acc                  4 \
-    --lr                        5e-5 \
+    --num_epochs                2 \
+    --batch_size                8 \
+    --grad_acc                  2 \
+    --lr                        2e-4 \
     --neftune_alpha             5.0 \
-    --save_steps                20 \
+    --save_steps                40 \
     --save_total_limit          -1 \
     --save_only_model \
     --tensorboard_dir           /home/jwj/tensorboard_logs
