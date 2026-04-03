@@ -2,9 +2,9 @@
 #SBATCH --job-name=eval-vllm
 #SBATCH --account=def-zhouyang
 #SBATCH --time=02:30:00
-#SBATCH --gpus-per-node=h100:2
-#SBATCH --cpus-per-task=28
-#SBATCH --mem=160G
+#SBATCH --gpus-per-node=h100:1
+#SBATCH --cpus-per-task=14
+#SBATCH --mem=80G
 #SBATCH --output=/scratch/jwj/NemotronFT/logs/%x-%j.out
 #SBATCH --error=/scratch/jwj/NemotronFT/logs/%x-%j.err
 
@@ -19,7 +19,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export TOKENIZERS_PARALLELISM=false
 export TRANSFORMERS_OFFLINE=1
 export HF_DATASETS_OFFLINE=1
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=0
 
 echo "=== vLLM Evaluation ==="
 echo "Job ID: $SLURM_JOB_ID | Node: $(hostname) | $(date)"
