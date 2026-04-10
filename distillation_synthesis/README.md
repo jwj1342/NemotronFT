@@ -8,16 +8,28 @@
 
 ```
 distillation_synthesis/
-├── distillation.py            # 核心：异步调用 teacher 生成 CoT，输出带 teacher_cot 的 CSV
-├── export_distilled_dataset.py  # 将蒸馏 CSV 转换为 JSON 训练集
-├── evaluation.py              # 调用 teacher 对数据集进行评测
-├── sample_train.py            # 按 label 均匀采样训练集
-├── llm.py                     # LLM 封装（StepLLM / SiliconflowLLM / ArkPlanLLM）
-├── prompt.py                  # 蒸馏用系统/用户 prompt 模板
-└── utils.py                   # prompt_format 工具函数
+├── distillation.py                # 核心：异步调用 teacher 生成 CoT，输出带 teacher_cot 的 CSV
+├── export_distilled_dataset.py    # 将蒸馏 CSV 按 category 拆分为 distilled.jsonl
+├── evaluation.py                  # 调用 teacher 对数据集进行评测
+├── sample_train.py                # 从 by_category/ 按类均匀采样
+├── llm.py                         # LLM 封装（StepLLM / SiliconflowLLM / ArkPlanLLM）
+├── prompt.py                      # 蒸馏用系统/用户 prompt 模板
+└── utils.py                       # prompt_format 工具函数
 
-data/distillation/             # 蒸馏生成的数据集（输出目录，位于项目根目录下）
-└── sample1200-train-distilled-step-3.5-flash-0326.json
+data/by_category/                  # 按类拆分的原始训练集（7 类）
+├── bit_ops.csv
+├── cipher.csv
+├── equation_numeric.csv
+├── equation_symbolic.csv
+├── gravity.csv
+├── numeral.csv
+└── unit_conv.csv
+
+data/distillation/                 # 蒸馏输出（按类拆分，训练 pipeline 直接读取）
+├── bit_ops/distilled.jsonl
+├── cipher/distilled.jsonl
+├── ...
+└── unit_conv/distilled.jsonl
 ```
 
 ---
@@ -25,10 +37,11 @@ data/distillation/             # 蒸馏生成的数据集（输出目录，位�
 ## 数据流
 
 ```
-data/train.csv
-    └─ sample_train.py ──→ data/sample1200-train.csv
-                               └─ distillation.py ──→ data/sample1200-train-distilled.csv
-                                                           └─ export_distilled_dataset.py ──→ data/distillation/*.json
+data/by_category/*.csv
+    └─ sample_train.py ──→ data/sampled-train.csv  (含 category 列)
+                               └─ distillation.py ──→ data/sampled-train-distilled.csv
+                                                           └─ export_distilled_dataset.py
+                                                                  ──→ data/distillation/<category>/distilled.jsonl
 ```
 
 ---
@@ -51,13 +64,13 @@ STEP_API_KEY=your_step_api_key
 
 ### 3. 采样训练集
 
-从 `data/train.csv` 按 label 均匀采样，每类 200 条，生成 `data/sample1200-train.csv`：
+从 `data/by_category/` 按类均匀采样，每类最多 200 条，生成含 `category` 列的 CSV：
 
 ```bash
 python distillation_synthesis/sample_train.py \
-  --input data/train.csv \
-  --output data/sample1200-train.csv \
-  --samples-per-label 200
+  --input-dir data/by_category \
+  --output data/sampled-train.csv \
+  --samples-per-category 200
 ```
 
 ### 4. 运行蒸馏
@@ -66,15 +79,16 @@ python distillation_synthesis/sample_train.py \
 
 ```bash
 python distillation_synthesis/distillation.py \
-  --input data/sample1200-train.csv \
-  --output data/sample1200-train-distilled.csv \
+  --input data/sampled-train.csv \
+  --output data/sampled-train-distilled.csv \
   --concurrency 5
 ```
 
 支持断点续跑（默认开启 `--resume`）。输出 CSV 包含以下列：
 
-| 列名 | 说明 |
+| 列名 | ���明 |
 |------|------|
+| `category` | 任务类别（来自 by_category 文件名） |
 | `teacher_cot` | teacher 生成的逐步推理过程 |
 | `teacher_response` | teacher 原始响应（JSON 字符串） |
 | `teacher_finish_reason` | 结束原因（stop / length 等） |
@@ -82,21 +96,19 @@ python distillation_synthesis/distillation.py \
 | `status` | `success` 或 `error` |
 | `error` | 失败时的错误信息 |
 
-完整参数：
+### 5. 导出训练数据
 
-```bash
-python distillation_synthesis/distillation.py --help
-```
-
-### 5. 导出 JSON 训练集
-
-将蒸馏 CSV 转换为 SFT 训练格式（`instruction` / `output` / `answer`）：
+将蒸馏 CSV 按 category 拆分为 `distilled.jsonl`，直接供 `distillation_training/` 读取：
 
 ```bash
 python distillation_synthesis/export_distilled_dataset.py \
-  --input data/sample1200-train-distilled.csv \
-  --output data/distillation/sample1200-train-distilled-step-3.5-flash-0326.json \
-  --model-name step-3.5-flash-0326
+  --input data/sampled-train-distilled.csv \
+  --output-dir data/distillation
+```
+
+输出 JSONL 每行格式：
+```json
+{"id": "...", "prompt": "...", "cot_answer": "reasoning...\n\n\\boxed{answer}", "answer": "..."}
 ```
 
 ---

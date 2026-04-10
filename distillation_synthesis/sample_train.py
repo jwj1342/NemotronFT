@@ -5,64 +5,84 @@ from collections import defaultdict
 from pathlib import Path
 
 
-def sample_by_label(
-    input_path: Path,
+def sample_by_category(
+    input_dir: Path,
     output_path: Path,
-    samples_per_label: int = 200,
+    samples_per_category: int = 200,
     seed: int = 42,
 ) -> None:
-    grouped_rows = defaultdict(list)
+    """Read per-category CSVs from *input_dir*, sample uniformly, write a single CSV.
 
-    with input_path.open("r", encoding="utf-8", newline="") as src:
-        reader = csv.DictReader(src)
-        fieldnames = list(reader.fieldnames or [])
-        if "label" not in fieldnames:
-            raise ValueError("input csv must contain a 'label' column")
+    Each CSV in *input_dir* must have columns ``id, prompt, answer``.
+    The output CSV adds a ``category`` column derived from the filename stem.
+    """
+    grouped_rows: dict[str, list[dict[str, str]]] = defaultdict(list)
 
-        for row in reader:
-            grouped_rows[row["label"]].append(row)
+    for csv_file in sorted(input_dir.glob("*.csv")):
+        category = csv_file.stem
+        with csv_file.open("r", encoding="utf-8", newline="") as src:
+            reader = csv.DictReader(src)
+            fieldnames = reader.fieldnames or []
+            for required in ("id", "prompt", "answer"):
+                if required not in fieldnames:
+                    raise ValueError(
+                        f"{csv_file} is missing required column: {required}"
+                    )
+            for row in reader:
+                row["category"] = category
+                grouped_rows[category].append(row)
+
+    if not grouped_rows:
+        raise FileNotFoundError(f"No CSV files found in {input_dir}")
 
     rng = random.Random(seed)
-    sampled_rows = []
+    sampled_rows: list[dict[str, str]] = []
 
-    for label, rows in grouped_rows.items():
-        if len(rows) < samples_per_label:
-            raise ValueError(
-                f"label '{label}' only has {len(rows)} rows, "
-                f"cannot sample {samples_per_label}"
-            )
-        sampled_rows.extend(rng.sample(rows, samples_per_label))
+    for category in sorted(grouped_rows):
+        rows = grouped_rows[category]
+        n = min(samples_per_category, len(rows))
+        sampled_rows.extend(rng.sample(rows, n))
+        print(f"  {category:22s}: {len(rows):5d} available, sampled {n}")
 
     rng.shuffle(sampled_rows)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    out_fields = ["id", "prompt", "answer", "category"]
     with output_path.open("w", encoding="utf-8", newline="") as dst:
-        writer = csv.DictWriter(dst, fieldnames=fieldnames)
+        writer = csv.DictWriter(dst, fieldnames=out_fields, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(sampled_rows)
 
+    print(f"Wrote {len(sampled_rows)} samples to {output_path}")
+
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sample the same number of rows from each label.")
-    parser.add_argument("--input", default="data/train.csv", help="Input CSV path")
+    parser = argparse.ArgumentParser(
+        description="Sample training rows from per-category CSVs in data/by_category/."
+    )
+    parser.add_argument(
+        "--input-dir",
+        default="data/by_category",
+        help="Directory containing per-category CSVs (default: data/by_category)",
+    )
     parser.add_argument(
         "--output",
-        default="data/sample1200-train.csv",
+        default="data/sampled-train.csv",
         help="Output CSV path",
     )
     parser.add_argument(
-        "--samples-per-label",
+        "--samples-per-category",
         type=int,
         default=200,
-        help="Number of rows to sample for each label",
+        help="Maximum rows to sample for each category",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
 
-    sample_by_label(
-        input_path=Path(args.input),
+    sample_by_category(
+        input_dir=Path(args.input_dir),
         output_path=Path(args.output),
-        samples_per_label=args.samples_per_label,
+        samples_per_category=args.samples_per_category,
         seed=args.seed,
     )
 

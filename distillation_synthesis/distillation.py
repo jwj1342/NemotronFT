@@ -19,13 +19,13 @@ except ImportError:  # pragma: no cover
     tqdm = None
 
 
-INPUT_FIELDS = ("id", "prompt", "answer", "label")
+INPUT_FIELDS = ("id", "prompt", "answer", "category")
 OUTPUT_FIELDS = [
     "source_index",
     "id",
     "prompt",
     "answer",
-    "label",
+    "category",
     "teacher_response",
     "teacher_finish_reason",
     "teacher_prompt_tokens",
@@ -117,7 +117,7 @@ def build_output_row(
         "id": input_row["id"],
         "prompt": input_row["prompt"],
         "answer": input_row["answer"],
-        "label": input_row["label"],
+        "category": input_row["category"],
         "teacher_response": "",
         "teacher_finish_reason": "",
         "teacher_prompt_tokens": "",
