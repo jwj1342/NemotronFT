@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=distill-mixed
+#SBATCH --job-name=distill-v2
 #SBATCH --account=def-zhouyang
-#SBATCH --time=02:00:00
+#SBATCH --time=03:00:00
 #SBATCH --gpus-per-node=h100:2
 #SBATCH --cpus-per-task=28
 #SBATCH --mem=160G
@@ -33,7 +33,7 @@ echo "================"
 
 # ── Auto-link TensorBoard logs ───────────────────────────────────────────────
 TB_LINK_DIR=/home/jwj/tensorboard_logs
-TB_RUN_DIR=$PROJECT_DIR/output/distill-lora/runs
+TB_RUN_DIR=$PROJECT_DIR/output/distill-lora-v2/runs
 mkdir -p "$TB_LINK_DIR" "$TB_RUN_DIR"
 (
     while true; do
@@ -47,19 +47,23 @@ mkdir -p "$TB_LINK_DIR" "$TB_RUN_DIR"
 ) &
 TB_LINK_PID=$!
 
-# ── Distillation Mixed Training ─────────────────────────────────────────────
+# ── Distill-v2: priority data loading + exclude equation_symbolic ───────────
 # Continue from baseline-lora/checkpoint-100 (Kaggle 0.64)
-# Data: 600/cls regular + CoT synthesis + distillation data
-python $PROJECT_DIR/distillation_training/train.py \
-    --output_dir                $PROJECT_DIR/output/distill-lora \
-    --checkpoint_dir            $PROJECT_DIR/output/baseline-lora/checkpoint-100 \
+# Changes vs v1:
+#   - Distillation prompts prioritized into train split (100% utilization)
+#   - equation_symbolic excluded (0% across all v1 checkpoints)
+#   - ~6600 samples = 3000 regular + 809 upgraded + 3000 CoT (−1600 vs v1)
+torchrun --nproc_per_node=2 $PROJECT_DIR/distillation_training/train.py \
+    --output_dir                $PROJECT_DIR/output/distill-lora-v2 \
+    --checkpoint_dir            $PROJECT_DIR/output/best-baseline-step100-kaggle064 \
     --regular_samples_per_class 600 \
+    --exclude_categories        equation_symbolic \
     --max_length                2048 \
     --boxed_loss_weight         1.0 \
     --reasoning_loss_weight     1.0 \
     --num_epochs                2 \
-    --batch_size                8 \
-    --grad_acc                  2 \
+    --batch_size                2 \
+    --grad_acc                  8 \
     --lr                        5e-5 \
     --neftune_alpha             5.0 \
     --save_steps                20 \
@@ -78,8 +82,8 @@ if [[ $TRAIN_EXIT -ne 0 ]]; then
 fi
 
 echo ""
-echo "Checkpoints saved to: $PROJECT_DIR/output/distill-lora/"
-ls -d $PROJECT_DIR/output/distill-lora/checkpoint-* 2>/dev/null
+echo "Checkpoints saved to: $PROJECT_DIR/output/distill-lora-v2/"
+ls -d $PROJECT_DIR/output/distill-lora-v2/checkpoint-* 2>/dev/null
 
 # ── Auto-submit vLLM eval ────────────────────────────────────────────────────
 echo ""

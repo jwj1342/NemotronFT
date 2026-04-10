@@ -150,11 +150,8 @@ print("\n[3/5] Loading base model ...")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
     dtype=torch.bfloat16,
-    device_map="balanced",
     trust_remote_code=True,
 )
-model.is_parallelizable = True
-model.model_parallel = True
 
 if args.checkpoint_dir.lower() == "none":
     print(f"[3/5] Creating new LoRA adapter (rank={args.lora_rank}, alpha={args.lora_alpha}) ...")
@@ -212,7 +209,8 @@ training_args = TrainingArguments(
     weight_decay=0.01,
     bf16=True,
     fp16=False,
-    gradient_checkpointing=False,
+    gradient_checkpointing=True,
+    gradient_checkpointing_kwargs={"use_reentrant": False},
     dataloader_pin_memory=True,
     dataloader_num_workers=4,
     logging_steps=5,

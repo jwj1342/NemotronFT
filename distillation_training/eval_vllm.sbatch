@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=eval-distill
 #SBATCH --account=def-zhouyang
-#SBATCH --time=03:30:00
+#SBATCH --time=05:00:00
 #SBATCH --gpus-per-node=h100:1
 #SBATCH --cpus-per-task=14
 #SBATCH --mem=80G
@@ -30,7 +30,7 @@ echo ""
 # 40 samples per class × 7 classes = 280 samples
 # max_tokens=7680 (Kaggle aligned)
 python $PROJECT_DIR/distillation_training/eval_vllm.py \
-    --scan_dir                  $PROJECT_DIR/output/distill-lora \
+    --scan_dir                  $PROJECT_DIR/output/distill-lora-v2 \
     --max_tokens                7680 \
     --eval_samples_per_class    40 \
     --train_samples_per_class   600
