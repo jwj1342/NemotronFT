@@ -13,10 +13,10 @@
 #   CATEGORIES env var: space-separated list of categories to evaluate
 
 module purge
-module load python/3.11.5
+module load python/3.11.5 opencv/4.13.0
 
 PROJECT_DIR=/scratch/jwj/NemotronFT
-source $PROJECT_DIR/venv/bin/activate
+source $PROJECT_DIR/venv-vllm/bin/activate
 unset PIP_PREFIX
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK

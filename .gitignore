@@ -41,3 +41,11 @@ distillation/data/
 # Environment management — each contributor manages their own
 pyproject.toml
 uv.lock
+
+# ── Resource directory (reference notebooks, cloned repos, archives) ─────────
+resource/
+
+# ── Secrets & API keys ───────────────────────────────────────────────────────
+*.key
+*API*.txt
+*.secret

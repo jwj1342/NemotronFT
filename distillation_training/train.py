@@ -63,6 +63,8 @@ parser.add_argument("--exclude_categories", type=str, default=None,
                     help="Comma-separated categories to skip entirely, e.g. 'equation_symbolic'.")
 parser.add_argument("--max_length", type=int, default=2048,
                     help="Max sequence length.")
+parser.add_argument("--cot_data_dir", type=str, default=None,
+                    help="Override CoT data directory (default: data/cot).")
 # Loss weighting
 parser.add_argument("--boxed_loss_weight", type=float, default=1.0,
                     help="Loss weight for \\boxed{} tokens in CoT/distill samples.")
@@ -123,10 +125,13 @@ exclude_categories = None
 if args.exclude_categories:
     exclude_categories = {c.strip() for c in args.exclude_categories.split(",")}
 
+cot_dir = args.cot_data_dir if args.cot_data_dir else str(COT_DATA_DIR)
+print(f"[dataset] Using CoT data dir: {cot_dir}")
+
 dataset = MixedDataset(
     tokenizer=tokenizer,
     regular_data_dir=str(REGULAR_DATA_DIR),
-    cot_data_dir=str(COT_DATA_DIR),
+    cot_data_dir=cot_dir,
     distill_data_dir=str(DISTILL_DATA_DIR),
     regular_samples_per_class=args.regular_samples_per_class,
     category_samples=category_samples,
@@ -146,12 +151,17 @@ collator = WeightedDataCollator(
 )
 
 # ── Model + LoRA ─────────────────────────────────────────────────────────────
-print("\n[3/5] Loading base model ...")
+# Model parallelism via device_map='balanced'. The model is too large for DDP
+# on 2x H100 80GB (OOMs even at batch_size=1).
+print("\n[3/5] Loading base model (model parallelism) ...")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
     dtype=torch.bfloat16,
+    device_map="balanced",
     trust_remote_code=True,
 )
+model.is_parallelizable = True
+model.model_parallel = True
 
 if args.checkpoint_dir.lower() == "none":
     print(f"[3/5] Creating new LoRA adapter (rank={args.lora_rank}, alpha={args.lora_alpha}) ...")
