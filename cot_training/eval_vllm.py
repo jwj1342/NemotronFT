@@ -15,6 +15,7 @@ import json
 import random
 import sys
 import time
+import torch
 from collections import defaultdict
 from pathlib import Path
 
@@ -142,7 +143,7 @@ from vllm.lora.request import LoRARequest
 t_load = time.time()
 llm = LLM(
     model=MODEL_PATH,
-    tensor_parallel_size=torch.cuda.device_count(),
+    tensor_parallel_size=1,
     gpu_memory_utilization=args.gpu_memory_utilization,
     dtype="auto",
     max_model_len=8192,

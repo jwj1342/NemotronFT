@@ -153,7 +153,7 @@ class MixedDataset(Dataset):
                 continue
             task = task_dir.name
             count = 0
-            for level_file in sorted(task_dir.glob("level_*.jsonl")):
+            for level_file in sorted(task_dir.glob("*.jsonl")):
                 with open(level_file, "r", encoding="utf-8") as f:
                     for line in f:
                         obj = json.loads(line)
