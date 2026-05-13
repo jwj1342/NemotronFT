@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=test-vllm
-#SBATCH --account=def-zhouyang
+#SBATCH --account=aip-zhouyang
 #SBATCH --time=00:30:00
-#SBATCH --gpus-per-node=h100:1
-#SBATCH --cpus-per-task=14
+#SBATCH --gpus-per-node=l40s:1
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=80G
 #SBATCH --output=/scratch/jwj/NemotronFT/logs/%x-%j.out
 #SBATCH --error=/scratch/jwj/NemotronFT/logs/%x-%j.err

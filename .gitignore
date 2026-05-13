@@ -8,6 +8,7 @@ data/test.csv
 
 # ── Python virtual environment ────────────────────────────────────────────────
 venv/
+venv-vllm/
 __pycache__/
 *.py[cod]
 *.pyo

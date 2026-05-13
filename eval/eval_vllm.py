@@ -1,12 +1,12 @@
 """
-cot_training/eval_vllm.py — vLLM-based evaluation for LoRA checkpoints.
+distillation_training/eval_vllm.py — vLLM-based evaluation for LoRA checkpoints.
 
 Uses vLLM for ~30x faster inference compared to HuggingFace generate().
 Fully aligned with Kaggle evaluation: greedy decoding, max_tokens=7680.
 
 Usage:
-  python cot_training/eval_vllm.py --checkpoint_dir <path>
-  python cot_training/eval_vllm.py --checkpoint_dir <path1> --checkpoint_dir <path2>
+  python distillation_training/eval_vllm.py --checkpoint_dir <path>
+  python distillation_training/eval_vllm.py --checkpoint_dir <path1> --checkpoint_dir <path2>
 """
 
 import argparse
@@ -19,14 +19,16 @@ import torch
 from collections import defaultdict
 from pathlib import Path
 
-# Reuse official metric functions from baseline
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "baseline"))
-from eval import extract_final_answer, verify, BOXED_INSTRUCTION
+# Reuse official metric functions from eval/extract.py
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from extract import extract_final_answer, verify, BOXED_INSTRUCTION
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH   = str(PROJECT_ROOT / "model")
 EVAL_DATA_DIR = PROJECT_ROOT / "data" / "by_category"
+DISTILL_DATA_DIR = PROJECT_ROOT / "data" / "distillation"
+COT_DATA_DIR     = PROJECT_ROOT / "data" / "cot"
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 parser = argparse.ArgumentParser()
@@ -42,6 +44,8 @@ parser.add_argument("--train_samples_per_class", type=int, default=500,
 parser.add_argument("--output_dir", type=str, default=None,
                     help="Directory for result JSONL files.")
 parser.add_argument("--gpu_memory_utilization", type=float, default=0.85)
+parser.add_argument("--tensor_parallel_size", type=int, default=1,
+                    help="Number of GPUs for tensor parallelism (vLLM). Use 4 for 4× L40s.")
 parser.add_argument("--tensorboard_dir", type=str, default=None,
                     help="TensorBoard log dir to write eval metrics into. "
                          "If --scan_dir is set and {scan_dir}/.tb_run_dir exists, "
@@ -76,10 +80,56 @@ if not args.checkpoint_dir:
     print("ERROR: No checkpoints specified. Use --checkpoint_dir or --scan_dir.")
     sys.exit(1)
 
+# ── Collect training-side prompts (for leak filtering) ───────────────────────
+def _load_training_prompts():
+    """Load all prompts used in training (distillation + CoT) for dedup."""
+    seen = set()
+    # Distillation prompts
+    for task_dir in sorted(DISTILL_DATA_DIR.iterdir()):
+        if not task_dir.is_dir():
+            continue
+        jsonl_file = task_dir / "distilled.jsonl"
+        if not jsonl_file.exists():
+            continue
+        with open(jsonl_file, "r", encoding="utf-8") as f:
+            for line in f:
+                seen.add(json.loads(line)["prompt"])
+    # CoT synthesis prompts
+    for task_dir in sorted(COT_DATA_DIR.iterdir()):
+        if not task_dir.is_dir():
+            continue
+        for level_file in sorted(task_dir.glob("*.jsonl")):
+            with open(level_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    seen.add(json.loads(line)["prompt"])
+    return seen
+
+
 # ── Load eval data ───────────────────────────────────────────────────────────
 def load_eval_pool(data_dir, train_samples_per_class, eval_samples_per_class, seed):
+    """Load eval samples using distillation-priority split (matches MixedDataset).
+
+    Distillation prompts are counted as part of the training split, so eval
+    is drawn only from non-distillation leftovers, then further filtered
+    against CoT training prompts.
+    """
+    training_prompts = _load_training_prompts()
+
+    # Load distillation prompts for priority split
+    distill_prompts = set()
+    for task_dir in sorted(DISTILL_DATA_DIR.iterdir()):
+        if not task_dir.is_dir():
+            continue
+        jsonl_file = task_dir / "distilled.jsonl"
+        if not jsonl_file.exists():
+            continue
+        with open(jsonl_file, "r", encoding="utf-8") as f:
+            for line in f:
+                distill_prompts.add(json.loads(line)["prompt"])
+
     rng = random.Random(seed)
     eval_data = []
+    n_filtered = 0
     for csv_file in sorted(Path(data_dir).glob("*.csv")):
         category = csv_file.stem
         rows = []
@@ -87,9 +137,26 @@ def load_eval_pool(data_dir, train_samples_per_class, eval_samples_per_class, se
             for row in csv.DictReader(f):
                 rows.append((row["prompt"], row["answer"]))
         rng.shuffle(rows)
-        remaining = rows[train_samples_per_class:]
-        chosen = remaining[:eval_samples_per_class]
+
+        # Same priority logic as MixedDataset: distill prompts fill train first
+        has_distill = [(p, a) for p, a in rows if p in distill_prompts]
+        no_distill = [(p, a) for p, a in rows if p not in distill_prompts]
+        n_distill = min(len(has_distill), train_samples_per_class)
+        n_regular_fill = train_samples_per_class - n_distill
+        remaining = no_distill[n_regular_fill:]
+
+        # Filter out any remaining prompts that appear in CoT training data
+        chosen = []
+        for p, a in remaining:
+            if len(chosen) >= eval_samples_per_class:
+                break
+            if p in training_prompts:
+                n_filtered += 1
+                continue
+            chosen.append((p, a))
         eval_data.extend([(p, a, category) for p, a in chosen])
+    if n_filtered > 0:
+        print(f"  [dedup] Filtered {n_filtered} eval candidates that overlap with training data")
     return eval_data
 
 print(f"[config] checkpoints       = {args.checkpoint_dir}")
@@ -143,7 +210,7 @@ from vllm.lora.request import LoRARequest
 t_load = time.time()
 llm = LLM(
     model=MODEL_PATH,
-    tensor_parallel_size=1,
+    tensor_parallel_size=args.tensor_parallel_size,
     gpu_memory_utilization=args.gpu_memory_utilization,
     dtype="auto",
     max_model_len=8192,
