@@ -55,8 +55,9 @@ runs/<stage>/
 
 ## Gates
 
-See `docs/路线图.md` §5 and `plans/robust-weaving-russell.md` for the full
-G0..G4 specifications. Mainline checks at G0 (smoke):
+See `ROADMAP.md` §5 (repo root) for the full G0..G4 specifications, and
+`ITERATION_REPORT.md` for why the smoke-stage diversity check ultimately
+gated the whole RL effort. Mainline checks at G0 (smoke):
 - rollout JSONL well-formed (`python training/rl/reward.py --jsonl ...` reproduces stored rewards)
 - non-zero reward variance on mixed pool
 - `disable_adapter` produces logp_ref distinguishable from logp_new (sanity print at iter 0)

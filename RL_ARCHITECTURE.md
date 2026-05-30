@@ -1,6 +1,8 @@
 # RL 训练架构指南
 
-> 给 RL 新手。这份文档是 `opd` 分支工作的"全景说明书"——解释我们在做什么、为什么这么做、里面的数学、以及调试时该关注什么。配套阅读：`docs/路线图.md`（战略层）、`plans/robust-weaving-russell.md`（实施细节）。
+> 给 RL 新手。这份文档是 `opd` 分支工作的"全景说明书"——解释我们在做什么、为什么这么做、里面的数学、以及调试时该关注什么。配套阅读：`ROADMAP.md`（战略层）、`ITERATION_REPORT.md`（实测结果与为什么 RL 在 Huikang adapter 上没跑起来）。
+>
+> **注意**：本指南描述的是 RL *设计与计划*。GRPO 在 Huikang adapter 上的实际结果是策略熵塌缩、无梯度信号 —— 详见 `ITERATION_REPORT.md`。要复活 RL，gatekeeper 是改用 **base 模型**（非 adapter）测 rollout 多样性。
 
 ---
 
@@ -503,8 +505,9 @@ Stage 4 (OPD merge, 8h × 4 GPU × N node)
 - **HybridFlow paper** (verl 论文): 分布式 RL 调度的设计思路
 - **PEFT/LoRA 论文** (Hu 2021): 低秩适配器
 - 项目内：
-  - `docs/路线图.md`：战略层（哪些 task 该 RL、不该 RL，预期回报）
-  - `plans/robust-weaving-russell.md`：实施细节（文件结构、sbatch 资源、gates）
+  - `ROADMAP.md`：战略层（哪些 task 该 RL、不该 RL，预期回报）
+  - `ITERATION_REPORT.md`：实测结果（本地 + Kaggle 远端），含 RL 阻断分析
+  - `training/rl/README.md`：GRPO 代码的模块级地图 + gates
   - `eval/extract.py`：reward 函数本体
   - `training/train.py`：SFT 训练器（我们 fork 出 GRPO trainer）
 
@@ -522,14 +525,14 @@ Stage 4 (OPD merge, 8h × 4 GPU × N node)
 
 3. **全集诊断分析**：
    - 写了 `eval/eval_full_train.py` + sharded sbatch，在 9500 上完成 per-category 评估
-   - 输出在 `docs/路线图.md` Section 1 的成绩表
+   - 输出在 `ROADMAP.md` Section 1 的成绩表（也已汇总进 `README.md`）
    - 识别三个 RL 候选类：cryptarithm_deduce/guess + equation_numeric_guess
 
 4. **当前阶段（opd 分支正在做）**：
    - 设计 GRPO 训练 pipeline（本文档 §2-§5）
    - 多 node HYBRID_SHARD 部署方案
    - OPD 整合方案（本文档 §3）
-   - Plan + 路线图 + 本指南文档
+   - 实测结论见 `ITERATION_REPORT.md`（GRPO 因策略熵塌缩未能启动）
 
 5. **下一步将做**：
    - 实施 Stage 0 smoke test（验证 disable_adapter、NCCL、JSONL 流水）

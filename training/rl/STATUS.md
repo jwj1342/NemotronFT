@@ -29,9 +29,10 @@ training/opd/
 eval/
   category.py          — extracted detect_category() so pool.py can run in venv
 
-docs/
-  RL架构指南.md         — newcomer-friendly walkthrough (math + diagrams)
-  路线图.md             — strategy doc (updated with multi-node + verl fallback)
+(repo root)
+  RL_ARCHITECTURE.md   — newcomer-friendly walkthrough (math + diagrams)
+  ROADMAP.md           — strategy doc (multi-node + verl fallback)
+  ITERATION_REPORT.md  — per-experiment results (local + Kaggle remote)
 ```
 
 ## What was submitted

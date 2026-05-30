@@ -1,4 +1,6 @@
-# 分析
+# 分析与路线图
+
+> ⚠️ **时效说明（2026-05-30）**：本文档是 RL 路线的*战略论证与计划*，写于 RL 实验**之前**。它的核心预测（"必须做 RL → LB 0.88-0.90"）**未被验证成立**——GRPO 在 Huikang adapter 上因策略熵塌缩没能启动。实测结果与证伪过程见 **`ITERATION_REPORT.md`**。本文档保留作为设计依据（每个 task 的头空间、为什么 RL 是当时的赌注），而非当前状态。
 
 > 基于 `output/huikang-baseline-converted/`（公开 LB **0.85**）在 9500 训练集上的实测结果。grader-aligned 推理（T=0, max_tokens=7680, top_p=1.0, max_model_len=8192），4 shard × 4×L40s vLLM 并行。
 
