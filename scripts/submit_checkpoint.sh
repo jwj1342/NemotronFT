@@ -34,7 +34,7 @@ module purge
 module load python/3.11.5
 source "$PROJECT_DIR/venv/bin/activate"
 unset PIP_PREFIX
-export KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN:-KGAT_04bcfc5348e1637ed220119fafd3904b}"
+: "${KAGGLE_API_TOKEN:?set KAGGLE_API_TOKEN in the environment before running}"
 TODAY=$(date '+%Y-%m-%d')
 DUPE=$(kaggle competitions submissions -c nvidia-nemotron-model-reasoning-challenge 2>/dev/null \
        | grep "$TODAY" | grep -F "$MSG" || true)
