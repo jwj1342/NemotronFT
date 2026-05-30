@@ -1,0 +1,23 @@
+# Stage 3: RL on cryptarithm_deduce + cryptarithm_guess (combined pool).
+# Expected to be harder than Stage 1; may need cold-start (Stage 3.5) if G3 fails.
+# Expected duration: 12-18h on 4×L40s single node.
+
+stage_name: stage3_cryptarithm
+categories: cryptarithm_deduce,cryptarithm_guess
+cap_per_cat: 0          # ~823 total prompts
+
+n_outer: 15
+n_inner: 50
+group_size: 8
+lr: 3e-6                # slightly lower than Stage 1 due to harder signal
+beta: 0.05
+rollout_max_tokens: 7680
+rollout_temp: 1.0
+train_max_len: 8192
+
+# Submission (after Stage 1 completes; uses Stage 1 adapter as starting point if desired):
+#   STAGE_NAME=stage3_cryptarithm \
+#   STAGE_CATEGORIES=cryptarithm_deduce,cryptarithm_guess \
+#   BASELINE_ADAPTER=/scratch/jwj/NemotronFT/output/huikang-baseline-converted \
+#   N_OUTER=15 N_INNER=50 GROUP_SIZE=8 LR=3e-6 BETA=0.05 \
+#   sbatch training/rl/scripts/iter.sbatch
