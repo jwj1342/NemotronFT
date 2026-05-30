@@ -11,9 +11,18 @@ Mamba–Transformer** layers (`nemotron_h` architecture).
 
 The strong baseline that everything builds against is
 `output/huikang-baseline-converted/` (Huikang's published winning adapter,
-SVD-converted, public LB **0.85**). The repo has been collapsed to only
-contain that adapter, the SFT scaffolding that produced our self-trained 0.76
-run, and grader-aligned evaluation tooling.
+SVD-converted, public LB **0.85**). On top of that baseline the repo carries:
+the SFT scaffolding that produced our self-trained 0.76 run, grader-aligned
+evaluation tooling, a distillation pipeline (`training/opd/`), and a hand-rolled
+GRPO pipeline (`training/rl/`).
+
+**Current state (2026-05-30): handed off to an external reviewer.** This
+iteration tried three routes past 0.85 — multi-category SFT distillation, a
+programmatic cryptarithm solver, and GRPO — and all three stalled at 0.85. The
+per-experiment record (local + Kaggle remote) is in `ITERATION_REPORT.md`; the
+strategic rationale is in `ROADMAP.md`; the RL engineering reference is in
+`RL_ARCHITECTURE.md`. Those three docs + this file + `README.md` live at the
+repo root and are the handoff package. **Read `ITERATION_REPORT.md` first.**
 
 ## Hardware + environments
 
@@ -60,6 +69,33 @@ Things that took experiments to discover and are easy to get wrong again:
   theoretical ceiling for us is ~0.81 (Unsloth's measured number) with full
   data, vs 0.85 for the fork-the-winner baseline.
 
+Facts established **this iteration** (full numbers in `ITERATION_REPORT.md`):
+
+- **SFT is bankrupt for cryptarithm.** A holdout *canary* (train on a split,
+  eval the rest) showed negative transfer — canary 2/30 vs baseline 3/30 — even
+  though train_loss dropped 95→13. Each puzzle is an independent random
+  letter→digit cipher, so memorization doesn't generalize. opd-v1 and opd-v2
+  both stayed at LB 0.85.
+- **The dominant cryptarithm failure cluster is unsolvable by our solver.** Of
+  643 unsolved, the "F bucket" (digit cipher, harder op) is 540 (84%). A 21-op
+  DSL solver gets 0/100 on it across default/wide base range and `unique=False`.
+  Wrong solver family, not a missing operator — auto-generating correct CoT is
+  a dead end for 84% of misses.
+- **GRPO can't start on the Huikang adapter.** Its SFT collapsed policy entropy
+  to align with the T=0 grader; at T=0.95 G=8 it emits only 1.6–1.8 distinct
+  sequences/group, so intra-group advantage ≈ 0 → no gradient. The gatekeeper to
+  revive RL is the **base** model (not the adapter): G=16, T=1.2, top_k=64, and
+  measure rollout diversity *before* training (see `ITERATION_REPORT.md` §5).
+- **vLLM 0.17.1 `SamplingParams(seed=N, n>1)` kills diversity** — all n
+  completions come back near-identical. `training/rl/rollout.py` deliberately
+  omits the seed.
+- **30B GRPO OOMs on a single 4×L40s node** (~35 GB/rank static ceiling on 44 GB
+  cards); reducing `max_length` doesn't help. Use 2 nodes / 8-way FSDP
+  (`fsdp_multinode_config.yaml`, smoke v8).
+- **Kaggle token is read from `$KAGGLE_API_TOKEN`** — the submit/poll scripts no
+  longer hardcode it. The literal token still exists in pre-`1cbedae` git
+  history; the user opted not to scrub it (only requires it be absent from HEAD).
+
 ## User feedback rules
 
 - **Kaggle quota discipline**: 5 submissions/day reset at UTC midnight. Always
@@ -78,8 +114,14 @@ Things that took experiments to discover and are easy to get wrong again:
 - Don't use `pip install --user`; use one of the existing venvs.
 - For long training jobs, prefer 12h `sbatch` windows. SIGUSR1 chain-resume
   handles the multi-segment case.
-- `output/` is gitignored — it's safe to mutate freely, but `huikang-baseline*`
-  and `self-baseline*` are valuable artifacts that should be preserved.
+- `output/` is gitignored — it's safe to mutate freely, but `huikang-baseline*`,
+  `self-baseline*`, and the `opd-v1`/`opd-v2` adapters are valuable artifacts
+  that should be preserved.
+- The `runs/` dirs under `training/rl/` and `training/opd/` are gitignored (heavy
+  safetensors / rollout JSONL / SLURM logs). Their results are recorded in
+  `ITERATION_REPORT.md`, so the artifacts are reproducible byproducts.
 - `resource/` is also gitignored. It contains Huikang's repo clone, his
   reference notebooks, and the Discord chat dump — large reference material,
-  not source-of-truth code.
+  not source-of-truth code. `NeMo-RL` is cloned there for reference only (not
+  installed): it's the only first-party toolkit supporting Nemotron LoRA-GRPO,
+  the fallback if the hand-rolled GRPO needs replacing.

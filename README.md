@@ -3,16 +3,71 @@
 Fine-tuning **`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16`** for the [NVIDIA
 Nemotron Model Reasoning Challenge](https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge).
 
-## Strong baseline (current SOTA in this repo)
+> **Handoff note (2026-05-30).** This repo is being handed to an external
+> reviewer to drive forward. The strong baseline is **LB 0.85**. This iteration
+> explored three routes to push past it — multi-category SFT distillation,
+> a programmatic cryptarithm solver, and hand-rolled GRPO — and **all three
+> stalled at 0.85**. The "why", with exact per-experiment numbers, is in
+> **[`ITERATION_REPORT.md`](ITERATION_REPORT.md)**. Read that first.
 
-| Adapter | Public LB |
-|---|---|
-| `output/huikang-baseline-converted/` — Huikang's published winning adapter, SVD-converted (rank 32, 75.77% singular mass preserved) | **0.85** |
-| `output/self-baseline/` — our own SFT on Huikang's CoT corpus (6355 of 9500 problems), 1 epoch via FSDP+PEFT | 0.76 |
-| Base model (no adapter) | ~0.45 |
+## Status at a glance
 
-The 0.85 adapter is the reference we plan to *push past*; the self-trained 0.76
-shows the full Unsloth recipe works end-to-end on our hardware (4×L40s, FSDP).
+| Adapter | Public LB | Notes |
+|---|---|---|
+| `output/huikang-baseline-converted/` — Huikang's winning adapter, SVD-converted (rank 32, 75.77% singular mass) | **0.85** | current SOTA in this repo; everything is measured against it |
+| `output/opd-v1/` — +1-epoch SFT on 1399 multi-category CoT | 0.85 | no movement |
+| `output/opd-v2/` — +115 verified cryptarithm CoT (3× oversample) | 0.85 | no movement |
+| `output/self-baseline/` — our own SFT on Huikang's 6355-problem CoT corpus | 0.76 | proves the full recipe works end-to-end on 4×L40s |
+| Base model (no adapter) | ~0.45 | |
+
+### Per-category accuracy of the 0.85 baseline (measured, 9500 train set)
+
+Grader-aligned inference (T=0, `max_tokens=7680`, `top_p=1.0`,
+`max_model_len=8192`), 4-shard × 4×L40s vLLM. Reproduce with
+`eval/eval_full_train.sbatch`.
+
+| Category | Correct / Total | Acc | |
+|---|---|---|---|
+| numeral | 1576 / 1576 | **100.00%** | maxed |
+| unit_conversion | 1591 / 1594 | **99.81%** | near-max |
+| gravity | 1591 / 1597 | **99.62%** | near-max |
+| cipher | 1560 / 1576 | **98.98%** | near-max |
+| equation_numeric_deduce | 542 / 596 | **90.94%** | good |
+| bit_manipulation | 1402 / 1602 | **87.52%** | good, capped |
+| equation_numeric_guess | 22 / 136 | **16.18%** | ❌ cliff |
+| cryptarithm_deduce | 46 / 659 | **6.98%** | ❌ cliff |
+| cryptarithm_guess | 10 / 164 | **6.10%** | ❌ cliff |
+| **Total** | **8340 / 9500** | **87.79%** | |
+
+All headroom is in three "cliff" categories. The ~3% gap between local 87.79%
+and LB 0.85 is the harder private split, **not** a grader-config mismatch.
+
+## What was tried this iteration (and why each stalled)
+
+Full numbers in [`ITERATION_REPORT.md`](ITERATION_REPORT.md); one-line each:
+
+1. **Multi-category SFT distillation** (opd-v1) → LB 0.85. No transfer to cliff
+   categories.
+2. **Cryptarithm-focused distillation** (opd-v2, only `verify()`-passing CoT) →
+   LB 0.85. A holdout *canary* showed **negative transfer** (canary 2/30 vs
+   baseline 3/30): the model memorizes each puzzle's random letter→digit map but
+   it doesn't generalize. **SFT is bankrupt for cryptarithm.**
+3. **Programmatic solver to auto-generate correct CoT** → the dominant failure
+   cluster (the "F bucket", 540 / 643 = 84% of unsolved cryptarithm) is **0/100
+   solvable** by our 21-op DSL across base-range and bijection variants. Wrong
+   solver family, not a missing operator.
+4. **Hand-rolled GRPO** → blocked at the source: the Huikang adapter is a
+   near-deterministic policy. At T=0.95, G=8 it emits only **1.6–1.8 distinct
+   sequences per group**, so intra-group advantage is ~0 and there is no
+   gradient. Huikang's SFT compressed policy entropy to align with the T=0
+   grader, which is exactly what GRPO needs and doesn't have.
+
+**Takeaway**: cryptarithm is a double wall — the teacher models barely do it
+(~25–30%, low distillation ceiling) *and* each puzzle is an independent random
+cipher (memorization can't generalize). No public team exceeds ~0.87; 0.90+ has
+never appeared. The remaining unexplored lever is **inference-time search**
+(best-of-N + verifier rerank, self-consistency, search-then-distill) or a
+**different RL starting policy** (base model, not the entropy-collapsed adapter).
 
 ## Why 0.85 needs SVD conversion
 
@@ -22,139 +77,126 @@ runtime in three places (see his
 
 1. Mamba `in_proj` is trained as separate `gate_proj` + `x_proj` LoRA pairs.
    Submission needs a single `in_proj` LoRA, so we **SVD-merge** the two rank-32
-   pairs back to rank 32 (this loses ~25% of singular mass — Huikang's
-   "training-serving misalignment").
-2. MoE experts are stored as fused `experts.w1` / `experts.w2` tensors with a
-   single shared LoRA; submission needs **per-expert `up_proj` / `down_proj`**
-   LoRAs, so we broadcast the shared LoRA into 128 copies (lossless).
-3. Adapter keys use the prefix `base_model.model.model.*`; submission needs
+   pairs back to rank 32 (loses ~25% singular mass — his "training-serving
+   misalignment"). Adapters trained directly in PEFT here do **not** pay this.
+2. MoE experts are stored as fused `experts.w1`/`experts.w2` with one shared
+   LoRA; submission needs **per-expert `up_proj`/`down_proj`** LoRAs, so we
+   broadcast the shared LoRA into 128 copies (lossless).
+3. Adapter keys use prefix `base_model.model.model.*`; submission needs
    `base_model.model.backbone.*` (lossless rename).
 
-All three steps are implemented in `training/convert_tinker_adapter.py`.
+All three are in `training/convert_tinker_adapter.py`.
 
 ## Repo layout
 
 ```
 NemotronFT/
-├── training/                    # SFT pipeline (mirrors the Unsloth 0.81 recipe)
-│   ├── build_cot_csv.py         # Decode Huikang corpus.jsonl → text CSV
-│   ├── convert_tinker_adapter.py # Tinker adapter → Kaggle-format adapter (SVD)
-│   ├── dataset.py               # Chat-template SFT dataset (enable_thinking=True)
-│   ├── train.py                 # FSDP LoRA training script
-│   ├── train.sbatch             # 12h SLURM job with SIGUSR1 chain-resume
-│   ├── train_with_cot.csv       # 6355 decoded (prompt, answer, cot, type) rows
-│   └── fsdp_config.yaml         # FULL_SHARD + TRANSFORMER_BASED_WRAP
+├── README.md                     # this file — start here
+├── ITERATION_REPORT.md           # per-experiment results (local + Kaggle remote)
+├── ROADMAP.md                    # strategy / per-category analysis (the original RL bet)
+├── RL_ARCHITECTURE.md            # GRPO math + single/multi-node FSDP reference
+├── CLAUDE.md                     # operating context for Claude Code
+├── training/
+│   ├── train.py                  # FSDP LoRA SFT (manual resume via --resume_adapter_dir)
+│   ├── train.sbatch              # 12h SLURM job, SIGUSR1 chain-resume
+│   ├── dataset.py                # chat-template SFT dataset (enable_thinking=True)
+│   ├── build_cot_csv.py          # decode Huikang corpus.jsonl → text CSV
+│   ├── convert_tinker_adapter.py # Tinker adapter → Kaggle-format (SVD merge)
+│   ├── fsdp_config.yaml          # single-node FULL_SHARD
+│   ├── fsdp_multinode_config.yaml# HYBRID_SHARD for N nodes
+│   ├── fsdp_offload_config.yaml  # CPU-offload variant
+│   ├── rl/                       # hand-rolled GRPO pipeline (see rl/README.md)
+│   │   ├── rollout.py reward.py grpo_loss.py train_grpo.py ...
+│   │   └── scripts/              # smoke v3–v8, multi-node, hot/hard-pool builders
+│   └── opd/                      # distillation + cryptarithm solver diagnostics
+│       ├── build_trace_pool.py merge_traces.py prepare_opd_csv.py canary.sbatch
+│       └── solvers/              # f_diagnostic, cluster_unsolved, extended_solver, ...
 ├── eval/
-│   ├── extract.py               # extract_final_answer / verify / BOXED_INSTRUCTION
-│   ├── eval_vllm.py             # vLLM eval matched to grader: T=0, max_tokens=7680
-│   └── eval_vllm.sbatch
-├── scripts/
-│   ├── build_submission.sh      # Pack a checkpoint dir into submission.zip
-│   ├── build_all_submissions.sh # Pack every checkpoint-N + final adapter
-│   ├── submit_checkpoint.sh     # Build + duplicate-check + Kaggle CLI submit
-│   ├── submit.sh                # Bare kaggle competitions submit
-│   ├── download_model.sh        # Fetch the base Nemotron weights
-│   └── setup_training_env.sh
-├── data/by_category/            # Per-category eval splits (gitignored)
-├── output/                      # All adapter checkpoints (gitignored)
-│   ├── huikang-baseline/                 # Raw Tinker tarball + extracted dir
-│   ├── huikang-baseline-converted/       # 0.85 strong baseline ready to submit
-│   ├── self-baseline/                    # Our SFT run (0.76)
-│   └── self-baseline-submissions/        # Pre-built zips per checkpoint
-├── resource/                    # Reference notebooks, Huikang repo (gitignored)
-├── model/                       # Base Nemotron weights (gitignored)
-├── venv/  venv-vllm/            # Python envs (gitignored)
-└── logs/                        # SLURM stdout/stderr (gitignored)
+│   ├── extract.py                # extract_final_answer / verify / BOXED_INSTRUCTION
+│   ├── eval_vllm.py/.sbatch      # grader-aligned eval (T=0, max_tokens=7680)
+│   ├── eval_full_train.py/.sbatch# 9500-sample per-category eval
+│   ├── eval_holdout.py/.sbatch   # tiny holdout eval (needs TP=4 on 30B BF16)
+│   └── category.py               # detect_category() (importable without vLLM)
+├── scripts/                      # build_submission, submit_checkpoint (token via env), ...
+├── output/                       # adapters (gitignored)
+├── model/  resource/  venv*/  logs/   # all gitignored
 ```
+
+`training/rl/runs/`, `training/opd/runs/`, and `training/opd/solvers/runs/` hold
+heavy artifacts (safetensors, rollout JSONL, SLURM logs) and are gitignored;
+their results live in `ITERATION_REPORT.md`.
+
+## Environments
+
+Two manually-built venvs (see `CLAUDE.md` for the full activation incantations):
+
+| Env | Purpose |
+|---|---|
+| `venv/` | training — `torch 2.5.1`, `transformers 5.3.0`, `peft`, `accelerate`, `mamba_ssm` |
+| `venv-vllm/` | inference — `torch 2.10`, `vllm 0.17.1`, `transformers 4.57.6` |
+
+`unset PIP_PREFIX` after sourcing either, or pip breaks inside the venv.
 
 ## Quick start
 
 ### Submit the strong baseline (~5 min)
-
 ```bash
+export KAGGLE_API_TOKEN=...   # required: scripts no longer hardcode it
 bash scripts/submit_checkpoint.sh \
     output/huikang-baseline-converted \
     "strong baseline: Huikang adapter, SVD-converted"
 ```
 
 ### Convert a fresh Tinker checkpoint
-
 ```bash
 python training/convert_tinker_adapter.py \
-    --in_dir  output/<some-tinker-adapter> \
-    --out_dir output/<some-tinker-adapter>-converted
+    --in_dir output/<tinker-adapter> --out_dir output/<tinker-adapter>-converted
 ```
 
-### Run local vLLM eval (grader-aligned)
-
+### Grader-aligned eval
 ```bash
-sbatch eval/eval_vllm.sbatch
-# Or pass a specific checkpoint:
+sbatch eval/eval_full_train.sbatch        # full 9500, per-category
 CHECKPOINT_DIR=output/huikang-baseline-converted sbatch eval/eval_vllm.sbatch
 ```
 
-### Train from scratch (FSDP LoRA, ~13h)
-
+### Train on top of the 0.85 adapter (FSDP LoRA)
 ```bash
-# 1. Build the CoT CSV from Huikang's corpus (one-time, ~3 min).
-python training/build_cot_csv.py
-
-# 2. Submit the chained training job (12h walltime, auto-resumes via SIGUSR1).
-sbatch training/train.sbatch
+python training/build_cot_csv.py          # one-time, ~3 min
+sbatch training/train.sbatch              # 12h, auto-resumes via SIGUSR1
 ```
 
-Checkpoints land in `output/sft/`; the final adapter is saved at the same path
-root once 1 epoch completes.
+## Two facts that are easy to get wrong again
 
-## Grader-exact inference config
-
-Confirmed by reading the official metric's `score()` defaults in Huikang's
-tinker-submission-notebook:
-
+**Grader uses T=0 greedy.** The public `metric.py` shows `temperature=1.0`, but
+the actual grader overrides it. Train + eval must align to T=0 or the model
+systematically underperforms.
 ```python
-temperature      = 0.0    # greedy (NOT the 1.0 the public metric.py shows)
-top_p            = 1.0
-max_tokens       = 7680
-max_model_len    = 8192
-max_lora_rank    = 32
-gpu_memory_utilization = 0.85
+temperature=0.0  top_p=1.0  max_tokens=7680  max_model_len=8192
+max_lora_rank=32  gpu_memory_utilization=0.85
 ```
 
-`eval/eval_vllm.py` mirrors these exactly. Any submission/eval that diverges
-will systematically underestimate the model.
-
-## Critical LoRA detail: Mamba layers
-
-Nemotron-3-Nano-30B-A3B is a hybrid Mamba–Transformer (`nemotron_h`). Mamba
-layers expose `in_proj` and `out_proj`; **these MUST be in `target_modules`**
-or the SSM circuits stay frozen. Our `training/train.py` uses:
-
+**Mamba layers must be LoRA targets.** Nemotron-3-Nano is a hybrid
+Mamba–Transformer (`nemotron_h`); the Mamba `in_proj`/`out_proj` MUST be in
+`target_modules` or the SSM circuits stay frozen (this caused the early
+0.27–0.60 runs). `training/train.py` uses:
 ```python
-target_modules = [
-    "q_proj", "k_proj", "v_proj", "o_proj",   # attention
-    "in_proj", "out_proj",                    # Mamba SSM    (do not omit)
-    "up_proj", "down_proj",                   # MoE expert MLPs
-    "lm_head",
-]
+target_modules = ["q_proj","k_proj","v_proj","o_proj",
+                  "in_proj","out_proj",            # Mamba SSM — do not omit
+                  "up_proj","down_proj","lm_head"]
 ```
+Other recipe constants (from the published 0.81 Unsloth notebook): LoRA
+`r=alpha=32`, `dropout=0`, `lr=2e-4` linear (no warmup), AdamW `beta2=0.95`,
+`weight_decay=0`, 1 epoch, effective batch 64, stratified by category.
 
-Other hyperparameters that matter (all from the published 0.81 Unsloth notebook):
-LoRA `r=alpha=32`, `dropout=0`, `lr=2e-4` linear (no warmup), AdamW `beta2=0.95`,
-`weight_decay=0`, `max_grad_norm=1e9` (effectively off), 1 epoch, effective
-batch 64, stratified sampling by category.
+## Where to look next
 
-## What to try next (from 0.85 → 0.87+)
-
-1. **Get the full 9500-problem CoT data** — our `train_with_cot.csv` only has
-   6355 because Huikang's GitHub snapshot omits ~3000 corpus files. The full
-   set is on Kaggle as `huikang/huikang-nemotron-repository-snapshot`.
-2. **Fine-tune *on top of* the 0.85 adapter** — `training/train.py` already
-   accepts `--resume_adapter_dir` for exactly this. Start from
-   `output/huikang-baseline-converted` and continue with lr ≤ 1e-5 on fresh
-   data to avoid overwriting the conversion.
-3. **Rewrite the bit-manipulation CoT** for the ~240 problems Huikang couldn't
-   solve (combined SHL+SHR cases that overflow the 7680-token budget). Donald
-   Galliano's reverse-engineering posts on Kaggle Discussion document the
-   structure.
-4. **Rewrite the cryptarithm CoT** — Huikang gets only ~8% here, so this is
-   the single biggest absolute headroom (~+0.06 on LB if perfectly solved).
+- **[`ITERATION_REPORT.md`](ITERATION_REPORT.md)** — what was tried, with exact
+  local + Kaggle numbers. The empirical record.
+- **[`ROADMAP.md`](ROADMAP.md)** — the strategic rationale (per-category
+  headroom, why RL was the bet). Written before the RL experiments; its RL
+  predictions are superseded by the iteration report.
+- **[`RL_ARCHITECTURE.md`](RL_ARCHITECTURE.md)** — GRPO objective, KL estimator,
+  single/multi-node FSDP diagrams, the rollout/train decoupling. Read this
+  before resuming any RL work.
+- **`training/rl/README.md` / `training/rl/STATUS.md`** — module-level map of the
+  GRPO code and the gates it checks.

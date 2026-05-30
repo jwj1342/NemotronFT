@@ -2,7 +2,7 @@ compute_environment: LOCAL_MACHINE
 distributed_type: FSDP
 fsdp_config:
   fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP
-  fsdp_backward_prefetch: BACKWARD_PRE
+  fsdp_backward_prefetch: NO_PREFETCH       # was BACKWARD_PRE; double-gather (2× per-layer MoE = 5 GB) exceeded L40s headroom on Nemotron-H
   fsdp_cpu_ram_efficient_loading: true   # load shards to CPU first, avoids OOM
   fsdp_forward_prefetch: false
   fsdp_offload_params: false

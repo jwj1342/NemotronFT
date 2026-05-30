@@ -1,0 +1,22 @@
+# Stage 1: RL on equation_numeric_guess (and its sibling deduce as helper pool).
+# Goal: validate the GRPO pipeline + verify anchor non-degradation.
+# Expected duration: 8-12h on 4×L40s single node.
+
+stage_name: stage1_equation_numeric_guess
+categories: equation_numeric_guess,equation_numeric_deduce
+cap_per_cat: 0          # 0 = no cap; equation_numeric_guess has 136, deduce 596
+
+n_outer: 12             # 12 outer iters × 50 GRPO steps
+n_inner: 50
+group_size: 8
+lr: 5e-6
+beta: 0.05
+rollout_max_tokens: 7680
+rollout_temp: 1.0
+train_max_len: 8192
+
+# Submission command (single node):
+#   STAGE_NAME=stage1_equation_numeric_guess \
+#   STAGE_CATEGORIES=equation_numeric_guess,equation_numeric_deduce \
+#   N_OUTER=12 N_INNER=50 GROUP_SIZE=8 LR=5e-6 BETA=0.05 \
+#   sbatch training/rl/scripts/iter.sbatch
