@@ -1,0 +1,62 @@
+{
+ "cipher_op|nop=1": {
+  "n": 14,
+  "unique": 0,
+  "multi": 0,
+  "no_solution": 14,
+  "ns_target_unseen": 14,
+  "ns_grammar_gap": 0,
+  "grammar_true": 0,
+  "unique_eq_true": 0
+ },
+ "cipher_op|nop=2": {
+  "n": 18,
+  "unique": 2,
+  "multi": 4,
+  "no_solution": 12,
+  "ns_target_unseen": 10,
+  "ns_grammar_gap": 1,
+  "grammar_true": 5,
+  "unique_eq_true": 2
+ },
+ "cipher_op|nop=3+": {
+  "n": 7,
+  "unique": 3,
+  "multi": 0,
+  "no_solution": 4,
+  "ns_target_unseen": 3,
+  "ns_grammar_gap": 1,
+  "grammar_true": 2,
+  "unique_eq_true": 2
+ },
+ "plaintext|nop=1": {
+  "n": 45,
+  "unique": 0,
+  "multi": 3,
+  "no_solution": 42,
+  "ns_target_unseen": 42,
+  "ns_grammar_gap": 0,
+  "grammar_true": 0,
+  "unique_eq_true": 0
+ },
+ "plaintext|nop=2": {
+  "n": 31,
+  "unique": 1,
+  "multi": 7,
+  "no_solution": 23,
+  "ns_target_unseen": 20,
+  "ns_grammar_gap": 0,
+  "grammar_true": 5,
+  "unique_eq_true": 1
+ },
+ "plaintext|nop=3+": {
+  "n": 5,
+  "unique": 1,
+  "multi": 0,
+  "no_solution": 4,
+  "ns_target_unseen": 1,
+  "ns_grammar_gap": 1,
+  "grammar_true": 0,
+  "unique_eq_true": 0
+ }
+}

@@ -64,6 +64,12 @@ parser.add_argument("--lora_alpha", type=int, default=32,
 parser.add_argument("--lora_dropout", type=float, default=0.0)
 parser.add_argument("--max_length", type=int, default=8192)
 parser.add_argument("--num_epochs", type=int, default=1)
+parser.add_argument("--all_linear", action="store_true",
+                    help="Use target_modules='all-linear' (kienngx 0.86 recipe) "
+                         "instead of the explicit attn+mamba+moe+lm_head list.")
+parser.add_argument("--plain_answer", action="store_true",
+                    help="kienngx recipe: train on raw `answer` (no CoT, "
+                         "enable_thinking=False). Reads answer col, ignores generated_cot.")
 parser.add_argument("--max_steps", type=int, default=-1)
 parser.add_argument("--batch_size", type=int, default=2,
                     help="Per-device micro batch. 2 fits L40s; total = 2*8*4 = 64.")
@@ -119,6 +125,7 @@ dataset = HuikangCoTDataset(
     tokenizer=tokenizer,
     max_length=args.max_length,
     mask_prompt=True,
+    plain_answer=args.plain_answer,
 )
 if is_main:
     print(dataset.summary())
@@ -204,7 +211,11 @@ else:
         print(f"[3/5] Creating LoRA (r={args.lora_rank}, alpha={args.lora_alpha}, dropout={args.lora_dropout})")
         print(f"      target_modules covers attn + mamba (in_proj, out_proj) + MoE MLP + lm_head")
     # CRITICAL: include in_proj and out_proj for Mamba layers.
-    target_modules = [
+    # all_linear (kienngx 0.86 recipe) auto-covers every nn.Linear incl. Mamba
+    # in_proj/out_proj and per-expert up/down_proj — and produces Kaggle-format
+    # per-expert LoRA keys directly (our base model is per-expert, verified), so
+    # NO lossy Tinker→Kaggle SVD conversion is needed.
+    target_modules = "all-linear" if args.all_linear else [
         "q_proj", "k_proj", "v_proj", "o_proj",  # attention
         "in_proj", "out_proj",                   # Mamba layers
         "up_proj", "down_proj",                  # MoE expert MLPs

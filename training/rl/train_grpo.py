@@ -157,6 +157,12 @@ def main() -> None:
     ap.add_argument("--max_length", type=int, default=8192)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--log_every", type=int, default=1)
+    ap.add_argument("--tb_dir", type=str, default=None,
+                    help="TensorBoard run dir (e.g. $HOME/tensorboard_logs/bit_grpo_iter). "
+                         "Per-step scalars are written here on rank 0.")
+    ap.add_argument("--global_step_offset", type=int, default=0,
+                    help="Added to the local optimizer step for TB x-axis so a multi-"
+                         "iteration GRPO run forms one continuous curve.")
     ap.add_argument("--save_only", action="store_true",
                     help="Skip training, just resave adapter (smoke convenience).")
     ap.add_argument("--gradient_checkpointing", action="store_true", default=True)
@@ -166,6 +172,12 @@ def main() -> None:
 
     accelerator = Accelerator()
     is_main = accelerator.is_main_process
+
+    tb_writer = None
+    if is_main and args.tb_dir:
+        from torch.utils.tensorboard import SummaryWriter
+        tb_writer = SummaryWriter(log_dir=args.tb_dir)
+        print(f"[grpo] TensorBoard → {args.tb_dir} (step offset {args.global_step_offset})")
 
     if is_main:
         print("=" * 60)
@@ -425,12 +437,27 @@ def main() -> None:
                         "elapsed": elapsed,
                         **metrics,
                     })
+                    if tb_writer is not None:
+                        gstep = args.global_step_offset + step
+                        tb_writer.add_scalar("train/loss", metrics["loss"], gstep)
+                        tb_writer.add_scalar("train/pg_loss", metrics["pg_loss"], gstep)
+                        tb_writer.add_scalar("train/kl_loss", metrics["kl_loss"], gstep)
+                        tb_writer.add_scalar("train/grad_norm", float(grad_norm), gstep)
+                        tb_writer.add_scalar("train/adv_mean", metrics["adv_mean"], gstep)
+                        tb_writer.add_scalar("train/adv_std", metrics["adv_std"], gstep)
+                        tb_writer.add_scalar("train/n_resp_tokens", metrics["n_resp_tokens_mean"], gstep)
+                        # saturation proxy: seq_logp_mean → 0 means the policy is becoming
+                        # deterministic on its own samples (confidence saturating).
+                        tb_writer.add_scalar("train/seq_logp_mean", metrics["seq_logp_mean"], gstep)
+                        tb_writer.flush()
                     if not math.isfinite(metrics["loss"]):
                         if is_main:
                             print("[grpo] non-finite loss — aborting")
                         abort = True
                         break
 
+    if tb_writer is not None:
+        tb_writer.close()
     _save_adapter(accelerator, model, tokenizer, args.output_dir, progress)
 
 

@@ -16,13 +16,24 @@ the SFT scaffolding that produced our self-trained 0.76 run, grader-aligned
 evaluation tooling, a distillation pipeline (`training/opd/`), and a hand-rolled
 GRPO pipeline (`training/rl/`).
 
-**Current state (2026-05-30): handed off to an external reviewer.** This
-iteration tried three routes past 0.85 — multi-category SFT distillation, a
-programmatic cryptarithm solver, and GRPO — and all three stalled at 0.85. The
-per-experiment record (local + Kaggle remote) is in `ITERATION_REPORT.md`; the
-strategic rationale is in `ROADMAP.md`; the RL engineering reference is in
-`RL_ARCHITECTURE.md`. Those three docs + this file + `README.md` live at the
-repo root and are the handoff package. **Read `ITERATION_REPORT.md` first.**
+**Current state (2026-06-04): LB 0.86 achieved (up from 0.85).** The breakthrough
+was NOT more training — it was using a **losslessly-converted public adapter** +
+**notebook submission**. The 0.86 adapter = `kienngx/nemotron-nano-30b-trained/
+triton/tinker-adapter` = Huikang's original adapter converted via asalhi's
+`tinker_cookbook.build_lora_adapter` (lossless), vs our `convert_tinker_adapter.py`
+which loses ~25% singular mass via hand-rolled SVD → only 0.85. The 3.5GB adapter
+exceeds the ~2GB file-upload limit, so it must be submitted via a **notebook**
+(`kaggle kernels push` + `competitions submit -k <kernel> -v 1 -f submission.zip`),
+not `submit -f`. Full method in memory [[project_086_achieved]]; submitted as
+`jwj1342/nemotron-tinker-adapter-submit`.
+
+Earlier this iteration, three "train past 0.85" routes (multi-category SFT
+distillation, programmatic cryptarithm solver, GRPO) and a bit-RFT pilot all
+netted ≤0 — see `ITERATION_REPORT.md`. The lesson: 0.85→0.86 was a
+conversion/packaging fix, not a modeling problem. 0.87 (14 teams) would need
+genuinely new modeling (RL / better data / better conversion).
+Per-experiment record in `ITERATION_REPORT.md`; strategy in `ROADMAP.md`; RL
+reference in `RL_ARCHITECTURE.md`.
 
 ## Hardware + environments
 
@@ -81,6 +92,42 @@ Facts established **this iteration** (full numbers in `ITERATION_REPORT.md`):
   DSL solver gets 0/100 on it across default/wide base range and `unique=False`.
   Wrong solver family, not a missing operator — auto-generating correct CoT is
   a dead end for 84% of misses.
+- **Any hand-written solver is weaker than the model — "solver → CoT → SFT" is
+  dead (06-02).** Even with the *correct* combo framework (from Kaggle #684283),
+  the solver scores 59.9% (bit) / 39.8% (numeric_deduce) / 0% (numeric_guess) /
+  ~4% (cipher-digit) vs the model's 87.5 / 90.9 / 16.2 / 7%. Cross-tab vs the
+  baseline eval: training on solver output would teach +58 but mis-teach −500 on
+  bit. So the solvers (`training/opd/solvers/*`) are only useful as *verifiers*,
+  never as generators. Failure is under-constraint, not a bug: 77% of bit
+  failures differ by 1–2 bits, truncation is 3%. See `ITERATION_REPORT.md` §7 and
+  the memory files `project_solver_cannot_beat_model` / `project_cryptarithm_sft_ceiling`.
+- **RFT/STaR self-training was tried and gives ~0 net gain (06-03 pilot) — 0.85
+  is the framework ceiling.** pass@k looked promising (bit pass@16=70%, the model
+  self-samples correct CoT), but the bit RFT pilot netted ~0: checkpoint-5 was
+  +3 on the holdout subset, but extrapolated to the full set the recovery
+  (8.3%×200≈+17) is eaten by regression (1.4%×1402 already-correct≈−20). **Root
+  cause = prior coupling**: bit failures and successes share one ambiguous-bit
+  frequency prior, so RFT pulling failures regresses the (much larger) correct
+  set. Long-CoT SFT overfits fast (sweet spot ~0.4 epoch, then non-bit sentinel
+  collapses). All three "salvage the misses" routes (SFT-distill / solver /
+  RFT) now measure net ≤0. **+1pp needs a different framework** — a stronger
+  base adapter (none available; Huikang 0.85 is public SOTA) or inference-time
+  search (grader confirmed CLOSED: submission is a fixed adapter, single greedy
+  pass — no multi-sampling/TTT/best-of-N). Full record in `ITERATION_REPORT.md`
+  §8, `ROADMAP.md` §0″, memory [[project_recoverable_ceiling]].
+- **Methodology rule (hard-won, 3-way swing): salvageability/ceiling can ONLY be
+  judged by holdout net-gain extrapolated to the full set.** Static-solver
+  estimates (said bit unsalvageable), pass@k upper bounds (said bit +0.2~0.7pp),
+  and holdout-subset accuracy ALL systematically mislead. Each was corrected by
+  the next-stronger evidence; only the T=0 holdout three-metric eval (recover −
+  regress − sentinel-drift) was decisive.
+- **RL is technically feasible on bit (unlike cryptarithm), but unlikely to beat
+  RFT.** pass@k shows bit has T>0 diversity (pass@1=20%, nonzero reward variance
+  → GRPO has gradient), so the §"GRPO can't start" blocker is cryptarithm-only
+  (entropy collapse there). But RL faces the SAME prior-coupling limit as RFT;
+  its only possible edge is the KL anchor controlling regression more gently than
+  MLE-SFT — unverified, high engineering cost, and RFT already mapped the ceiling
+  at ~0.
 - **GRPO can't start on the Huikang adapter.** Its SFT collapsed policy entropy
   to align with the T=0 grader; at T=0.95 G=8 it emits only 1.6–1.8 distinct
   sequences/group, so intra-group advantage ≈ 0 → no gradient. The gatekeeper to

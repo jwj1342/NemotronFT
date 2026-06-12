@@ -42,10 +42,17 @@ class HuikangCoTDataset(Dataset):
         max_length: int = 8192,
         category_filter: set[str] | None = None,
         mask_prompt: bool = True,
+        plain_answer: bool = False,
     ):
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.mask_prompt = mask_prompt
+        # plain_answer: kienngx 0.86 recipe — assistant = raw answer (NO CoT, NO
+        # <think>), enable_thinking=False at train time. The base model's native
+        # reasoning (enable_thinking=True at inference) does the solving; SFT only
+        # aligns the output-format/task-distribution. Reads `answer`, ignores
+        # `generated_cot`.
+        self.plain_answer = plain_answer
 
         self.examples: list[dict] = []
         self.categories: list[str] = []
@@ -57,23 +64,31 @@ class HuikangCoTDataset(Dataset):
         with open(csv_path, newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                cot = (row.get("generated_cot") or "").strip()
-                if len(cot) < 5:
-                    skipped_empty += 1
-                    continue
-                if category_filter and row["type"] not in category_filter:
+                if category_filter and row.get("type") not in category_filter:
                     skipped_cat += 1
                     continue
 
-                cot_cleaned = _BOXED_RE.sub("", cot).rstrip()
                 user_content = row["prompt"] + PROMPT_SUFFIX
-                assistant_content = (
-                    "<think>\n" + cot_cleaned
-                    + "\n</think>\n"
-                    + "\\boxed{" + row["answer"] + "}"
-                )
-
-                input_ids, labels = self._encode(user_content, assistant_content)
+                if self.plain_answer:
+                    # kienngx recipe: assistant = raw final answer, no CoT wrapper.
+                    assistant_content = row["answer"]
+                    if not assistant_content.strip():
+                        skipped_empty += 1
+                        continue
+                    input_ids, labels = self._encode(
+                        user_content, assistant_content, enable_thinking=False)
+                else:
+                    cot = (row.get("generated_cot") or "").strip()
+                    if len(cot) < 5:
+                        skipped_empty += 1
+                        continue
+                    cot_cleaned = _BOXED_RE.sub("", cot).rstrip()
+                    assistant_content = (
+                        "<think>\n" + cot_cleaned
+                        + "\n</think>\n"
+                        + "\\boxed{" + row["answer"] + "}"
+                    )
+                    input_ids, labels = self._encode(user_content, assistant_content)
                 if len(input_ids) > max_length:
                     skipped_long += 1
                     continue
@@ -83,15 +98,17 @@ class HuikangCoTDataset(Dataset):
                     "labels": labels,
                     "attention_mask": [1] * len(input_ids),
                 })
-                self.categories.append(row["type"])
-                cat_counts[row["type"]] = cat_counts.get(row["type"], 0) + 1
+                cat = row.get("type", "plain")
+                self.categories.append(cat)
+                cat_counts[cat] = cat_counts.get(cat, 0) + 1
 
         self.cat_counts = cat_counts
         self.skipped_empty = skipped_empty
         self.skipped_long = skipped_long
         self.skipped_cat = skipped_cat
 
-    def _encode(self, user_content: str, assistant_content: str) -> tuple[list[int], list[int]]:
+    def _encode(self, user_content: str, assistant_content: str,
+                enable_thinking: bool = True) -> tuple[list[int], list[int]]:
         """Tokenize via chat template; produce labels with -100 for prompt portion."""
         # Token sequence with assistant content (full training sample)
         full_text = self.tokenizer.apply_chat_template(
@@ -101,7 +118,7 @@ class HuikangCoTDataset(Dataset):
             ],
             tokenize=False,
             add_generation_prompt=False,
-            enable_thinking=True,
+            enable_thinking=enable_thinking,
         )
         full_ids = self.tokenizer(full_text, add_special_tokens=False).input_ids
 
@@ -114,7 +131,7 @@ class HuikangCoTDataset(Dataset):
                 [{"role": "user", "content": user_content}],
                 tokenize=False,
                 add_generation_prompt=True,
-                enable_thinking=True,
+                enable_thinking=enable_thinking,
             )
             prefix_ids = self.tokenizer(prefix_text, add_special_tokens=False).input_ids
             n = len(prefix_ids)

@@ -1,0 +1,102 @@
+real crd problems: 659
+workers: 16
+real well-posed rendered+verified: 326  (not-well-posed/uncovered: 318, skipped(unbounded/degenerate): 15, fwd_fail: 0 {})
+synthetic generated: 4000
+
+==== FINAL COUNTS ====
+train rows: 4226  (synthetic 4000 + real 226)
+holdout rows: 100  (all REAL well-posed, category=cryptarithm_deduce)
+synth swap-pp: 2367  synth negative: 773
+real-train swap-pp: 83  real-train negative: 99
+
+==== TRACE-TOKEN DISTRIBUTION (cot, model tokenizer) ====
+median 629.0  p95 950  p99 1051  max 1179
+targets: median<2500 p95<4500 p99<6000 -> PASS
+
+==== SAMPLE TRACE (swap-pp) ====
+PROMPT: "In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:\nxS^g* = /Rxg\n/&eRg = ex&\nRK^*g = **g~\n*Reg/ = exS\nNow, determine the result for: &q^qg"
+ANSWER: x&*
+FACTS
+  xS^g* = /Rxg  | r-body=/Rxg len=4 pos
+  /&eRg = ex&  | r-body=x& len=2 neg
+  RK^*g = **g~  | r-body=**g~ len=4 pos
+  *Reg/ = exS  | r-body=xS len=2 neg
+  QUERY &q^qg  (op glyph '^')
+GLYPHS ops=['^', 'e']  pp-scheme to fix once (a/b/r each none|swap)
+ANCHOR
+  pick xS^g*=/Rxg (most constraining: len=4); len>=3 => ^ in mul-family; fix pp=a=n b=n r=n (the consistent global scheme)
+  try ^:=mul+1; scan operand digit-assignments whose a*b+1 matches the 4-symbol result pattern '/Rxg'
+  -> 16 seed ciphers match the anchor pattern
+  surviving candidate ciphers (16):
+    C{/=0 x=1 *=2 g=3 R=5 S=6}
+    C{/=0 x=1 g=3 *=4 R=6 S=8}
+    C{/=1 x=2 S=5 g=6 R=7 *=9}
+    C{/=1 x=2 R=3 g=4 S=7 *=9}
+    C{/=0 g=1 x=2 R=4 *=5 S=8}
+    C{/=0 g=1 x=3 S=5 R=6 *=8}
+    C{/=1 x=3 g=4 *=7 R=8 S=9}
+    C{*=1 /=2 x=4 S=5 g=6 R=7} <==
+    C{/=2 x=4 g=5 *=6 R=7 S=9}
+    C{R=0 S=2 /=4 x=5 g=7 *=8}
+    C{R=0 /=2 g=3 S=4 x=5 *=8}
+    C{R=0 /=2 g=3 x=5 *=6 S=7}
+    C{/=0 g=1 S=4 *=5 x=6 R=9}
+    C{*=1 R=2 /=3 S=4 g=5 x=6}
+    C{S=2 *=3 /=5 g=7 x=8 R=9}
+    C{*=4 R=5 /=6 g=7 x=8 S=9}
+  keep C{*=1 /=2 x=4 S=5 g=6 R=7} (only one survives every later fact)
+PROP
+  RK^*g=**g~: op=mul+1 a=73 b=16 a*b+1=1169 ->**g~=1169  pin K=3 ~=9
+  /&eRg=ex&: op=sub a=28 b=76 a-b=-48 ->x&=48  [glyph 'e':=sub]  pin &=8
+  *Reg/=exS: op=sub a=17 b=62 a-b=-45 ->xS=45
+  cipher 9/10 filled -> last symbol forced: q=0
+LOCK
+  op-map ^:mul+1 e:sub
+  cipher {q=0 *=1 /=2 K=3 x=4 S=5 g=6 R=7 &=8 ~=9}
+  pp a=n b=n r=n
+APPLY
+  query &q^qg: glyph '^'->mul+1; a=80 b=06; a*b+1=481
+  encode digits->symbols: 481->x&*
+  answer = x&*
+\boxed{x&*}
+
+==== SAMPLE TRACE (negative result) ====
+PROMPT: "In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:\neTd&g = yTeW\negDTg = DB#\n&!dBg = rTe&\ngeDgB = Dr\n&WdBg = r&Te\nNow, determine the result for: eBDrB"
+ANSWER: Dy#
+FACTS
+  eTd&g = yTeW  | r-body=yTeW len=4 pos
+  egDTg = DB#  | r-body=B# len=2 neg
+  &!dBg = rTe&  | r-body=rTe& len=4 pos
+  geDgB = Dr  | r-body=r len=1 neg
+  &WdBg = r&Te  | r-body=r&Te len=4 pos
+  QUERY eBDrB  (op glyph 'D')
+GLYPHS ops=['D', 'd']  pp-scheme to fix once (a/b/r each none|swap)
+ANCHOR
+  pick eTd&g=yTeW (most constraining: len=4); len>=3 => d in mul-family; fix pp=a=n b=n r=n (the consistent global scheme)
+  try d:=mul; scan operand digit-assignments whose a*b matches the 4-symbol result pattern 'yTeW'
+  -> 9 seed ciphers match the anchor pattern
+  surviving candidate ciphers (9):
+    C{y=0 e=1 W=2 &=4 g=8 T=9}
+    C{y=1 e=2 g=4 &=6 T=7 W=8} <==
+    C{W=0 y=1 e=2 g=5 &=6 T=8}
+    C{y=0 &=2 e=3 g=4 W=6 T=9}
+    C{y=1 &=2 T=4 e=5 g=7 W=8}
+    C{y=1 g=2 &=3 e=5 W=6 T=8}
+    C{W=0 y=1 &=2 g=4 T=5 e=6}
+    C{y=2 g=3 &=4 e=6 W=7 T=9}
+    C{g=2 y=4 e=6 &=7 W=8 T=9}
+  keep C{y=1 e=2 g=4 &=6 T=7 W=8} (only one survives every later fact)
+PROP
+  &!dBg=rTe&: op=mul a=69 b=54 a*b=3726 ->rTe&=3726  pin !=9 B=5 r=3
+  &WdBg=r&Te: op=mul a=68 b=54 a*b=3672 ->r&Te=3672
+  egDTg=DB#: op=sub a=24 b=74 a-b=-50 ->B#=50  [glyph 'D':=sub]  pin #=0
+  geDgB=Dr: op=sub a=42 b=45 a-b=-3 ->r=3
+LOCK
+  op-map D:sub d:mul
+  cipher {#=0 y=1 e=2 r=3 g=4 B=5 &=6 T=7 W=8 !=9}
+  pp a=n b=n r=n
+APPLY
+  query eBDrB: glyph 'D'->sub; a=25 b=35; a-b=-10
+  encode digits->symbols: 10->y#; negative sign 'D'
+  answer = Dy#
+\boxed{Dy#}

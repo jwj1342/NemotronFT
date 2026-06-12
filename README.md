@@ -3,12 +3,18 @@
 Fine-tuning **`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16`** for the [NVIDIA
 Nemotron Model Reasoning Challenge](https://www.kaggle.com/competitions/nvidia-nemotron-model-reasoning-challenge).
 
-> **Handoff note (2026-05-30).** This repo is being handed to an external
-> reviewer to drive forward. The strong baseline is **LB 0.85**. This iteration
-> explored three routes to push past it — multi-category SFT distillation,
-> a programmatic cryptarithm solver, and hand-rolled GRPO — and **all three
-> stalled at 0.85**. The "why", with exact per-experiment numbers, is in
-> **[`ITERATION_REPORT.md`](ITERATION_REPORT.md)**. Read that first.
+> **Handoff note (updated 2026-06-02).** The strong baseline is **LB 0.85**.
+> Across two iterations, four routes to push past it have been tried and
+> falsified: multi-category SFT distillation, a programmatic cryptarithm solver,
+> hand-rolled GRPO (all 05-30), and a stronger combo-framework solver (06-02).
+> The 06-02 work **quantitatively proved that any hand-written symbolic solver is
+> weaker than the model itself on every sub-task**, so "weak solver → generate
+> CoT → SFT" is necessarily negative transfer. A literature scan then pointed to
+> a route that sidesteps this: **answer-filtered self-training (RFT/STaR)** — the
+> model is its own (strongest) generator. The current plan is in
+> **[`ROADMAP.md`](ROADMAP.md)**; the empirical record is in
+> **[`ITERATION_REPORT.md`](ITERATION_REPORT.md)** (read §7 for 06-02). Read the
+> iteration report first.
 
 ## Status at a glance
 
@@ -62,12 +68,23 @@ Full numbers in [`ITERATION_REPORT.md`](ITERATION_REPORT.md); one-line each:
    gradient. Huikang's SFT compressed policy entropy to align with the T=0
    grader, which is exactly what GRPO needs and doesn't have.
 
-**Takeaway**: cryptarithm is a double wall — the teacher models barely do it
-(~25–30%, low distillation ceiling) *and* each puzzle is an independent random
-cipher (memorization can't generalize). No public team exceeds ~0.87; 0.90+ has
-never appeared. The remaining unexplored lever is **inference-time search**
-(best-of-N + verifier rerank, self-consistency, search-then-distill) or a
-**different RL starting policy** (base model, not the entropy-collapsed adapter).
+5. **Stronger combo-framework solver** (06-02) → quantitatively falsified the
+   whole "solver → CoT → SFT" route. The hand-written solver scores 59.9% (bit) /
+   39.8% (numeric_deduce) / 0% (numeric_guess) vs the model's 87.5 / 90.9 / 16.2%;
+   a cross-tab shows training on its output would teach +58 but mis-teach −500 on
+   bit. Failure is **under-constraint, not a fixable bug**: 77% of bit failures
+   differ by only 1–2 bits (ambiguous-bit guesses), truncation is just 3%.
+
+**Takeaway**: the model is already a stronger solver than anything we can quickly
+hand-write, and most remaining failures are information-theoretically
+under-constrained (the model guesses by a learned frequency prior). The route the
+literature supports — and that sidesteps the negative-transfer trap — is
+**answer-filtered self-training (RFT/STaR/ReST-EM)**: the model generates its own
+CoT, keep only answer-correct + example-consistent chains (the solvers become
+*verifiers*, not generators), fine-tune, iterate. See [`ROADMAP.md`](ROADMAP.md)
+§3 for the ranked plan and the literature. The single highest-leverage open
+question is whether the grader permits any inference-time backprop or
+multi-sampling (would unlock TTT / best-of-N).
 
 ## Why 0.85 needs SVD conversion
 
@@ -93,7 +110,7 @@ All three are in `training/convert_tinker_adapter.py`.
 NemotronFT/
 ├── README.md                     # this file — start here
 ├── ITERATION_REPORT.md           # per-experiment results (local + Kaggle remote)
-├── ROADMAP.md                    # strategy / per-category analysis (the original RL bet)
+├── ROADMAP.md                    # current plan: falsified-solver finding + RFT/STaR routes (RL bet in §8 appendix)
 ├── RL_ARCHITECTURE.md            # GRPO math + single/multi-node FSDP reference
 ├── CLAUDE.md                     # operating context for Claude Code
 ├── training/
@@ -191,12 +208,12 @@ Other recipe constants (from the published 0.81 Unsloth notebook): LoRA
 ## Where to look next
 
 - **[`ITERATION_REPORT.md`](ITERATION_REPORT.md)** — what was tried, with exact
-  local + Kaggle numbers. The empirical record.
-- **[`ROADMAP.md`](ROADMAP.md)** — the strategic rationale (per-category
-  headroom, why RL was the bet). Written before the RL experiments; its RL
-  predictions are superseded by the iteration report.
+  local + Kaggle numbers. The empirical record (read §7 for the 06-02 work).
+- **[`ROADMAP.md`](ROADMAP.md)** — the **current** plan: the falsified-solver
+  finding, the literature-backed routes (RFT/STaR self-training, program-synthesis
+  as offline generator, TTT), ranked by ROL. The old RL strategy is kept as a
+  historical appendix (§8).
 - **[`RL_ARCHITECTURE.md`](RL_ARCHITECTURE.md)** — GRPO objective, KL estimator,
-  single/multi-node FSDP diagrams, the rollout/train decoupling. Read this
-  before resuming any RL work.
-- **`training/rl/README.md` / `training/rl/STATUS.md`** — module-level map of the
-  GRPO code and the gates it checks.
+  single/multi-node FSDP diagrams, the rollout/train decoupling. RL is on hold,
+  but this is the reference if RFT reuses the rollout infrastructure.
+- **`training/rl/README.md`** — module-level map of the GRPO/rollout code.
