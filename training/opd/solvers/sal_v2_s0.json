@@ -1,0 +1,1235 @@
+{
+ "cryptarithm_deduce": {
+  "n": 100,
+  "buckets": {
+   "unique": 5,
+   "multi": 12,
+   "no_solution": 83,
+   "parse_fail": 0,
+   "op_novel_guess": 0,
+   "single_example_op": 48,
+   "ns_grammar_gap": 2,
+   "ns_target_symbol_unseen": 75,
+   "timed_out_unresolved": 2,
+   "unique_eq_true": 4
+  },
+  "by_nop": {
+   "3": {
+    "unique": 2,
+    "multi": 0,
+    "no_solution": 6,
+    "grammar_true": 1
+   },
+   "2": {
+    "unique": 3,
+    "multi": 10,
+    "no_solution": 30,
+    "grammar_true": 9
+   },
+   "1": {
+    "unique": 0,
+    "multi": 2,
+    "no_solution": 46,
+    "grammar_true": 0
+   },
+   "4": {
+    "unique": 0,
+    "multi": 0,
+    "no_solution": 1,
+    "grammar_true": 0
+   }
+  },
+  "grammar_hits_true": 10,
+  "prior_applicable": 3,
+  "prior_correct": 0,
+  "detail": [
+   {
+    "n_op": 3,
+    "id": "7d9ff0d2",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "("
+   },
+   {
+    "n_op": 2,
+    "id": "a3da3c48",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\\$"
+   },
+   {
+    "n_op": 1,
+    "id": "31051ff2",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "||"
+   },
+   {
+    "n_op": 2,
+    "id": "36d2d728",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\"(]("
+   },
+   {
+    "n_op": 2,
+    "id": "46fcfa9c",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-@?"
+   },
+   {
+    "n_op": 2,
+    "id": "df1e3788",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ">^>"
+   },
+   {
+    "n_op": 2,
+    "id": "39c237c7",
+    "ndistinct": 2,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 2,
+    "best_combo": [
+     "AB_CD",
+     "cat_lr",
+     "raw"
+    ],
+    "best_combo_answer": "]``",
+    "true": "{]``"
+   },
+   {
+    "n_op": 2,
+    "id": "899e9abc",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "[\""
+   },
+   {
+    "n_op": 2,
+    "id": "7681df4d",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "<"
+   },
+   {
+    "n_op": 4,
+    "id": "ec92f091",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "</"
+   },
+   {
+    "n_op": 2,
+    "id": "60f55291",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "/\\|?"
+   },
+   {
+    "n_op": 1,
+    "id": "e776562e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "@\\%"
+   },
+   {
+    "n_op": 2,
+    "id": "3cb3fd89",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "[[&]"
+   },
+   {
+    "n_op": 1,
+    "id": "35a562bd",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "(%(?"
+   },
+   {
+    "n_op": 1,
+    "id": "6d87d164",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "'["
+   },
+   {
+    "n_op": 2,
+    "id": "10552d46",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "?'"
+   },
+   {
+    "n_op": 1,
+    "id": "f29193ea",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "@%^"
+   },
+   {
+    "n_op": 1,
+    "id": "8a1bdd48",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`\\&["
+   },
+   {
+    "n_op": 2,
+    "id": "52395e9a",
+    "ndistinct": 1,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "BA_DC",
+     "mul",
+     "rev"
+    ],
+    "best_combo_answer": "#!%\\",
+    "true": "#!%\\"
+   },
+   {
+    "n_op": 1,
+    "id": "d350828e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "}!||"
+   },
+   {
+    "n_op": 1,
+    "id": "06083e68",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":::"
+   },
+   {
+    "n_op": 1,
+    "id": "f3ce6fa4",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\"{"
+   },
+   {
+    "n_op": 2,
+    "id": "0e2d6796",
+    "ndistinct": 3,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 2,
+    "best_combo": [
+     "BA_DC",
+     "add",
+     "rev"
+    ],
+    "best_combo_answer": null,
+    "true": "|)]"
+   },
+   {
+    "n_op": 1,
+    "id": "a3183159",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`{"
+   },
+   {
+    "n_op": 3,
+    "id": "acf8c11f",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\"'"
+   },
+   {
+    "n_op": 1,
+    "id": "94367b1d",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "|'"
+   },
+   {
+    "n_op": 2,
+    "id": "0e009c6d",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`?\\!"
+   },
+   {
+    "n_op": 1,
+    "id": "7138d71a",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\\"
+   },
+   {
+    "n_op": 1,
+    "id": "948e5474",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-&"
+   },
+   {
+    "n_op": 2,
+    "id": "1785b35e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":^:/"
+   },
+   {
+    "n_op": 2,
+    "id": "d73ef5bf",
+    "ndistinct": 10,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 2,
+    "best_combo": [
+     "AB_CD",
+     "mul",
+     "raw"
+    ],
+    "best_combo_answer": ")|/",
+    "true": "\\(|"
+   },
+   {
+    "n_op": 2,
+    "id": "8193e7e0",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "??{`"
+   },
+   {
+    "n_op": 3,
+    "id": "3559dfc9",
+    "ndistinct": 1,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "AB_CD",
+     "addm1",
+     "raw"
+    ],
+    "best_combo_answer": "[|[",
+    "true": "[%["
+   },
+   {
+    "n_op": 2,
+    "id": "3ef9ab02",
+    "ndistinct": 60,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 6,
+    "best_combo": [
+     "BA_DC",
+     "add",
+     "rev"
+    ],
+    "best_combo_answer": null,
+    "true": "-%]"
+   },
+   {
+    "n_op": 3,
+    "id": "f2a25cf9",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":!"
+   },
+   {
+    "n_op": 1,
+    "id": "1342687b",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "<%#<"
+   },
+   {
+    "n_op": 2,
+    "id": "196ff375",
+    "ndistinct": 2,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "AB_CD",
+     "add",
+     "raw"
+    ],
+    "best_combo_answer": null,
+    "true": "@@@"
+   },
+   {
+    "n_op": 1,
+    "id": "f3c73290",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`[$"
+   },
+   {
+    "n_op": 1,
+    "id": "923ac2b5",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "#'<@"
+   },
+   {
+    "n_op": 1,
+    "id": "94e41495",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-|"
+   },
+   {
+    "n_op": 1,
+    "id": "da2998b6",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-?|"
+   },
+   {
+    "n_op": 1,
+    "id": "28827821",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "}|^"
+   },
+   {
+    "n_op": 1,
+    "id": "c934ffa1",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "||"
+   },
+   {
+    "n_op": 3,
+    "id": "ebc56423",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-(`"
+   },
+   {
+    "n_op": 3,
+    "id": "5186f2d7",
+    "ndistinct": 1,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "BA_DC",
+     "mul",
+     "rev"
+    ],
+    "best_combo_answer": "\\?!$",
+    "true": "\\?!$"
+   },
+   {
+    "n_op": 2,
+    "id": "9a4f2f47",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "('^"
+   },
+   {
+    "n_op": 1,
+    "id": "d23f4166",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "{|)@"
+   },
+   {
+    "n_op": 1,
+    "id": "f06547b1",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "[%\""
+   },
+   {
+    "n_op": 3,
+    "id": "4bfd095a",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "{<<<"
+   },
+   {
+    "n_op": 2,
+    "id": "49f6ba46",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "``"
+   },
+   {
+    "n_op": 2,
+    "id": "f9a33aa1",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "/((`"
+   },
+   {
+    "n_op": 2,
+    "id": "321ef6ba",
+    "ndistinct": 1,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "BA_DC",
+     "mul",
+     "rev"
+    ],
+    "best_combo_answer": "\"\"::",
+    "true": "\"\"::"
+   },
+   {
+    "n_op": 2,
+    "id": "bd01bfeb",
+    "ndistinct": 8,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 2,
+    "best_combo": [
+     "AB_CD",
+     "mul",
+     "raw"
+    ],
+    "best_combo_answer": null,
+    "true": "&^"
+   },
+   {
+    "n_op": 2,
+    "id": "c8b57f1d",
+    "ndistinct": 12,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 3,
+    "best_combo": [
+     "BA_DC",
+     "add",
+     "rev"
+    ],
+    "best_combo_answer": null,
+    "true": "\")"
+   },
+   {
+    "n_op": 2,
+    "id": "a692ec38",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "/\"}"
+   },
+   {
+    "n_op": 1,
+    "id": "64553a64",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "}#'"
+   },
+   {
+    "n_op": 1,
+    "id": "86ccbdf7",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":|"
+   },
+   {
+    "n_op": 1,
+    "id": "c9463bb4",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ")!!!"
+   },
+   {
+    "n_op": 2,
+    "id": "022c4d73",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "!'"
+   },
+   {
+    "n_op": 1,
+    "id": "9ae663c3",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":"
+   },
+   {
+    "n_op": 2,
+    "id": "d129b085",
+    "ndistinct": 10,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 4,
+    "best_combo": [
+     "BA_DC",
+     "mul",
+     "rev"
+    ],
+    "best_combo_answer": "!!#!",
+    "true": "##$"
+   },
+   {
+    "n_op": 1,
+    "id": "1d10ccaf",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "<({&"
+   },
+   {
+    "n_op": 1,
+    "id": "465a990c",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":"
+   },
+   {
+    "n_op": 1,
+    "id": "8090718b",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":/^?"
+   },
+   {
+    "n_op": 2,
+    "id": "7db5c1af",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "'@:"
+   },
+   {
+    "n_op": 1,
+    "id": "91e9dc52",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "$#)#"
+   },
+   {
+    "n_op": 1,
+    "id": "17d62f7a",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "?|:|"
+   },
+   {
+    "n_op": 1,
+    "id": "a610040a",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":(|:"
+   },
+   {
+    "n_op": 1,
+    "id": "71310176",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":]{"
+   },
+   {
+    "n_op": 1,
+    "id": "52f499f4",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "$[^%"
+   },
+   {
+    "n_op": 1,
+    "id": "8fdf7ccf",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "<$$%"
+   },
+   {
+    "n_op": 2,
+    "id": "a1220274",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "&`{^"
+   },
+   {
+    "n_op": 2,
+    "id": "0b0a3643",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\"\""
+   },
+   {
+    "n_op": 2,
+    "id": "58eadc55",
+    "ndistinct": 3,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "AB_CD",
+     "add",
+     "raw"
+    ],
+    "best_combo_answer": null,
+    "true": "!#"
+   },
+   {
+    "n_op": 1,
+    "id": "cf2a4028",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "!\"{{"
+   },
+   {
+    "n_op": 2,
+    "id": "035c4c40",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "??"
+   },
+   {
+    "n_op": 1,
+    "id": "78002bf2",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":"
+   },
+   {
+    "n_op": 1,
+    "id": "6fcbf5fd",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "^`("
+   },
+   {
+    "n_op": 1,
+    "id": "a9aa6c6e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "^</"
+   },
+   {
+    "n_op": 2,
+    "id": "424b50d1",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "/]|&"
+   },
+   {
+    "n_op": 2,
+    "id": "466ad340",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-#$"
+   },
+   {
+    "n_op": 3,
+    "id": "f01f112b",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "$^>"
+   },
+   {
+    "n_op": 1,
+    "id": "191ac967",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "!>"
+   },
+   {
+    "n_op": 2,
+    "id": "baab28bb",
+    "ndistinct": 27,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 2,
+    "best_combo": [
+     "AB_CD",
+     "sub_lr",
+     "raw"
+    ],
+    "best_combo_answer": null,
+    "true": "#!"
+   },
+   {
+    "n_op": 2,
+    "id": "9081e954",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "}{#"
+   },
+   {
+    "n_op": 1,
+    "id": "7dbaea4b",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "[)"
+   },
+   {
+    "n_op": 1,
+    "id": "d250fcc5",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "<%"
+   },
+   {
+    "n_op": 1,
+    "id": "0d90736f",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": ":"
+   },
+   {
+    "n_op": 2,
+    "id": "802c3591",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`\"\"\""
+   },
+   {
+    "n_op": 2,
+    "id": "eb354353",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "\\%<%"
+   },
+   {
+    "n_op": 2,
+    "id": "7d279557",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "::#"
+   },
+   {
+    "n_op": 1,
+    "id": "75c8715e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "`^$)"
+   },
+   {
+    "n_op": 1,
+    "id": "56ac76c6",
+    "ndistinct": 67,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 9,
+    "best_combo": [
+     "BA_DC",
+     "add",
+     "rev"
+    ],
+    "best_combo_answer": null,
+    "true": ">&{"
+   },
+   {
+    "n_op": 2,
+    "id": "c87d761a",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "'`("
+   },
+   {
+    "n_op": 1,
+    "id": "d600988d",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-<|"
+   },
+   {
+    "n_op": 2,
+    "id": "96115336",
+    "ndistinct": 1,
+    "grammar_true": true,
+    "true_in_distinct": true,
+    "n_solving_combos": 1,
+    "best_combo": [
+     "AB_CD",
+     "mul",
+     "raw"
+    ],
+    "best_combo_answer": "@!<<",
+    "true": "@!<<"
+   },
+   {
+    "n_op": 1,
+    "id": "712fe3e4",
+    "ndistinct": 81,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 6,
+    "best_combo": [
+     "BA_DC",
+     "mul",
+     "rev"
+    ],
+    "best_combo_answer": null,
+    "true": ":#$#"
+   },
+   {
+    "n_op": 1,
+    "id": "64c53621",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "&>'$"
+   },
+   {
+    "n_op": 2,
+    "id": "787a1344",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "-[\\"
+   },
+   {
+    "n_op": 2,
+    "id": "234e5b9e",
+    "ndistinct": 0,
+    "grammar_true": false,
+    "true_in_distinct": false,
+    "n_solving_combos": 0,
+    "best_combo": null,
+    "best_combo_answer": null,
+    "true": "$]|&"
+   }
+  ]
+ },
+ "cryptarithm_guess": {
+  "n": 100,
+  "buckets": {
+   "unique": 0,
+   "multi": 0,
+   "no_solution": 0,
+   "parse_fail": 0,
+   "op_novel_guess": 100,
+   "single_example_op": 0,
+   "ns_grammar_gap": 0,
+   "ns_target_symbol_unseen": 0,
+   "timed_out_unresolved": 0
+  },
+  "by_nop": {},
+  "grammar_hits_true": 0,
+  "prior_applicable": 0,
+  "prior_correct": 0,
+  "detail": []
+ }
+}

@@ -2,9 +2,9 @@ compute_environment: LOCAL_MACHINE
 distributed_type: FSDP
 fsdp_config:
   fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP
-  fsdp_backward_prefetch: NO_PREFETCH
+  fsdp_backward_prefetch: NO_PREFETCH    # reverted: matches the proven-healthy 0.85 iter-0 config (net +1)
   fsdp_cpu_ram_efficient_loading: true
-  fsdp_forward_prefetch: false
+  fsdp_forward_prefetch: false           # reverted alongside; re-test in isolation later if the speedup is wanted
   fsdp_offload_params: false
   fsdp_sharding_strategy: FULL_SHARD
   fsdp_state_dict_type: FULL_STATE_DICT

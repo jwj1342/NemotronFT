@@ -1,9 +1,10 @@
 # OPD 迭代报告（`opd` 分支）
 
-> 记录区间：2026-05-13 → 2026-05-30。
+> 记录区间：2026-05-13 → 2026-06-02。
 > 起点 = `output/huikang-baseline-converted/`（公开 LB **0.85**，9500 自评 **87.79%**）。
 > 目标 = 把弱类目（cryptarithm + equation_numeric_guess）拉起来，LB 突破 0.85。
-> **本轮结论：三次有效提交全部停在 0.85，SFT 蒸馏与定制 solver 两条路被实验证伪，GRPO 在 Huikang 适配器上因策略熵塌缩无法启动。详见下文。**
+> **05-30 结论：三次有效提交全部停在 0.85，SFT 蒸馏与定制 solver 两条路被实验证伪，GRPO 在 Huikang 适配器上因策略熵塌缩无法启动。**
+> **06-02 续（§7）：用更强的组合框架求解器再试一次，量化证伪了「手写求解器生成 CoT → SFT」整条路线（求解器全线弱于模型），并经文献调研转向 RFT/STaR 自训练。详见 §7 与 `ROADMAP.md`。**
 
 ---
 
@@ -162,3 +163,130 @@ Codex 拍板：**停掉在 Huikang 适配器上的 vanilla GRPO**。若仍要给
 - **training/rl/**：完整手搓 GRPO 流水线（pool/rollout/reward/ref_policy/grpo_loss/train_grpo/utils）+ configs + scripts（smoke v3–v8、多节点、hot/hard-pool 构建）+ README/STATUS。
 - **training/opd/**：蒸馏与诊断工具——trace pool 构建、merge、canary、F-bucket 诊断（`solvers/f_diagnostic*`）、未解聚类（`solvers/cluster_unsolved.py`）、扩展 solver、CoT 模板/生成。Kaggle 提交脚本已脱敏（token 改读环境变量 `KAGGLE_API_TOKEN`）。
 - **docs/**：`路线图.md`（策略）、`RL架构指南.md`（GRPO 数学 + 架构）、本报告。
+
+---
+
+## 7. 2026-06-02 续：求解器路线证伪 + 文献调研转向
+
+**动机**：Kaggle 讨论 #684283（用户 Donald Galliano）公布了一套与我们旧 DSL 不同的求解器
+框架——把 cipher/symbol-digit 题建模为 `AB<op>CD` 的「4 种数字排列 × ~14 运算 × ~14 输出格式」
+频率排序枚举（不是旧的 letter→digit 约束求解）。这是**对的求解器家族**（旧 DSL 在 F 簇 0/100，
+正因家族选错）。本轮用它再试一次「求解器造 CoT → SFT」，但结果是更彻底的证伪。
+
+### Exp 7 — cipher-digit 答案引导求解器
+- 实现 `training/opd/solvers/{symbol_digit_solver,cipher_digit_solver,cipher_cot_builder}.py`。
+- 关键 bug 修复：例子需按**问题的运算符**过滤（每个运算符规则独立），运算符取自 question
+  位置 2（非第一个例子）。修正后 numeric 求解率 3.6%→32.4%。
+- **答案引导**生成器（用已知答案反推密码映射）在 equation_symbolic 上解出 42%（319/823），
+  0.1s/题。但纯无答案求解器只有 ~4%、6.5s/题。
+
+### Exp 8 — 忠实性检查（否定结论）⭐
+对 319 条答案引导 cipher CoT 做两个独立的忠实性检查：
+| 检查 | 真正可学 | 欠约束/泄漏 |
+|---|---|---|
+| 符号覆盖（question+answer 符号是否都在样例出现） | 38/319 (12%) | 281 (88%) |
+| 纯样例求解器一致性（不给答案能否解出且一致） | **13/319 (4%)** | 290 (91%) + **16 题解出不同答案（多解）** |
+
+- **判定**：答案引导 CoT 88% 含样例推不出的符号 → 教模型在欠约束题上自信幻觉，T=0 下最糟。
+  那 16 题多解直接证明欠约束是信息论性质，非求解器弱。详见 memory `project_cryptarithm_sft_ceiling`。
+
+### Exp 9 — 求解器 vs 模型交叉表（决定性证伪）⭐⭐
+写了 bit 频率先验加权投票求解器（`bit_solver_v2.py`，先验从 600 道做对的题统计：identity 42%
+/CONST 14%/AND-XOR-OR-XNOR-NOT 次之）。逐类别对比求解器与模型准确率：
+
+| 类别 | 手写求解器 | 模型 | 用求解器输出 SFT |
+|---|---|---|---|
+| bit_manipulation | 59.9% (960/1602) | 87.5% | 能教 +58 / **会教错 −500** |
+| equation_numeric_deduce | 39.8% | 90.9% | +2 / **−307** |
+| equation_numeric_guess | 0% | 16.2% | 0 / −22 |
+| cipher-digit | ~4% | 7% | — |
+
+- **判定**：模型已比我们能手写的任何符号求解器都强。「弱求解器生成 CoT → SFT」必然净负迁移
+  ——这是 opd-v1/v2 停在 0.85 的统一根因。详见 memory `project_solver_cannot_beat_model`。
+
+### Exp 10 — 失败模式诊断
+- 截断（num_tokens≥7600）仅占失败的 **3%** → 失败不是长度/格式问题。
+- bit 失败题 **154/200（77%）只差 1-2 个 bit**（歧义位猜错）；bit「全 8 位唯一确定」仅 2%。
+- **判定**：失败本质是欠约束，模型在歧义位按最优先验猜，信息论上无法系统修复。
+
+### Exp 11 — 文献调研（转向依据）
+深度文献调研（27 篇主要文献、对抗验证 24 条断言）指向新方向，完整论文清单与 ROI 排序见
+`ROADMAP.md` §3、§7。要点：
+- **答案过滤的自训练（STaR/RFT/ReST-EM/V-STaR）是首选**——模型自己生成 CoT、答案过滤、再训
+  自己，绕过「弱求解器→负迁移」死结（生成器即模型本身）。收益来自 distinct 正确路径数量
+  （非采样量），过滤要用多样例（45.4% 单样例假阳性）。
+- 程序合成（Hypothesis Search/induction）做**离线**数据生成器；求解器降级为**验证器**。
+- TTT 高天花板但受 grader 约束，待确认 grader 是否允许推理时反传/多采样（最高杠杆待确认项）。
+
+### 本轮工件
+- `training/opd/solvers/`：`symbol_digit_solver.py`、`cipher_digit_solver.py`、
+  `cipher_cot_builder.py`（答案引导）、`bit_solver.py`、`bit_solver_v2.py`（频率先验投票）。
+  **注**：这些作为**验证器**（路线 A 的忠实性过滤）仍有用；作为**生成器**已证伪。
+- `training/opd/{gen_cipher_cot.py,build_v3_dataset.py,gen_cot_data.sbatch}` 与
+  `training/train_cot_v3.csv`、`training/train_v3.sbatch`：基于已证伪路线的产物，**未提交训练**
+  （证伪后主动中止，未烧 GPU/配额）。保留作为路线 A 验证器代码的来源，可按需清理。
+
+---
+
+## 8. 2026-06-03：bit RFT/STaR 自训练 pilot（pass@k 翻案 → 实证净增 ~0）
+
+接 §7（求解器证伪）。文献调研指向 RFT/STaR（模型自采 CoT、答案过滤、SFT 自己），先做 pass@k
+探针实证可救空间，再 pilot 验证。**结论：bit 经 pass@k 看似可救（70%），但 RFT 实际净增 ~0
+——回归吃掉恢复，是先验耦合的结构性限制。0.85 确认为当前框架天花板。**
+
+### Exp 12 — pass@k 探针（推翻"bit 不可救"，但只是看似）
+Huikang adapter 对各类失败题 T=0.9 n=16 采样（每类 50 题）：
+
+| 类别 | pass@16 | pass@1 | 解读 |
+|---|---|---|---|
+| bit_manipulation | **0.70** | 0.207 | 70% 失败题能采到正确答案 → 看似能力受限可救 |
+| equation_numeric_guess | 0.00 | 0 | 死类（采 16 次一次不对，RFT 无可挖）|
+| cryptarithm_deduce | 0.00 | 0 | 死类 |
+| cryptarithm_guess | 0.00 | 0 | 死类 |
+
+- bit 推翻 §7/早间诊断基于**静态求解器**的"bit 不可救/净救+3"——求解器看不到模型 T>0 的能力。
+- 全 140 bit 失败题 PROBE（G=16 T=1.0）：pass@1=0.242，过滤后 **262 distinct 正确 CoT / 89 题**。
+
+### Exp 13 — bit RFT pilot（PROBE → FILTER → train → eval）
+- **make_holdout**：bit 切 train(140 失败+1262 已对)/holdout(60 失败+140 已对)，反泄漏断言通过。
+- **FILTER**（rft_pipeline）：gate1 答案对（丢 1697 错）+ gate2（bit 用 WEAK，不让弱求解器误杀）
+  + 去重 ≤4/题 → 262 CoT。
+- **训练集** 825 行（262 bit 恢复 + 263 bit anchor + 300 非 bit anchor），bit token 占 84%。
+- **pilot**：resume Huikang、lr=5e-5、3 epoch（长 CoT 每步 ~15min，4h 超时停在 ~step16）、save_steps=5。
+  输出 output/rft-r0-pilot（**原 Huikang 0.85 adapter 完好未动，可回滚**）。
+- **EVAL**（eval_holdout_rft.py）：baseline + 每 checkpoint 同口径 **T=0 重跑** holdout+sentinel
+  （150 非 bit 已对题），绕过被污染的 predicted 字段。
+
+### 结果（决定性，baseline holdout_acc=0.71）
+| checkpoint | bit 恢复 | bit 回归 | sentinel 漂移 | 净增 | holdout_acc |
+|---|---|---|---|---|---|
+| **checkpoint-5** (~0.4ep) | 5 | 2 | 0 | **+3** | 0.72 |
+| checkpoint-10 | 8 | 11 | 2 | −5 | 0.69 |
+| checkpoint-15 | 9 | 11 | 15 | −17 | 0.70 |
+
+- checkpoint-5 是甜点（holdout 净 +3）；训练稍多即过拟合崩盘（**sentinel 漂移 0→2→15**）。
+- **外推全集**：恢复率 5/60=8.3%×200≈**+17**，回归率 2/140=1.4%×**1402**≈**−20** → bit 净≈**−3**；
+  整体净 ≈ **0 或微负**。**不值得提交**（LB 大概率仍 0.85）。
+
+### 根因与方法论教训
+1. **pass@k 高 ≠ RFT 能净增**：正确 CoT 存在于采样分布，不代表能无副作用提取出来。
+2. **先验耦合（核心）**：bit 失败题与已对题共享同一套歧义位频率先验，RFT 把失败题的 gate 选择
+   往正确拉时，不可避免地动了已对题用的同一先验 → 修一个坏一个。**已对基数大（1402）时，
+   1.4% 回归率的绝对数（20）吃掉 8.3% 恢复（17）。** 这是结构性的，非调参能根本解决。
+3. **长 CoT 专项 SFT 过拟合极快**：甜点在 ~0.4 epoch，之后非 bit 全局漂移崩盘。
+4. **验证天花板的正确指标 = holdout 净收益外推全集**，不是 pass@k、不是 holdout 子集 acc、
+   更不是 train loss（loss 一路降，但 holdout 净收益早就转负）。frequent checkpoint + T=0
+   holdout 净收益选点是唯一可靠的门。
+
+### RL 可行性修正（与 §6 GRPO 对照，关乎"是否回头试 RL"）
+§6 记 GRPO 死在 cryptarithm（策略熵塌缩，distinct 1.6–1.8，无梯度）。但 pass@k 显示 **bit 不同**：
+T=0.9 下 pass@1=20%、distinct-correct 多 → bit 在 T>0 **有探索多样性**，G=16 组内有正有负、
+reward 方差非零 → GRPO advantage 非零、**有梯度**。即 **RL（GRPO）在 bit 上技术可行**（不像
+cryptarithm 那样无法启动）。但 RL 面临与 RFT **完全相同的先验耦合限制**——在 bit 失败题上做
+policy-gradient 同样会动 bit 已对题的先验。RL 唯一可能的优势是 KL anchor 比 MLE-SFT 更温和地
+控制回归（β 限制偏离 ref policy）——但这是未验证的希望，且 GRPO pipeline 工程成本远高于 RFT，
+而 RFT pilot 已用更便宜的方式探明天花板（净 ~0）。详见 ROADMAP §0′。
+
+### 结论
+"救失败题"的最后一个有实证支撑的候选（bit，pass@16=70%）经 pilot 验证**净增 ~0**。
+**0.85 是「Huikang baseline + LoRA + 固定单次评分」框架的天花板。**

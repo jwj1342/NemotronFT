@@ -1,0 +1,48 @@
+=== crd branch-budget ceiling audit: 659 problems (0 parse-fail) ===
+baseline-correct: 46  baseline-wrong: 613
+
+Per-K table:
+   K     K-solv  K-solv%  wrong&Ksolv  frac659   swap   sign  mul±1  estLBgain  absCryptPts
+   5         32     4.9%           32    0.049     15      3      4     0.0036        4.86p
+  10         57     8.6%           53    0.080     22      4     10     0.0060        8.04p
+  20        116    17.6%          110    0.167     51      9     21     0.0125       16.69p
+
+(swap/sign/mul±1 counts are over the wrong&K-solvable HEADROOM subset)
+
+Distributions:
+branch_width (converging, capped @20): n=438 median=5.0 p90=11 p95=13 max=20 min=1
+min anchor-fact standalone count (capped @20): n=440 median=5.0 p90=10 p95=13 max=20 min=1
+problems that CONVERGE to truth at some width<= 20: 116
+problems that do NOT converge within width<= 20: 543
+
+BEST coverage (abs crypt points over baseline-wrong) at K=20: 16.69p
+VERDICT: worth ONE narrow subset training run (15-25 pts)
+
+Representative branch-solvable baseline-WRONG problems:
+  id=05c36467  branch_width=16  anchor=16  pp=('swap', 'swap', 'swap')
+     answer='%%\\'  op_map={'/': 'mul', '<': 'sub'}  cipher={'#': 8, '&': 3, ']': 6, '(': 7, '"': 2, '`': 0, '$': 1, '%': 4, '\\': 5}
+        In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+        %$<`# = <]]
+        %"/(] = #`]$
+        `$<(( = <(]
+        %"<\& = <$$
+        #&/]( = ###"
+        Now, determine the result for: "&/($
+
+  id=06083e68  branch_width=4  anchor=2  pp=('swap', 'swap', 'swap')
+     answer=':::'  op_map={'*': 'mul', '-': 'sub', '+': 'add'}  cipher={'\\': 2, '^': 4, ':': 7, '!': 3, '$': 5, '<': 8, '>': 1, '`': 6}
+        In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+        !>+^$ = :`
+        \^*:: = ^!\!
+        $^-!$ = -<
+        Now, determine the result for: >\*:!
+
+  id=08111d57  branch_width=1  anchor=1  pp=('swap', 'swap', 'swap')
+     answer=')"'  op_map={'*': 'mul', '+': 'add-1'}  cipher={'?': 2, '"': 6, '(': 9, ':': 5, ']': 4, '>': 7, '^': 1, '&': 8, ')': 3, '$': 0}
+        In Alice's Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+        ](*>^ = &(:^
+        ::+$" = ]^^
+        ?"*"( = ?:(:
+        >^*>) = (?"
+        Now, determine the result for: ^?+)]
+

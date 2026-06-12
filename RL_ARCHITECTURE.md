@@ -2,7 +2,7 @@
 
 > 给 RL 新手。这份文档是 `opd` 分支工作的"全景说明书"——解释我们在做什么、为什么这么做、里面的数学、以及调试时该关注什么。配套阅读：`ROADMAP.md`（战略层）、`ITERATION_REPORT.md`（实测结果与为什么 RL 在 Huikang adapter 上没跑起来）。
 >
-> **注意**：本指南描述的是 RL *设计与计划*。GRPO 在 Huikang adapter 上的实际结果是策略熵塌缩、无梯度信号 —— 详见 `ITERATION_REPORT.md`。要复活 RL，gatekeeper 是改用 **base 模型**（非 adapter）测 rollout 多样性。
+> **注意（2026-06-02 更新）**：本指南描述的是 RL *设计与计划*。GRPO 在 Huikang adapter 上的实际结果是策略熵塌缩、无梯度信号 —— 详见 `ITERATION_REPORT.md`。**RL 当前已搁置**：现行主线是 `ROADMAP.md` §3 路线 A 的**答案过滤自训练（RFT/STaR）**——它是 RL 的离线稳定版本（同样用 verifier 信号，但不依赖在线 rollout 多样性，因此不受熵塌缩阻断）。本文档的价值在于：若 RFT 复用 rollout/采样基础设施，这里的 vLLM rollout、FSDP+PEFT 训练环、JSONL 解耦设计仍是参考。要真正复活在线 RL，gatekeeper 是改用 **base 模型**（非 adapter）测 rollout 多样性。
 
 ---
 

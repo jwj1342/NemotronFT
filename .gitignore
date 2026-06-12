@@ -50,3 +50,19 @@ resource/
 *.key
 *API*.txt
 *.secret
+
+# ── Heavy caches (kagglehub / HF / vLLM compile) ────────────────────────────────
+.cache/
+.hf_home/
+.vllm_cache/
+
+# ── RL / OPD run artifacts (heavy safetensors, rollouts, eval shards) ───────────
+runs/
+training/rl/runs/
+training/opd/runs/
+
+# ── Heavy GENERATED datasets (reproducible from the build scripts) ──────────────
+training/train_cot_v3.csv
+data/crd_sft_train.jsonl
+data/fingerprint_sft.csv
+data/crd_brevity_sft.csv

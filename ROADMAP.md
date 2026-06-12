@@ -1,17 +1,124 @@
-# 分析与路线图
+# 路线图（Roadmap）
 
-> ⚠️ **时效说明（2026-05-30）**：本文档是 RL 路线的*战略论证与计划*，写于 RL 实验**之前**。它的核心预测（"必须做 RL → LB 0.88-0.90"）**未被验证成立**——GRPO 在 Huikang adapter 上因策略熵塌缩没能启动。实测结果与证伪过程见 **`ITERATION_REPORT.md`**。本文档保留作为设计依据（每个 task 的头空间、为什么 RL 是当时的赌注），而非当前状态。
+> **当前版本：2026-06-02。** 本文档取代了上一版「必须做 RL → LB 0.88-0.90」的战略论证——
+> 那个赌注已被 GRPO 实验证伪（策略熵塌缩，无梯度），见 `ITERATION_REPORT.md` §6。
+> 本轮（06-02）进一步证伪了「手写求解器生成 CoT → SFT」整条路线，并通过文献调研
+> 确立了新的候选方向。**旧的 RL 战略论证移到本文末尾 §8 作为历史附录。**
 
-> 基于 `output/huikang-baseline-converted/`（公开 LB **0.85**）在 9500 训练集上的实测结果。grader-aligned 推理（T=0, max_tokens=7680, top_p=1.0, max_model_len=8192），4 shard × 4×L40s vLLM 并行。
+> 基线：`output/huikang-baseline-converted/`（公开 LB **0.85**，9500 自评 **87.79%**）。
+> grader-aligned 推理：T=0, max_tokens=7680, top_p=1.0, max_model_len=8192。
 
-## 1. 逐类成绩（实测 9500）
+---
+
+## 0″. 🏁 最终结论（2026-06-03 bit RFT pilot — 当前最权威，修正下面 §0′ 的乐观）
+
+§0′ 的 pass@k 翻案（bit "可救 70%、+0.2~0.7pp、仅 bit 就够 0.86"）经 RFT pilot **实证修正为
+净增 ~0**。bit RFT pilot（PROBE 262 正确 CoT → SFT → T=0 holdout 三指标，baseline holdout acc 0.71）：
+
+| checkpoint | bit 恢复 | bit 回归 | sentinel 漂移 | 净增（holdout 子集）|
+|---|---|---|---|---|
+| checkpoint-5（甜点, ~0.4ep） | 5 | 2 | 0 | +3 |
+| checkpoint-10 / 15 | 8 / 9 | 11 / 11 | 2 / **15(崩)** | −5 / −17 |
+
+**外推全集**：恢复 8.3%×200≈+17，回归 1.4%×**1402**≈−20 → **净 ≈ 0 或微负**。不值得提交。
+
+**为什么 pass@k 70% 没兑现**：bit 失败题与已对题**共享同一套歧义位先验**，RFT 拉失败题 → 回归
+已对题（**先验耦合**）。已对基数大（1402），1.4% 回归的绝对数（20）吃掉 8.3% 恢复（17）。这是
+结构性的，非调参可解。长 CoT 专项 SFT 过拟合极快（甜点 ~0.4 epoch，之后非 bit sentinel 崩盘）。
+
+**最终判断：0.85 是「Huikang baseline + LoRA + 固定单次评分」框架的天花板。** "救失败题"三条
+候选（SFT 蒸馏 / 手写求解器 / RFT 自训练）全部验证净增 ≤0。+1pp 需换框架——更强 baseline
+（Huikang 0.85 已是公开最强，无来源）或推理时策略（已确认关闭，§5）。
+
+**RL 是否值得回头试**：pass@k 显示 bit 在 T>0 有梯度（pass@1=20%，不像 cryptarithm 熵塌缩），
+故 GRPO 在 bit 上**技术可行**（修正 §8/§6 对 cryptarithm 的"RL 不能启动"）。但 RL 面临与 RFT
+**同样的先验耦合限制**；KL anchor 或许能比 MLE-SFT 更温和地控回归——这是唯一没试过的角度，但
+是未验证的希望，GRPO 工程成本远高于 RFT，而 RFT 已用更便宜方式探明天花板 ~0。详见
+`ITERATION_REPORT.md` §8。
+
+> 下面 §0′（pass@k 翻案）、§0（早间诊断）保留，作完整「诊断 → pass@k → pilot」摆动链的方法论
+> 记录——每一层都被下一层的更强证据修正，核心教训是 **可救性/天花板只能靠 holdout 净收益外推
+> 全集来定，静态求解器估计、pass@k 上界、holdout 子集 acc 都会系统性误导**。
+
+---
+
+## 0′. ⚡ pass@k 实证翻案（2026-06-02 晚 — 已被上方 §0″ 的 pilot 实证修正）
+
+跑了 pass@k 探针（Huikang adapter 对失败题 T=0.9 采样 n=16，每类 50 题）。结果**推翻了 §0 基于
+静态求解器的"bit 不可救 / +0.3pp 上限"结论**：
+
+| 类别 | pass@16 | pass@1 | 含义 |
+|---|---|---|---|
+| **bit_manipulation** | **0.70** | 0.207 | 35/50 失败题能采到正确答案 → **能力受限，RFT 可挖** |
+| equation_numeric_guess | 0.00 | 0 | 采 16 次一次不对 → **死类确认** |
+| cryptarithm_deduce | 0.00 | 0 | 同上 |
+| cryptarithm_guess | 0.00 | 0 | 同上 |
+
+**bit 翻案**：失败题里 pass@16=70%，正确 CoT 是真实 bit-serial 推理（pass@1=20.7% 远高于瞎蒙
+1/256）、26/35 唯一答案 well-posed、中位 6618 token 在 budget 内、20/35 求解器也解对。说明 bit 失败
+大部分是**能力受限**（T=0 贪心选错歧义位，T>0 能算对）——之前静态求解器估的"净救+3/欠约束88%"
+**低估一个数量级**（求解器看不到模型 T>0 能力）。
+
+**Codex 复核结论**：bit RFT 是真实机会，潜在 **+20~70 题（+0.2~0.7pp），仅 bit 一类可能就够冲 0.86**。
+但 pass@16=70% 是 **oracle 上界**，RFT 实际收割 20-50% 未验证；**核心风险=回归**（bit 已对 1402 题，
+回归 3% 掉 42 题可吃掉收益）。
+
+**受控执行方案（Codex）**：① 对全 200 bit 失败题采样确认 pass@k 稳定 + 收集正确 CoT；② 保存已对 bit
+题 T=0 CoT 作 replay + 回归监控；③ 按 prompt 切 train/holdout（同题不跨集）；④ 短 pilot：residual/
+second LoRA、低 LR、少步、频繁 checkpoint；⑤ 每 checkpoint 用 **T=0** 跑三指标（失败恢复 / 已对回归 /
+非 bit sentinel 回归）；⑥ 净收益显著正才批 12h 全量。按 token（非样本）平衡，长度过滤优先非截断短 CoT。
+
+**方法论铁律**：可救性必须用模型自己的 **pass@k 实证**，绝不能用更弱的静态求解器估计——后者在 bit 上
+错了一个数量级。
+
+**修正后的活路排序**：bit RFT（唯一有实证支撑、可能单独够 0.86）＞ 低风险格式修复（+0.1~0.2pp）＞
+其余类（pass@16=0，死）。cryptarithm/numeric_guess 从训练目标剔除。
+
+---
+
+## 0. ⚠️ 早间硬结论（2026-06-02 多 agent 诊断 + 独立对抗验证 + grader 机制核实）
+
+> **注**：下面 (2)(3) 关于 bit "不可救 / +0.3pp 上限"的部分已被上方 §0′ 的 pass@k 实证**推翻**。
+> 保留作为"静态求解器会严重低估可救空间"的方法论记录。(1) grader 关闭、(4) predicted 污染仍成立。
+
+**(1) grader 机制已确认——推理时杠杆确凿关闭。** Kaggle 官方提交格式：提交物是 LoRA
+adapter（rank≤32，submission.zip），主办方**固定 harness** 加载、对每题生成**单个** response、
+提取 \boxed{} 答案。参赛者无法在评分时插入多采样 / best-of-N / self-consistency / TTT。
+CLAUDE.md 记的"T=0 单次"由官方提交格式佐证。→ 本文档之前列为"最高未知"的 grader 多采样杠杆
+= **关闭**；路线 C（TTT / 多采样）正式除名，不再是 +1pp 的门。
+
+**(2) 救失败题的数学上限 ≈ +0.30pp，到不了 0.86。** 三类失败题逐题诊断 + 独立对抗复算：
+诊断给的"可救%"(bit 12 / numeric 12 / cryptarithm 14)经验证**全部高估 2–8 倍**（混淆了
+"原则上可救 recoverable-in-principle"与"无副作用净增 net-extractable"）。真实无副作用净救：
+bit ~3 / numeric ~6–12 / cryptarithm ~4 = **全场合计 12–25 题 = +0.13~0.26pp**（乐观上界 ~+0.30pp）。
+**没有任何单类、也没有三类之和能贡献 +1pp。**
+
+**(3) 失败本质 = 信息论欠约束（方向确认，但比"墙"更细致）。** bit：0/200 题全 8 位唯一确定，
+fan-in≤3 全函数空间唯一率仅 2.9%；用静态先验整体替换模型 = 灾难（FIX 58 / BREAK 500 / 净 −442，
+求解器 59.9% vs 模型 87.5%）。cryptarithm_guess + eq_numeric_guess 主体信息论死（每题 per-op
+独立随机规则，truth 在任意 combo 下 0/120 可达）。**但 Codex 的修正成立**：部分"形式上欠约束"
+的题被模型的隐式先验救了回来（歧义位先验命中 81.3%），所以"不可救"不是绝对，只是**可干净提取的
+边际空间极小**。
+
+**(4) 数据可信度警告：`predicted` 字段被污染。** eval shard 里 1402 道 grader-correct 题中有
+178 道 `predicted != answer` → 该字段不是被评分的最终串（疑似 CoT 末尾的解析噪声）。凡用 predicted
+算的 Hamming / near-miss / BREAK 都被高估。**可信标签只有 `correct`(布尔) 和 `answer`(真值)。**
+
+**总含义**：在「Huikang baseline + LoRA 微调 + 固定单次评分」框架内，0.85→0.86 **数学上做不到**
+（最多到 ~0.852）。真正 +1pp 需要换框架——更强 baseline（但 Huikang 0.85 已是公开最强 adapter，
+我们无更强来源）或推理时策略（已确认关闭）。**现实目标：蚕食式 +0.1~0.3pp + 把 RFT/合成数据
+pipeline 跑通（方法论价值）。** 详见 §3 修正后的方法分流与 §4 pass@k 探针（进行中）。
+
+---
+
+## 1. 当前逐类成绩（实测 9500，仍准确）
 
 | Category | Correct / Total | Acc | 评级 |
 |---|---|---|---|
 | numeral | 1576 / 1576 | **100.00%** | 满分 |
 | unit_conversion | 1591 / 1594 | **99.81%** | 接近满分 |
 | gravity | 1591 / 1597 | **99.62%** | 接近满分 |
-| cipher | 1560 / 1576 | **98.98%** | 接近满分 |
+| cipher（字母替换） | 1560 / 1576 | **98.98%** | 接近满分 |
 | equation_numeric_deduce | 542 / 596 | **90.94%** | 良好 |
 | bit_manipulation | 1402 / 1602 | **87.52%** | 良好但卡 |
 | equation_numeric_guess | 22 / 136 | **16.18%** | ❌ 悬崖 |
@@ -19,284 +126,194 @@
 | cryptarithm_guess | 10 / 164 | **6.10%** | ❌ 悬崖 |
 | **总计** | **8340 / 9500** | **87.79%** | |
 
-总分 87.79% 几乎完美对齐 Huikang writeup 的 87.8%。LB 0.85 与 9500 自评 0.88 的差距来自私测集分布略难，**不是 grader 配置 mismatch**。
+到 0.86 需要整体 +1.0pp。LB 公开最高 0.87；0.90+ 从未出现。
 
-## 2. 现实的 LB 天花板（reality check）
+---
 
-| LB 区间 | 含义 |
-|---------|------|
-| 0.85 | Fork Huikang adapter 直接提交（661 队伍扎堆区） |
-| 0.86-0.87 | **公开 LB 最高**——少数队伍 self-improve |
-| 0.90+ | **从未出现** |
+## 2. 本轮（06-02）确立的核心认知
 
-**关键含义**：cryptarithm 不光我们不会，**全 LB 几百队也没人破解**。换句话说，**大模型本身也不会**——这是整个领域的边界，不是 30B 模型的局限。
+### 2.1 「手写求解器生成 CoT → SFT」是死路（已量化证伪）
 
-## 3. 各 task 弱点定位
+实现了基于 Donald Galliano 组合框架（Kaggle 讨论 #684283）的 cipher-digit / symbol-digit
+求解器，并逐类别对比了**求解器准确率 vs 模型准确率**（用
+`output/eval_full_huikang-baseline-converted_shard*.jsonl` 的 `correct` 字段做交叉表）：
 
-### 🔵 Teacher-can-do（可被蒸馏的）
-
-#### bit_manipulation（87.5%, 头空间 +2.10% LB）
-- 200/1602 题做不出
-- Huikang 已诊断：`(SHL(x) XOR SHR(y)) AND ROT(z)` 类，且 `x+y<8` 让"中间位"依赖 3 个输入位
-- 他的逐位扫描算法在中间位 fallback 到默认 1
-- 长答案 CoT 超过 7680 token budget
-- **本质**：算法 + token 预算问题，不是数据问题
-
-#### equation_numeric_guess（16.2%, 头空间 +1.20% LB）
-- 操作符不在示例里，必须**从输出形式倒推**
-- DeepSeek/Gemini 这种"假设操作符 → 验证"的多 try-then-verify 推理是擅长的
-- **本质**：可蒸馏
-
-### 🔴 Teacher-also-cant-do（蒸馏天花板很低）
-
-#### cryptarithm_deduce（7.0%, 头空间 +6.45% LB）
-- **最大单点潜力，但也是最硬骨头**
-- 形式：`AB cd EF` 中字母 + 数字 + 操作符**全部被加密**
-- 需要联合反推：(letter→digit 映射, op 含义)
-- 大模型实测：GPT-4o/Gemini ~25-30%，reasoning model（R1）40-50% 但 CoT 超 7680 token
-- 蒸馏理论上限 = 25% × transfer_ratio(60%) = 15% → **LB 只能拉到 +0.9%**
-
-#### cryptarithm_guess（6.1%, 头空间 +1.62% LB）
-- 比 deduce 更难（连操作符类型都得猜）
-- Teacher 表现同样烂
-
-### Headroom 汇总
-
-| Task | 待解 | LB 头空间 | 蒸馏可达？ |
+| 类别 | 手写求解器 | 模型 | 用求解器输出 SFT 的净效果 |
 |---|---|---|---|
-| cryptarithm_deduce | 613 | +6.45% | ⚠️ 上限 ~+1% |
-| bit_manipulation | 200 | +2.10% | ✅（但需 token 压缩） |
-| cryptarithm_guess | 154 | +1.62% | ⚠️ 上限 ~+0.4% |
-| equation_numeric_guess | 114 | +1.20% | ✅ ~+0.8% |
-| **算法天花板** | | **+11.4%** | **蒸馏实际能拿 ~+3%** |
+| bit_manipulation | 59.9% | 87.5% | 能教 +58 / **会教错 −500** |
+| equation_numeric_deduce | 39.8% | 90.9% | 能教 +2 / **会教错 −307** |
+| equation_numeric_guess | 0% | 16.2% | 0 / −22 |
+| cipher-digit | ~4% | 7% | — |
 
-> **关键洞察**：cryptarithm 那 6.45% 头空间，**蒸馏只能拿到 1%，剩 5% 必须靠 RL 或算法**。
+**结论**：目标模型（Nemotron + Huikang SFT）已经比我们能快速手写的任何符号求解器都强。
+用更弱的求解器输出去训更强的模型，必然负迁移。这统一解释了 opd-v1/v2 停在 0.85
+（`ITERATION_REPORT.md` §3）和 cryptarithm canary 负迁移的根因。
 
-## 4. 蒸馏（简版）
+> **求解器的正确角色不是生成器，而是验证器/过滤器**——见 §3 路线 A。
 
-适用范围：**equation_numeric_guess + bit_manipulation 部分长答案**
+### 2.2 失败的本质是欠约束（信息论层面），不是可修的 bug
 
-- 数据：DeepSeek-V3 / Gemini 2.5 Pro 给 250-400 个目标题生成 CoT，~$5 API
-- 训练：在 Huikang 0.85 adapter 基础上 continue learning，低 LR 1e-5，1-2 epoch
-- 预计 v7 LB：**0.85 → 0.86-0.87**（与公开榜首持平）
-- 时间：1-2 天
+- **截断只占失败的 3%**（num_tokens≥7600）。绝大多数失败是「完整但错误」的推理。
+- **bit 失败题 154/200（77%）只差 1-2 个 bit**：模型 8 位里对 6-7 位，在欠约束的「歧义位」
+  上按学到的频率先验猜，恰好那一两位生成器用了罕见 gate。bit 纯演绎「全 8 位唯一确定」
+  的题只占 2%（多个 gate 都与样例一致，无法判定 target）。
+- **cipher-digit / cryptarithm 91% 欠约束**：用答案引导的求解器能解 42%（319/823），但
+  忠实性检查显示只有 12%（符号覆盖）/ 4%（纯样例双求解器一致）真正可从样例推出；
+  其中 16 题纯样例求解器解出**不同**答案——证明这些题多解。
 
-**不要把蒸馏当 cryptarithm 的解药**。
+文献直接印证（[2509.01016](https://arxiv.org/html/2509.01016)）：通过少量样例是真规则归纳的
+**弱信号**——45.4% 通过 held-out 样例的程序仍违反真实规则。这就是模型「靠频率先验在欠约束时
+猜测」现象的学术对应。
 
-## 5. 强化学习（重点：唯一能突破 teacher 上限的路径）
+### 2.3 推论：能涨分的题 = 模型「偶尔做对」的边界题
 
-### 5.1 为什么 RL 对 cryptarithm 有效（理论）
+- 纯欠约束题（bit 歧义位、cryptarithm 91%）：模型怎么训也只能猜 → 无解。
+- 已稳定做对的题：无增益。
+- **真正有头空间的是「边界题」**：模型采样时偶尔答对（如 numeric_guess 16%、bit 偶尔蒙对）。
+  强化这些题上「走对路」的概率，是唯一现实的杠杆。其规模需采样统计才知道（见 §4 探针）。
 
-- Verifier `verify(answer, ground_truth)` 是**精确的、零误差的 reward**——比任何 teacher 都准
-- Cryptarithm 答案空间虽然大但**有限**（4 位数 × ~30 op = ~30万候选）
-- Policy 当前已经 7% 解出，意味着**正确推理路径已经在 policy distribution 里**——只是出现概率低
-- RL 把"低概率正确"放大成"高概率正确"，**不需要 teacher 指明正确路径**
+---
 
-这与 SFT/蒸馏的根本区别：
-| Method | 数据来源 | 上限 |
-|--------|---------|------|
-| SFT | teacher 给的正确 CoT | min(teacher capability, student capacity) |
-| **RL** | **verifier signal** | **policy capacity × exploration breadth** |
+## 3. 文献调研指向的新方向（按 ROI 排序）
 
-DeepSeek-R1 / AlphaProof / AlphaGeometry 都靠这个思路突破"teacher 也不会"的任务。
+> 来源：2026-06-02 深度文献调研，27 篇主要文献、对抗验证 24 条断言。完整论文清单见 §7。
 
-### 5.2 RL 目标 (objective)
+### 路线 A（首选）｜答案过滤的自训练 RFT / STaR / ReST-EM
 
-针对每个 task family 独立 RL，最后用 OPD（On-Policy Distillation）整合：
+**核心**：用 Huikang 模型自己（最强求解器）生成大量 CoT，只保留①最终答案正确
+②（用我们已写的求解器/规则检查当**验证器**）推理在所有 in-context 样例上自洽 的链，
+去重最大化 distinct 路径，再 LoRA SFT，迭代几轮。
 
-```
-maximize E_x~D [ E_y~π_θ(·|x) [ R(y, x) ] ] - β · KL(π_θ || π_ref)
-```
+**为什么这条绕过了 §2.1 的死结**：生成器是模型本身，不是弱求解器 → 不存在负迁移来源。
+文献证据最强（STaR/RFT/ReST-EM/V-STaR 四篇全部 3-0 一致），且我们的设定比文献更有利
+（文献用 held-out 单样例过滤，假阳性 45.4%；我们有**真答案**过滤，假阳性低得多）。
 
-- `R(y, x)` = `verify(extract_final_answer(y), ground_truth(x))` ∈ {0, 1}
-- `π_ref` = Huikang 0.85 baseline（frozen）— 防止 policy drift 到通用能力丢失
-- `β` ≈ 0.01-0.1（小，因为 verifier 已经很精确）
+**两条可直接落地的机制性结论**：
+1. **收益来自 distinct（不同）正确路径的数量，不是采样总量**。文献：33B 模型生成 88.7 条
+   正确路径但只有 2.78 条 distinct/题时 RFT **失败**；合并多模型采样把 distinct 从 5.25
+   提到 12.84，GSM8K +13.4pt。→ 高温采样、聚合多变体（如不同 adapter / seed），别只多采。
+2. **忠实性过滤必须用多样例**，不能只看最终答案——否则会强化「答案蒙对但推理错」的链。
+   这里复用我们已写的 `symbol_digit_solver.py` / `cipher_cot_builder.py` 当验证器：检查 CoT
+   推出的规则能否解释**所有**给定样例。
 
-### 5.3 RL 算法选择
+**现实收益边界（务必诚实）**：只能救 §2.3 的边界题，对纯欠约束题无效。净收益是经验问题。
 
-**首选：GRPO**（DeepSeek-R1 用的）
-- 无 value head，省内存
-- Group-relative advantage：每个 prompt 采 G 条 trajectory，advantage = `r - mean(group_r)`
-- 对 sparse reward task 数值稳定
-- 实现复杂度低（比 PPO 简单）
+**所需基础设施（大部分已有）**：venv-vllm 高温采样（rollout.py 可改）、求解器当验证器、
+venv 做 LoRA SFT（train.py + `--resume_adapter_dir`）、canary + 全量 eval 当门槛。
 
-```
-For each batch of K prompts:
-  For each prompt x_i:
-    Sample G trajectories y_i^{1..G} from π_θ
-    Compute rewards r_i^{1..G}
-    advantage_i^g = (r_i^g - mean(r_i)) / std(r_i)
-  loss = -E[ advantage * log π_θ(y|x) ] + β * KL(π_θ || π_ref)
-```
+### 路线 B｜程序合成离线当数据生成器（求解器=验证器）
 
-**备选：RLOO**（REINFORCE leave-one-out）— 比 GRPO 更简单，方差略大
+**核心**：Hypothesis Search / induction-vs-transduction 范式——LLM 生成假设→实现为程序→
+**在样例上验证**。这是精确符号变换（bit/cipher/roman/算术）最强的范式，但它的核心机制
+（运行候选程序验证、大规模采样过滤）是**测试时**机制，与我们「T=0 单次无工具」冲突。
 
-**不选 PPO**——需要 value head，对 sparse reward 训练不稳定
+→ 现实用法是 **离线**：在训练集上跑「大规模采样 + 样例验证 + majority vote」（文献：solve
+rate 随采样预算几乎单调上升，只 9% 假阳性，majority vote 能消掉大半），把验证通过的链
+通过路线 A 的 RFT 蒸馏回模型。本质上是路线 A 的一个更强的数据生成变体。
 
-### 5.4 具体实施方案
+**附带洞察**：induction（归纳规则再应用）与 transduction（直接预测）解决的题大部分**不相交**，
+集成强 → 训练数据里值得同时包含「显式规则 trace」和「直接预测」两种风格。
 
-#### Phase A：Cold start（**条件触发**，不是默认动作）
+### ~~路线 C｜Test-Time Training / 多采样~~ — 已除名（grader 关闭，见 §0）
 
-**冷启动的必要性不取决于"模型会不会做"，而取决于"RL 训练分布下正样本率是否够支撑梯度信号"。**
+TTT 是 ARC 最高天花板技术（6x、61.9%=人类平均），机制上就是 per-instance LoRA 更新。**但
+2026-06-02 已确认**：提交物是固定 adapter，主办方 harness 单次评分，参赛者无法在评分时反向传播
+或多采样。→ TTT / best-of-N / self-consistency **全部不可用**。唯一残留价值：把"多采样共识"
+**离线蒸馏**进 adapter（即 RFT，路线 A），但上限仍受可救空间（§0）限制。
 
-直觉：GRPO 的 advantage = `(r - mean(group_r)) / std(group_r)`。当 group 内大部分 rollout 都是 r=0、偶尔一个 r=1 时，advantage 被噪声主导，policy 学到的可能只是"重复那一条偶然成功的轨迹"而不是真正的能力提升；当全 group 都是 r=0 时，advantage 直接是 0，**没有梯度**。冷启动的唯一作用是把 pass@1 抬到一个让 GRPO 稳定的阈值（经验上 **≥15-20%**）。
+### 路线 D｜欠约束诊断 + 先验重塑（研究性）
 
-**按 task 判断是否需要冷启动**：
+度量模型的规则频率先验，尝试通过 RFT 数据分布**重塑**它（上/下调某些规则族权重），看能否
+在边界题上移动准确率。ConceptSearch 的「按变换概念而非输出相似度排序」可借鉴用于离线候选
+选择。理论参考：贝叶斯程序归纳（Lake 2015）、Solomonoff / MDL 先验。
 
-| Task | 当前 pass@1 | 是否需冷启动 | 理由 |
-|------|------------|------------|------|
-| equation_numeric_guess | 16% | ❌ 不需要 | 已在阈值上，group 内必有 1-2 条正样本，advantage 信号充足 |
-| bit_manipulation（尾部 12%） | 12% | ⚠️ 边界 | 先跑 100 步看 reward 曲线，崩了再加 |
-| cryptarithm_deduce | 7% | ✅ 需要 | 太低，group 大概率全 0，必须先把 pass@1 拉到 ~20% |
-| cryptarithm_guess | 6% | ✅ 需要 | 同上 |
-| 80%+ 的类别（cipher/numeral/gravity 等） | >95% | — | 根本不该进 RL，advantage 几乎全 0，纯浪费算力 |
+### 低风险零碎修复（与主线平行，期望 +0.1~0.2pp）
 
-**关键观察**：对 equation_numeric_guess 而言，冷启动反而**有害**——它会把 policy 拉向 teacher 分布，而 teacher 本身就是瓶颈。RL 的价值正是脱离 teacher 上限，先 SFT 再 RL 等于人为加了天花板。
+只修**非推理**错误：malformed 输出（9 题）、gravity 舍入、截断（3%）。到不了 0.86 但稳、不退步。
 
-**只对 cryptarithm 做冷启动**（按可行性排序）：
+---
 
-**A1. 拒绝采样 self-bootstrap（首选）**
-- 对每个 cryptarithm prompt 用 baseline adapter 采 64 条 T=1.0 trajectory，保留 r=1 的
-- 加上 Huikang 已解的 56 个（46 deduce + 10 guess）做种子
-- 在合并集上 SFT 几百步（数据宁缺毋滥：**只留答案正确 + 长度 < 4K 的 trace**；为了凑量混进低质 trace 会把熵压死，反而损害后续 RL 的探索能力）
-- 目标：pass@1 7% → 20%
-- 优势：不依赖外部 teacher，trace 与 base policy 同分布
+## 4. 推荐的下一步：先做采样探针（不烧 Kaggle 配额）
 
-**A2. 教师蒸馏补充（仅在 A1 数据不够时）**
-- 拒绝采样在 cryptarithm 上能产出多少正样本本身不确定，若 < 200 条，再用 DeepSeek-V3 / Gemini 2.5 Pro 补 200 条
-- 注意 teacher 本身只有 ~25%，蒸馏数据质量上限有限——这里**纯为补 sample size**，不是为传授能力
+在投入路线 A 的完整 RFT 之前，先用 Huikang 模型对各类别失败题**高温采样 n=8**，统计每类
+「至少采到一条正确答案」的比例。这个数字直接给出 RFT 的真实天花板（§2.3 边界题占比）：
 
-**A3. Process reward（远期探索，v9 再做）**
-- 不只验证最终答案，**也验证中间步骤**（字母→数字映射是否对所有示例自洽）
-- 拆 reward 为 `r_total = 0.3*r_mapping + 0.2*r_op + 0.5*r_final`
-- 把 sparse reward 变 dense，理论上可以跳过冷启动
-- 难点：reward 函数工程量大，先做主路径再说
+- 若某类边界题比例高 → 路线 A 在该类有头空间，值得投入。
+- 若接近 0（纯欠约束）→ 该类 RFT 也救不了，不投。
 
-**实操原则**：v8 第一阶段先**不做冷启动**，直接在 equation_numeric_guess 上跑 GRPO，验证 pipeline + 观察 advantage 信噪比。再切 cryptarithm 之前看 100 步 reward 曲线，**崩了/塌缩了再回头加冷启动**；信号意外够就省一步。
+几个 GPU 小时（venv-vllm，sbatch）即可出结果。门槛遵循项目规矩：canary 验证正迁移 →
+本地全量 eval 9500 确认目标类别升、高分类别不退 → 才提交 Kaggle。
 
-#### Phase B：On-policy RL 主训练
+---
 
-- 算法：GRPO
-- 采样：T=1.0, top_p=0.95（探索 enough）
-- Group size G = 8-16
-- Per batch: 16 prompts × 8 trajectory = 128 sequences
-- Update：仅 LoRA 参数，β=0.05 KL penalty
-- 训练 ~500 steps（每 step ~1 min）≈ 8h
+## 5. grader 机制（已确认 2026-06-02，曾是最高杠杆待确认项）
 
-#### Phase C：OPD 整合
+**结论：推理时杠杆全部关闭。** 核实方式：Kaggle 官方提交格式 = LoRA adapter(rank≤32,
+submission.zip)，主办方固定 harness 对每题生成单个 response 提取 boxed；`resource/` 里的
+submission notebook 中那些 `SamplingParams(n=3)` 是参赛者**本地 eval** 用的，不是评分逻辑。
+- 推理时**反向传播 / TTT**：❌ 固定 adapter 单次前向，不可能。
+- **每题多次采样 / best-of-N / self-consistency**：❌ harness 单次评分，无法插入。
+- **程序执行 / 工具调用**：❌ 无工具通道。
+→ 路线 B/C 只能**离线**用（当训练数据生成器 / 蒸馏进 adapter）。这道门的关闭是本轮把
+"+1pp 是否可达"从开放问题变成否定结论的关键一步（见 §0）。
 
-- 每个 task 类别独立 RL 后，得到 N 个 task-specific adapter
-- 用每个 adapter 在 task data 上 sample T=0 greedy → 得到 high-quality on-policy 推理 trajectory
-- 把所有 trajectory 混合，**SFT 一个统一 model**（在 Huikang baseline 上 continue）
-- 好处：避免 multi-task RL 干扰，最终是 SFT 模型（grader 推理稳定）
+---
 
-### 5.5 RL 在 32B 模型上的内存/算力可行性
+## 6. Headroom 汇总（用于优先级）
 
-**单 4×L40s 节点（192 GB 总显存）够吗？**
+| Task | 待解 | 整体头空间 | 现实可达性 |
+|---|---|---|---|
+| cryptarithm_deduce | 613 | +6.45% | 仅 ~4% 可学（91% 欠约束）→ 上限 ~+0.3% |
+| bit_manipulation | 200 | +2.10% | 77% 差 1-2 位欠约束；RFT 只能救边界题 |
+| cryptarithm_guess | 154 | +1.62% | 同 deduce，更难 |
+| equation_numeric_guess | 114 | +1.20% | **最有希望**：无 per-题密码，combo 先验可学，模型已 16% 说明有边界题 |
 
-需要同时驻留：
-- π_θ (policy, FSDP sharded): 32B × 2 bytes / 4 = **16 GB/GPU**
-- π_ref (frozen, FSDP sharded): 同样 **16 GB/GPU**
-- LoRA params: 4 GB total / 4 = **1 GB/GPU**
-- LoRA grads + optim: ~4 GB/GPU
-- Activations + KV cache: ~10 GB/GPU
-- vLLM rollout buffer（generate 阶段）: ~10 GB/GPU
-- **合计 ≈ 57 GB/GPU** > 48 GB ❌
+---
 
-**OOM 解决方案**：
-- (a) Reference 和 policy **共享 base model weights**（PEFT 自然支持——LoRA 加权切换）→ 节省 16 GB/GPU
-- (b) Rollout 用单独的 vLLM 进程（不与训练共存）→ generate 完释放，再切回 train
-- (c) 极端：用 8 GPU（2 节点）
+## 7. 关键论文清单
 
-方案 (a) 单节点可行，是标准 RL on LoRA 做法。
+**自训练 / 拒绝采样（路线 A）**
+- STaR — Zelikman et al. 2022, [arXiv:2203.14465](https://arxiv.org/abs/2203.14465)
+- RFT — Yuan et al. 2023, [arXiv:2308.01825](https://arxiv.org/abs/2308.01825)（distinct-path 机制）
+- ReST-EM — Singh et al. 2023, [arXiv:2312.06585](https://arxiv.org/abs/2312.06585)
+- V-STaR — Hosseini et al. COLM 2024, [arXiv:2402.06457](https://arxiv.org/html/2402.06457v2)
 
-**算力估算**：
-- 1 step GRPO ≈ 16 prompts × 8 trajectory × ~3000 token 生成 ≈ 50秒 generation + 30秒 backward
-- 500 step × 1.5 min = 12.5h 实训练
-- 4×L40s × 12.5h = 50 GPU-hours per task
+**ARC / 程序合成 / TTT（路线 B、C）**
+- Test-Time Training — Akyürek et al. ICML 2025, [arXiv:2411.07279](https://arxiv.org/abs/2411.07279)
+- Induction vs Transduction — Li/Ellis et al. ARC Prize 2024 最佳论文, [arXiv:2411.02272](https://arxiv.org/abs/2411.02272)
+- Hypothesis Search — Wang et al. ICLR 2024, [arXiv:2309.05660](https://arxiv.org/abs/2309.05660)
+- ConceptSearch — Singhal & Shroff AAAI 2025, [arXiv:2412.07322](https://arxiv.org/abs/2412.07322)
+- DreamCoder — Ellis et al. PLDI 2021, [arXiv:2006.08381](https://arxiv.org/abs/2006.08381)
 
-3 个 task（cryptarithm_deduce/guess + equation_guess）= 150 GPU-hours = 2-3 天单节点
+**欠约束归纳 / 先验（路线 D，§2.2 印证）**
+- 规则归纳错误来源分析 — [arXiv:2509.01016](https://arxiv.org/html/2509.01016)（45.4% 假阳性；NeurIPS 2025 workshop，证据中等）
+- Bayesian Program Induction — Lake et al. Science 2015, [aab3050](https://www.science.org/doi/10.1126/science.aab3050)
 
-**vLLM 显存占用警告**：rollout/train alternation 模式下，vLLM `gpu_memory_utilization` 必须降到 **0.3-0.4**（不是 eval 默认的 0.85），否则 FSDP 训练阶段没空间。这是 co-located 模式的硬约束，与 eval-only 场景不同。
+**过程监督 / 长链可靠性**
+- Let's Verify Step by Step — Lightman et al. 2023, [arXiv:2305.20050](https://arxiv.org/abs/2305.20050)
+- Math-Shepherd — [arXiv:2312.08935](https://arxiv.org/abs/2312.08935)
 
-**多 Node 扩展（推荐至少 2 node 起步）**：单 node × 4 L40s 跑完 RL 阶段 2-3 周；多 node 可接近线性加速。
+> 注：LoRA 最佳实践方向（rank/target 选择）无文献断言通过对抗验证，证据弱；以 `CLAUDE.md`
+> 自有硬事实（Mamba in_proj/out_proj 必入 target、rank≤32、SVD 转换 ~25% 有损）为准。
 
-- **FSDP HYBRID_SHARD**：节点内 FULL_SHARD（30B base 切到 4 卡，每卡 ~16GB），节点间纯 DP。**LoRA 梯度跨节点只有 ~几 MB**（不是 30B 全量），万兆网就够，完美避开 L40s "无 NVLink + 跨节点走以太网" 的瓶颈。
-- **vLLM 并发 rollout**：每个 node 跑独立 vLLM TP=4 实例，按 prompt pool 分片。N 个 node = ~N 倍 rollout 吞吐。
-- **Adapter 同步**：训练 phase 写到共享 `/scratch/jwj/NemotronFT/training/rl/runs/<stage>/policy/iter_K+1/`，所有 node 下一轮 rollout 从同一路径 load。
-- **预算**：2 node → ~1.5 周；4 node → ~1 周完成全部 RL stages。
-- **NCCL 注意**：跨 node 通信必须走高速网卡。启动前 export `NCCL_SOCKET_IFNAME=<ib0_or_high_speed_eth>` 和 `NCCL_IB_HCA` (若有 InfiniBand)，否则会 fallback 到管理网千兆口。
+---
 
-**verl 作为 fallback**：手写 GRPO 是 v1 默认（理由：Nemotron-H 混合 Mamba 架构 + `transformers 5.3.0+computecanada` 定制构建，verl 的 auto_wrap 和版本 pin 大概率冲突，集成排雷成本难以预估）。**若 G0/G1 出现性能瓶颈或工程坑超出预期，fallback 是切到 verl 并 patch 架构兼容**，而不是死磕优化自己的实现。两阶段 JSONL 设计让换框架的代价可控——rollout 和 train 之间只通过 JSONL 耦合，verl 也可以消费同样的格式。
+## 8.（历史附录）旧 RL 战略论证 —— 已证伪，仅作设计依据保留
 
-### 5.6 RL 的预期回报与风险
+> 以下是上一版 roadmap 的核心，写于 GRPO 实验**之前**。其核心预测「必须做 RL → LB 0.88-0.90」
+> **未成立**：GRPO 在 Huikang adapter 上因策略熵塌缩无法启动（T=0.95/G=8 每组仅 1.6-1.8 个不同
+> 序列，组内优势≈0，无梯度）。完整证伪见 `ITERATION_REPORT.md` §6，GRPO 数学与 FSDP 工程参考见
+> `RL_ARCHITECTURE.md`。保留要点如下，供将来若重启 RL 时参考。
 
-| Phase | 乐观 | 现实 | 悲观 |
-|-------|------|------|------|
-| equation_guess 直接 RL（无冷启动） | 16% → 50% | 16% → 30% | 16% → 18% |
-| cryptarithm 冷启动 (A1 ± A2) | 7% → 25% | 7% → 18% | 7% → 10% |
-| cryptarithm GRPO 主训练 | 25% → 55% | 18% → 30% | 10% → 12% |
-| LB 提升 | +5% | +2% | +0.5% |
+**当时的论证**：verifier reward 精确无误差 → RL 理论上限 = policy capacity × exploration，
+唯一能突破「teacher 也不会」的 cryptarithm。算法选 GRPO（无 value head，组相对优势）。
+分 task 独立 RL，再 OPD 整合。
 
-**主要风险**：
-1. Cryptarithm 解空间太大，policy entropy 在错误 mode 上塌缩（mode collapse）→ 用 KL penalty + 多 init seed 防
-2. 7680 token budget 限制 RL trajectory 长度，复杂搜索没机会展开 → 训练时强制 token limit 与推理一致
-3. Reward hacking：model 学会"生成看起来像答案的字符串"但实际不验证 → verify() 已经精确匹配，hacking 难
-4. 工程坑：GRPO 实现 + FSDP + LoRA + vLLM rollout 集成是新工程，1-2 周
+**为什么没成立（gatekeeper 结论）**：Huikang 的 SFT 为对齐 T=0 grader 把策略熵压到接近 0，
+恰好抹掉了 GRPO 赖以工作的探索多样性。给 RL 最后一次机会的不训练 gatekeeper 实验是：
+**起点换成 Nemotron base**（剔除 Huikang LoRA），G=16、T=1.2、top_k=64，先测 rollout 统计——
+通过门槛 avg distinct/G ≥ 4 且 mixed-group rate ≥ 10%；不达标则正式放弃 RL。
 
-## 6. Mamba 中间层结构观察
-
-Huikang Tinker 训练时是**所有 MoE expert 共享同一个 LoRA**，提交时 broadcast 到 128 个 expert。我们 v6 是 per-expert 独立 LoRA（参数量大 100×），但**没相应增益**——说明：
-
-- 共享 LoRA 容量已经够用
-- 独立 LoRA 在小数据下反而过拟合
-
-**可平行实验的小设计**：
-
-1. **分段共享**：把 52 层分 4 段，每段内 Mamba LoRA 共享 → 参数量 ÷ 13
-2. **Rank pattern**：浅层 r=16, 中层 r=32, 深层 r=16 → 参数量 ÷ 1.5
-3. **只 LoRA 中后期 Mamba**（layer ≥ 26）→ 参数量 ÷ 2
-
-**判断**：这些是 **0.5-1% 量级的边际优化**，应该和 RL 平行做（不另花算力），但**不是主线**。在 cryptarithm 那 6.45% 头空间面前，Mamba 结构调优是噪音。
-
-## 7. 推荐执行顺序
-
-```
-v7  (1-2 周)
-├── 蒸馏 equation_guess CoT (~$5 API, 4-8 h SFT)        预计 +0.8-1.2% LB
-├── bit_manipulation token-budget 算法重写 (~3 天)       预计 +1-2% LB
-├── Mamba 分段共享 LoRA (平行小实验)                     预计 +0-1% LB
-└── 在 Huikang 0.85 adapter 上 continue learning
-LB 目标: 0.86-0.87 (与公开榜首持平)
-
-v8  (2-3 周, 最关键)
-├── Phase B1: GRPO on equation_numeric_guess (无冷启动, 直接 RL)
-│   └── 验证 pipeline + 观察 advantage 信噪比
-├── Phase A: cryptarithm cold start (仅当 B1 验证 RL 框架 OK 后)
-│   ├── A1 拒绝采样 self-bootstrap (7% → ~20% pass@1)
-│   └── A2 教师补样本 (仅在 A1 数据不足时触发)
-├── Phase B2: GRPO 主训练 (cryptarithm_deduce + guess)
-│   └── 若 100 步内 reward 不动 / std 塌缩, 回退加更强冷启动
-└── Phase C: OPD 整合 (task-specific adapter → 统一 SFT)
-LB 目标: 0.88-0.90 (超越当前公开榜首)
-
-v9  (探索性, 远期)
-├── Process reward 自动化 (A3, 拆 reward 为 mapping/op/final)
-└── 真正的 self-improvement loop
-LB 目标: 0.90+ (未知)
-```
-
-## 8. 总结
-
-| 路径 | 上限 | 唯一性 |
-|------|------|-------|
-| 蒸馏 | 受 teacher 限制 (~+3%) | 不可超越 |
-| 算法 | 受人类灵感限制 | 不可保证 |
-| **RL with verifier** | **理论无限（policy capacity 内）** | **唯一能突破 teacher 上限** |
-| Mamba 结构 | <+1% | 边际 |
-
-**核心结论**：
-- **想达 LB 0.87**（追平公开榜首）：蒸馏 + 算法 + Mamba 小调优足够
-- **想达 LB 0.88+**（超越公开榜首）：**必须做 RL**——这是 cryptarithm 唯一突破口
-
-蒸馏只是给 RL 提供 cold start 的工具，**不是主菜**。RL with verifier 是这个比赛剩下的唯一"未被探索"的高潜力路径，正因为工程门槛高，所以公开 LB 才停在 0.87。
+**与新方向的关系**：路线 A 的 RFT 其实是 RL 的「离线、稳定」版本——同样用 verifier（答案正确性）
+做信号，但不依赖在线 rollout 多样性，因此不受策略熵塌缩的致命阻断。这是从 GRPO 失败中学到的
+方向修正。

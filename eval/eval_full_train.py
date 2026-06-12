@@ -87,6 +87,9 @@ def main() -> None:
                         help="Path to write per-sample predictions JSONL.")
     parser.add_argument("--output_summary", default=None,
                         help="Path to write per-category summary JSON.")
+    parser.add_argument("--save_text", action="store_true",
+                        help="Include full generated raw_text in the per-sample JSONL "
+                             "(for harvesting the model's own correct traces).")
     args = parser.parse_args()
 
     shard_tag = f"_shard{args.shard_index}of{args.shard_total}" if args.shard_total > 1 else ""
@@ -192,7 +195,7 @@ def main() -> None:
             if correct:
                 per_cat[row["category"]]["correct"] += 1
 
-            fout.write(json.dumps({
+            rec = {
                 "id": row["id"],
                 "category": row["category"],
                 "answer": row["answer"],
@@ -200,7 +203,10 @@ def main() -> None:
                 "correct": correct,
                 "num_chars": len(text),
                 "num_tokens": len(output.outputs[0].token_ids),
-            }) + "\n")
+            }
+            if args.save_text:
+                rec["raw_text"] = text
+            fout.write(json.dumps(rec) + "\n")
 
     # Summary
     grand_correct = sum(d["correct"] for d in per_cat.values())
