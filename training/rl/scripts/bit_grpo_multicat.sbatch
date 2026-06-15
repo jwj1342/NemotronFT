@@ -42,6 +42,7 @@ GROUP_SIZE=${GROUP_SIZE:-8}
 TEMP=${TEMP:-1.0}
 BETA=${BETA:-0.02}
 LR=${LR:-5e-6}
+NODROP_FLAG=${NODROP:+--no_drop_zero_std_groups}   # NODROP=1 keeps zero-adv groups as pure KL anchors (Codex bug fix)
 MAXLEN=${MAXLEN:-8192}
 MAX_NUM_SEQS=${MAX_NUM_SEQS:-64}   # KV cache holds ~151x@8192 → 64 fills it, ~2x rollout, no extra mem
 VLLM_CACHE=${VLLM_CACHE:-$PROJECT/.vllm_cache}   # persist torch.compile across jobs (saves ~30s/load)
@@ -172,7 +173,7 @@ PY
                     --rollout_jsonl $ROLL --adapter_dir $CUR --output_dir $NEXT \
                     --lr $LR --beta $BETA --batch_size 1 --grad_acc 8 \
                     --max_steps $STEPS_PER_ITER --max_length $MAXLEN --seed 1234 \
-                    --tb_dir $TB --global_step_offset $OFFSET
+                    --tb_dir $TB --global_step_offset $OFFSET $NODROP_FLAG
         "
     RC=$?; [[ $RC -ne 0 ]] && { echo "[iter $t] train failed rc=$RC"; exit 1; }
     [[ -f "$NEXT/adapter_model.safetensors" ]] || { echo "[iter $t] no adapter produced"; exit 1; }
