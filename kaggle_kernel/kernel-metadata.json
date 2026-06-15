@@ -1,15 +1,15 @@
 {
-  "id": "jwj1342/nemotron-086-lossless-keyrename-method",
-  "title": "Nemotron 0.86: lossless convert + key-rename",
+  "id": "jwj1342/what-moves-nemotron-reasoning-and-what-doesnt",
+  "title": "What moves Nemotron reasoning, and what doesn't",
   "code_file": "open_contribution_notebook.ipynb",
   "language": "python",
   "kernel_type": "notebook",
-  "is_private": "true",
+  "is_private": "false",
   "enable_gpu": "false",
   "enable_tpu": "false",
   "enable_internet": "false",
   "dataset_sources": [],
-  "competition_sources": ["nvidia-nemotron-model-reasoning-challenge"],
+  "competition_sources": [],
   "kernel_sources": [],
   "model_sources": ["kienngx/nemotron-nano-30b-trained/triton/tinker-adapter/1"]
 }
