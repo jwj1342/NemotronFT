@@ -1,0 +1,15 @@
+{
+  "id": "jwj1342/nemotron-086-lossless-keyrename-method",
+  "title": "Nemotron 0.86: lossless convert + key-rename",
+  "code_file": "open_contribution_notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_tpu": "false",
+  "enable_internet": "false",
+  "dataset_sources": [],
+  "competition_sources": ["nvidia-nemotron-model-reasoning-challenge"],
+  "kernel_sources": [],
+  "model_sources": ["kienngx/nemotron-nano-30b-trained/triton/tinker-adapter/1"]
+}

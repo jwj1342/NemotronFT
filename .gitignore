@@ -69,3 +69,5 @@ data/crd_brevity_sft.csv
 
 # ── Scratch prompts for Codex consult/review (throwaway) ────────────────────────
 .codex_*_prompt.md
+# Kaggle kernel push dir — keep metadata, ignore the duplicated notebook
+kaggle_kernel/*.ipynb
