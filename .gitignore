@@ -66,3 +66,6 @@ training/train_cot_v3.csv
 data/crd_sft_train.jsonl
 data/fingerprint_sft.csv
 data/crd_brevity_sft.csv
+
+# ── Scratch prompts for Codex consult/review (throwaway) ────────────────────────
+.codex_*_prompt.md
