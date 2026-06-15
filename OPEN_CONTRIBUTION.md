@@ -4,11 +4,29 @@
 *Target model: `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` (32B MoE, hybrid Mamba–Transformer, `nemotron_h`).*
 *Grader: a fixed LoRA adapter (`max_lora_rank=32`), evaluated in a single greedy (T=0) pass, `max_tokens=7680`, `max_model_len=8192`.*
 
+### What this contributes
+
+A large fraction of the leaderboard sits at exactly 0.86 — the score of the public
+adapter. The interesting question is therefore not "how do you get to 0.86" but
+**"what is the *boundary* of 0.86, and why is it so hard to cross?"** This writeup is a
+rigorous, **leaderboard-validated** answer, and it offers two reusable things to anyone
+fine-tuning Nemotron:
+
+1. **A reproducible recipe that captures the *full* gain available from the public
+   adapter** — a lossless conversion + a one-line LoRA key-rename that many teams at
+   0.86 likely left partly on the table (the lossy path scores 0.85). The notebook
+   rebuilds the exact file-submittable 0.86 artifact from public inputs (§1).
+2. **A falsification map of the 0.86 ceiling**: ~12 distinct LB submissions across
+   SFT-distillation, GRPO, RFT, STaR, model-soup, and delta-extrapolation, plus a
+   **methodology** (`holdout-net-gain`) that predicts the LB where every cheaper proxy
+   *misleads* — including a holdout metric we show is **anti-correlated** with the LB.
+   This is the part that saves the next team GPU-weeks: it says precisely which doors
+   are already closed, and how to tell (§2–§6).
+
 > All numbers are grader-aligned (T=0) — either local evals on the 9500-problem
 > training set (or its 2375-problem shard-0), or **public-leaderboard (LB) scores**,
-> labelled as such. The training/eval/RL code, per-experiment logs, and the
-> file-submittable 0.86 recipe are in the repository (`ITERATION_REPORT.md`,
-> `ROADMAP.md`, `RL_ARCHITECTURE.md`, `training/rl/`).
+> labelled as such. Training/eval/RL code, per-experiment logs, and the recipe are in
+> the repository (`ITERATION_REPORT.md`, `ROADMAP.md`, `RL_ARCHITECTURE.md`, `training/rl/`).
 
 ## TL;DR for the next competitor
 
